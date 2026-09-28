@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../data/store';
+import { useToast } from '../components/Toast';
+import { Avatar } from '../components/Avatar';
 import { t } from '../i18n';
 import { Button, Select, Input, Dialog } from '../components/DesignSystem';
 import { Shield, FileText, Trash2, Download, Edit3, HeadphonesIcon } from 'lucide-react';
@@ -10,25 +12,23 @@ interface ProfilePageProps {
 
 export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
   const { state } = useApp();
+  const { showToast } = useToast();
   const lang = state.language;
   const user = state.user;
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
 
   if (!user) return null;
-
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  };
 
   return (
     <div className="px-5 pt-6 pb-28 space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">{t('profile.title', lang)}</h1>
-        <p className="text-sm text-text-secondary mt-1">{user.displayName} · {user.phone}</p>
+      <div className="flex items-center gap-4">
+        <Avatar name={user.displayName} size="lg" />
+        <div>
+          <h1 className="text-xl font-bold text-text-primary">{user.displayName}</h1>
+          <p className="text-sm text-text-secondary mt-0.5">{user.phone}</p>
+        </div>
       </div>
 
       {/* Quick Actions */}
@@ -124,13 +124,6 @@ export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
         </div>
       </section>
 
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-24 start-5 end-5 bg-text-primary text-text-inverse rounded-xl p-4 shadow-lg text-center text-sm slide-up z-50" role="status" aria-live="polite">
-          {toast}
-        </div>
-      )}
-
       {/* Export Dialog */}
       <Dialog
         open={showExportDialog}
@@ -138,7 +131,7 @@ export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
         title={t('profile.exportData', lang)}
         actions={<>
           <Button variant="secondary" onClick={() => setShowExportDialog(false)}>{t('common.cancel', lang)}</Button>
-          <Button variant="primary" onClick={() => { setShowExportDialog(false); showToast(lang === 'ar' ? 'سيتم إرسال بياناتك عبر البريد.' : 'Your data will be sent via email.'); }}>{t('common.confirm', lang)}</Button>
+          <Button variant="primary" onClick={() => { setShowExportDialog(false); showToast('success', lang === 'ar' ? 'سيتم إرسال بياناتك عبر البريد.' : 'Your data will be sent via email.'); }}>{t('common.confirm', lang)}</Button>
         </>}
       >
         <p className="text-sm text-text-secondary">
@@ -153,7 +146,7 @@ export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
         title={t('profile.deleteData', lang)}
         actions={<>
           <Button variant="secondary" onClick={() => setShowDeleteDialog(false)}>{t('common.cancel', lang)}</Button>
-          <Button variant="danger" onClick={() => { setShowDeleteDialog(false); showToast(lang === 'ar' ? 'تم استلام طلب الحذف.' : 'Deletion request received.'); }}>{t('common.confirm', lang)}</Button>
+          <Button variant="danger" onClick={() => { setShowDeleteDialog(false); showToast('success', lang === 'ar' ? 'تم استلام طلب الحذف.' : 'Deletion request received.'); }}>{t('common.confirm', lang)}</Button>
         </>}
       >
         <p className="text-sm text-text-secondary mb-3">

@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../data/store';
+import { useToast } from '../components/Toast';
 import { t } from '../i18n';
-import { StatusPanel, StatusBadge, Button, Dialog, MaterialChangeBanner } from '../components/DesignSystem';
+import { StatusPanel, StatusBadge, Button, MaterialChangeBanner } from '../components/DesignSystem';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { MyPlansPageSkeleton } from '../components/LoadingSkeleton';
 import { Calendar } from 'lucide-react';
 
 interface MyPlansPageProps {
@@ -12,10 +15,21 @@ interface MyPlansPageProps {
 
 export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback }: MyPlansPageProps) {
   const { state, dispatch } = useApp();
+  const { showToast } = useToast();
   const lang = state.language;
   const [cancelDialog, setCancelDialog] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const userReservations = state.reservations.filter(r => r.participantId === 'user-1');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <MyPlansPageSkeleton />;
+  }
 
   const actionRequired = userReservations.filter(r => r.state === 'reconfirmation_required' || r.state === 'offered');
   const upcoming = userReservations.filter(r => ['confirmed', 'reconfirmed'].includes(r.state));
@@ -28,7 +42,13 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback }:
   const getNextAction = (reservation: typeof userReservations[0]) => {
     switch (reservation.state) {
       case 'reconfirmation_required':
-        return { label: t('plans.reconfirm', lang), action: () => dispatch({ type: 'RECONFIRM_RESERVATION', payload: reservation.id }) };
+        return {
+          label: t('plans.reconfirm', lang),
+          action: () => {
+            dispatch({ type: 'RECONFIRM_RESERVATION', payload: reservation.id });
+            showToast('success', lang === 'ar' ? 'تم تأكيد حضورك' : 'Attendance confirmed');
+          }
+        };
       case 'confirmed':
       case 'reconfirmed':
         return { label: t('arrival.title', lang), action: () => onGoToArrival(reservation.planId) };
@@ -134,27 +154,26 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback }:
         </div>
       )}
 
-      {/* Cancel Dialog */}
-      <Dialog
+      {/* Cancel Confirmation */}
+      <ConfirmDialog
         open={!!cancelDialog}
         onClose={() => setCancelDialog(null)}
+        onConfirm={() => {
+          if (cancelDialog) {
+            dispatch({ type: 'CANCEL_RESERVATION', payload: cancelDialog });
+            showToast('success', lang === 'ar' ? 'تم إلغاء الحجز' : 'Booking cancelled');
+            setCancelDialog(null);
+          }
+        }}
         title={t('plans.cancelPlan', lang)}
-        actions={<>
-          <Button variant="secondary" onClick={() => setCancelDialog(null)}>{t('common.cancel', lang)}</Button>
-          <Button variant="danger" onClick={() => {
-            if (cancelDialog) {
-              dispatch({ type: 'CANCEL_RESERVATION', payload: cancelDialog });
-              setCancelDialog(null);
-            }
-          }}>{lang === 'ar' ? 'إلغاء الحجز' : 'Cancel booking'}</Button>
-        </>}
-      >
-        <p className="text-sm text-text-secondary">
-          {lang === 'ar'
+        message={
+          lang === 'ar'
             ? 'هل أنت متأكد من إلغاء حجزك؟ قد لا يكون الاسترداد متاحاً.'
-            : 'Are you sure you want to cancel this booking? Refunds may not be available.'}
-        </p>
-      </Dialog>
+            : 'Are you sure you want to cancel this booking? Refunds may not be available.'
+        }
+        confirmLabel={lang === 'ar' ? 'إلغاء الحجز' : 'Cancel booking'}
+        variant="danger"
+      />
     </div>
   );
 }

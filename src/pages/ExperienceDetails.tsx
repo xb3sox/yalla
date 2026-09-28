@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../data/store';
+import { useToast } from '../components/Toast';
 import { t } from '../i18n';
 import { Button, PriceSummary, Timeline, Dialog, SyntheticPaymentLabel } from '../components/DesignSystem';
 import { ArrowLeft, Clock, MapPin, Users, Globe, Shield, CheckCircle, ChevronDown } from 'lucide-react';
@@ -12,6 +13,7 @@ interface ExperienceDetailsPageProps {
 
 export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: ExperienceDetailsPageProps) {
   const { state, dispatch } = useApp();
+  const { showToast } = useToast();
   const lang = state.language;
   const experience = state.experiences.find(e => e.id === experienceId);
   const [showBookingDialog, setShowBookingDialog] = useState(false);
@@ -44,6 +46,13 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
         idempotencyKey: `idem-${Date.now()}`,
       };
       dispatch({ type: 'ADD_RESERVATION', payload: newReservation });
+      
+      if (isFull) {
+        showToast('info', lang === 'ar' ? 'تم إضافتك إلى قائمة الانتظار' : "You've been added to the waitlist");
+      } else {
+        showToast('success', lang === 'ar' ? 'تم حجزك بنجاح!' : 'Booking confirmed!');
+      }
+      
       setBookingState(isFull ? 'waitlisted' : 'success');
     }, 1200);
   };
@@ -222,9 +231,15 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
         )}
         {bookingState === 'success' && (
           <div className="text-center py-6">
-            <div className="w-14 h-14 rounded-full bg-success-bg flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-7 h-7 text-success" />
+            <div className="relative w-20 h-20 mx-auto mb-4">
+              <div className="absolute inset-0 bg-success/20 rounded-full animate-ping" />
+              <div className="relative w-20 h-20 rounded-full bg-success-bg flex items-center justify-center">
+                <CheckCircle className="w-10 h-10 text-success" />
+              </div>
             </div>
+            <h3 className="text-lg font-bold text-text-primary mb-2">
+              {lang === 'ar' ? 'تم الحجز بنجاح!' : 'Booking Confirmed!'}
+            </h3>
             <p className="text-sm text-text-secondary mb-5">{t('booking.success', lang)}</p>
             <Button variant="primary" className="w-full" onClick={() => { setShowBookingDialog(false); onBookSuccess(); }}>
               {t('nav.myPlans', lang)}
@@ -233,9 +248,15 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
         )}
         {bookingState === 'waitlisted' && (
           <div className="text-center py-6">
-            <div className="w-14 h-14 rounded-full bg-info-bg flex items-center justify-center mx-auto mb-4">
-              <Clock className="w-7 h-7 text-info" />
+            <div className="relative w-20 h-20 mx-auto mb-4">
+              <div className="absolute inset-0 bg-info/20 rounded-full animate-pulse" />
+              <div className="relative w-20 h-20 rounded-full bg-info-bg flex items-center justify-center">
+                <Clock className="w-10 h-10 text-info" />
+              </div>
             </div>
+            <h3 className="text-lg font-bold text-text-primary mb-2">
+              {lang === 'ar' ? 'أنت في قائمة الانتظار' : "You're on the Waitlist"}
+            </h3>
             <p className="text-sm text-text-secondary mb-5">{t('booking.waitlisted', lang)}</p>
             <Button variant="primary" className="w-full" onClick={() => { setShowBookingDialog(false); onBookSuccess(); }}>
               {t('nav.myPlans', lang)}

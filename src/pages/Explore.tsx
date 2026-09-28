@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
 import { useApp } from '../data/store';
 import { t } from '../i18n';
 import { ExperienceCard, EmptyState, Button } from '../components/DesignSystem';
+import { ExplorePageSkeleton } from '../components/LoadingSkeleton';
 
 interface ExplorePageProps {
   onSelectExperience: (id: string) => void;
@@ -9,7 +11,17 @@ interface ExplorePageProps {
 export function ExplorePage({ onSelectExperience }: ExplorePageProps) {
   const { state } = useApp();
   const lang = state.language;
+  const [isLoading, setIsLoading] = useState(true);
   const publishedExperiences = state.experiences.filter(e => e.planState === 'published');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <ExplorePageSkeleton />;
+  }
 
   return (
     <div className="px-5 pt-4 pb-28">

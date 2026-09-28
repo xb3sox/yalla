@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './data/store';
+import { ToastProvider } from './components/Toast';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { t } from './i18n';
 import { ExplorePage } from './pages/Explore';
 import { ExperienceDetailsPage } from './pages/ExperienceDetails';
@@ -163,8 +165,12 @@ function NavButton({ icon, label, active, onClick, badge }: {
 
 export default function App() {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <AppProvider>
+          <AppContent />
+        </AppProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }

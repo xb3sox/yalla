@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../data/store';
+import { useToast } from '../components/Toast';
 import { t } from '../i18n';
 import { Button, ArrivalAction, Dialog } from '../components/DesignSystem';
 import { ArrowLeft, MapPin, Clock, User, Shield, Wifi, Navigation, CheckCircle, AlertTriangle, HelpCircle } from 'lucide-react';
@@ -11,6 +12,7 @@ interface ArrivalModePageProps {
 
 export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) {
   const { state } = useApp();
+  const { showToast } = useToast();
   const lang = state.language;
   const experience = state.experiences.find(e => e.id === experienceId);
   const reservation = state.reservations.find(r => r.planId === experienceId && ['confirmed', 'reconfirmed'].includes(r.state));
@@ -44,6 +46,16 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
 
   const submitAction = () => {
     setActionSubmitted(true);
+    
+    const messages = {
+      here: lang === 'ar' ? 'تم إشعار المضيف بوصولك' : 'Host notified of your arrival',
+      late: lang === 'ar' ? 'تم إشعار المضيف بتأخرك' : 'Host notified you\'ll be late',
+      cantFind: lang === 'ar' ? 'تواصل فريق يلا معك للمساعدة' : 'Yalla team is reaching out to help',
+      help: lang === 'ar' ? 'فريق يلا سيتواصل معك قريباً' : 'Yalla team will contact you soon',
+    };
+    
+    showToast('success', messages[actionDialog as keyof typeof messages] || messages.help);
+    
     setTimeout(() => { setActionDialog(null); setActionSubmitted(false); }, 2000);
   };
 

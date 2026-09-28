@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../data/store';
+import { useToast } from '../components/Toast';
 import { t } from '../i18n';
 import { Button, Textarea } from '../components/DesignSystem';
 import { ArrowLeft } from 'lucide-react';
@@ -12,6 +13,7 @@ interface FeedbackPageProps {
 
 export function FeedbackPage({ reservationId, onBack, onBookAnother }: FeedbackPageProps) {
   const { state, dispatch } = useApp();
+  const { showToast } = useToast();
   const lang = state.language;
   const reservation = state.reservations.find(r => r.id === reservationId);
   const experience = reservation ? state.experiences.find(e => e.id === reservation.planId) : null;
@@ -48,6 +50,7 @@ export function FeedbackPage({ reservationId, onBack, onBookAnother }: FeedbackP
         createdAt: new Date().toISOString(),
       },
     });
+    showToast('success', lang === 'ar' ? 'شكراً لملاحظاتك!' : 'Thank you for your feedback!');
     setSubmitted(true);
   };
 

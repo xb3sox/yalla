@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../data/store';
+import { useToast } from '../components/Toast';
 import { t } from '../i18n';
 import { Button, Textarea, Select } from '../components/DesignSystem';
 import { ArrowLeft, AlertTriangle, Shield, Ban, Phone, CheckCircle } from 'lucide-react';
@@ -10,6 +11,7 @@ interface SupportPageProps {
 
 export function SupportPage({ onBack }: SupportPageProps) {
   const { state, dispatch } = useApp();
+  const { showToast } = useToast();
   const lang = state.language;
   const [mode, setMode] = useState<'menu' | 'help' | 'report' | 'block'>('menu');
   const [reportType, setReportType] = useState('');
@@ -31,6 +33,14 @@ export function SupportPage({ onBack }: SupportPageProps) {
         createdAt: new Date().toISOString(),
       },
     });
+    
+    const messages = {
+      help: lang === 'ar' ? 'تم إرسال طلب المساعدة' : 'Help request submitted',
+      report: lang === 'ar' ? 'تم إرسال البلاغ' : 'Report submitted',
+      block: lang === 'ar' ? 'تم الحظر بنجاح' : 'User blocked successfully',
+    };
+    
+    showToast('success', messages[mode as keyof typeof messages] || messages.help);
     setSubmitted(true);
   };
 
