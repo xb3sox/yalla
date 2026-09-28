@@ -41,8 +41,14 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
         <div className="h-full bg-brand-500 transition-all duration-500 ease-out" style={{ width: `${Math.min(progress * 100, 100)}%` }} />
       </div>
 
-      {/* Logo */}
-      <div className="flex items-center justify-center pt-16 pb-10">
+      {/* Logo + Illustration */}
+      <div className="flex flex-col items-center pt-12 pb-8">
+        <img
+          src="https://image.qwenlm.ai/generated-images/ad0e75be-481f-4009-9dcf-f6b162c82f9d/_result.png"
+          alt=""
+          className="w-48 h-48 object-contain mb-4 opacity-90"
+          aria-hidden="true"
+        />
         <div className="flex items-center gap-2.5">
           <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center">
             <span className="text-white font-bold text-lg">Y</span>

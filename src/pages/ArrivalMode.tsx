@@ -117,7 +117,7 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
         {experience.accessibility && (
           <section className="bg-surface-raised rounded-xl border border-border p-4">
             <div className="flex items-start gap-3">
-              <Shield className="w-4.5 h-4.5 text-text-tertiary mt-0.5" />
+              <Shield className="w-5 h-5 text-text-tertiary mt-0.5" />
               <div>
                 <p className="text-xs text-text-tertiary mb-0.5">{t('arrival.accessibilityNotes', lang)}</p>
                 <p className="text-sm text-text-secondary">{lang === 'ar' ? experience.accessibilityAr : experience.accessibility}</p>

@@ -1,7 +1,6 @@
 import { useApp } from '../data/store';
 import { t } from '../i18n';
-import { ExperienceCard, EmptyState } from '../components/DesignSystem';
-import { Compass } from 'lucide-react';
+import { ExperienceCard, EmptyState, Button } from '../components/DesignSystem';
 
 interface ExplorePageProps {
   onSelectExperience: (id: string) => void;
@@ -33,9 +32,21 @@ export function ExplorePage({ onSelectExperience }: ExplorePageProps) {
         </div>
       ) : (
         <EmptyState
-          icon={<Compass className="w-10 h-10" />}
+          icon={
+            <img
+              src="https://image.qwenlm.ai/generated-images/27a5e16f-a66f-4bb8-89c3-f7823cc38f8e/_result.png"
+              alt=""
+              className="w-32 h-32 object-contain opacity-80"
+              aria-hidden="true"
+            />
+          }
           title={t('explore.empty', lang)}
           description={lang === 'ar' ? 'جرب تغيير تفضيلاتك للعثور على تجارب.' : 'Try adjusting your preferences to find experiences.'}
+          action={
+            <Button variant="secondary" size="sm">
+              {t('explore.emptyAction', lang)}
+            </Button>
+          }
         />
       )}
     </div>

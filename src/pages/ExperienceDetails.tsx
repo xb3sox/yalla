@@ -48,22 +48,16 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
     }, 1200);
   };
 
-  // Refined gradient
-  const palettes = [
-    { from: '#14736A', to: '#0B3A35' },
-    { from: '#8B6914', to: '#4A3808' },
-    { from: '#4A5568', to: '#1A202C' },
-  ];
-  const idx = parseInt(experience.id.replace('exp-', '')) % 3;
-  const palette = palettes[idx];
-
   return (
     <div className="min-h-screen bg-surface">
-      {/* Hero — immersive but clean */}
-      <div
-        className="relative h-64 flex flex-col justify-end p-5"
-        style={{ background: `linear-gradient(160deg, ${palette.from}, ${palette.to})` }}
-      >
+      {/* Hero — immersive with real image */}
+      <div className="relative h-72 overflow-hidden">
+        <img
+          src={experience.imageUrl}
+          alt={lang === 'ar' ? experience.titleAr : experience.title}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
         <button
           onClick={onBack}
           className="absolute top-4 start-4 w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 transition-colors"
@@ -71,12 +65,14 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
         >
           <ArrowLeft className="w-5 h-5 flip-rtl" />
         </button>
-        <h1 className="text-2xl font-bold text-white leading-tight drop-shadow-sm">
-          {lang === 'ar' ? experience.titleAr : experience.title}
-        </h1>
-        <p className="text-white/80 text-sm mt-1.5">
-          {experience.date} · {experience.time} · {experience.duration}
-        </p>
+        <div className="absolute bottom-0 start-0 end-0 p-5">
+          <h1 className="text-2xl font-bold text-white leading-tight drop-shadow-md">
+            {lang === 'ar' ? experience.titleAr : experience.title}
+          </h1>
+          <p className="text-white/80 text-sm mt-1.5">
+            {experience.date} · {experience.time} · {experience.duration}
+          </p>
+        </div>
       </div>
 
       {/* Content */}
@@ -162,7 +158,7 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
 
         {/* Venue release — important notice */}
         <div className="rounded-xl bg-surface-sunken p-4 flex items-start gap-3">
-          <MapPin className="w-4.5 h-4.5 text-text-tertiary mt-0.5 flex-shrink-0" />
+          <MapPin className="w-5 h-5 text-text-tertiary mt-0.5 flex-shrink-0" />
           <div>
             <p className="text-sm font-medium text-text-primary">{t('details.venueRelease', lang)}</p>
             <p className="text-xs text-text-tertiary mt-0.5">{t('details.venueReleaseText', lang)}</p>

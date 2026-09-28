@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, ReactNode } from 'react';
-import type { Language, Role, Experience, Reservation, Plan, UserProfile, SupportRequest, Feedback, Notification } from '../types';
+import type { Language, Role, Experience, Reservation, UserProfile, SupportRequest, Feedback, Notification } from '../types';
 
 // Mock Experiences
 export const mockExperiences: Experience[] = [
@@ -43,7 +43,7 @@ export const mockExperiences: Experience[] = [
     requirementsAr: ['يجب أن يكون العمر ١٨+', 'الراحة في المشي ١.٥ كم'],
     cancellationSummary: 'Free cancellation up to 24 hours before. Within 24 hours, no refund.',
     cancellationSummaryAr: 'إلغاء مجاني حتى ٢٤ ساعة قبل. خلال ٢٤ ساعة، لا استرداد.',
-    imageUrl: '',
+    imageUrl: 'https://image.qwenlm.ai/generated-images/d7ce82c3-30c8-4a95-b790-683a48175a2e/_result.png',
     planState: 'published',
     capacity: 8,
     booked: 5,
@@ -93,7 +93,7 @@ export const mockExperiences: Experience[] = [
     requirementsAr: ['يجب أن يكون العمر ١٨+'],
     cancellationSummary: 'Free cancellation up to 48 hours before.',
     cancellationSummaryAr: 'إلغاء مجاني حتى ٤٨ ساعة قبل.',
-    imageUrl: '',
+    imageUrl: 'https://image.qwenlm.ai/generated-images/c70a465d-0bec-4482-8dee-15d625583e27/_result.png',
     planState: 'published',
     capacity: 6,
     booked: 4,
@@ -143,7 +143,7 @@ export const mockExperiences: Experience[] = [
     requirementsAr: ['يجب أن يكون العمر ١٨+', 'الراحة في الجلوس على مستوى الأرض', 'القدرة على التعامل مع درجات حرارة الصحراء المسائية'],
     cancellationSummary: 'Free cancellation up to 72 hours before. 50% refund within 72-24 hours.',
     cancellationSummaryAr: 'إلغاء مجاني حتى ٧٢ ساعة قبل. استرداد ٥٠٪ خلال ٧٢-٢٤ ساعة.',
-    imageUrl: '',
+    imageUrl: 'https://image.qwenlm.ai/generated-images/42b2b068-6a16-4b08-b069-fdd2050bc5dd/_result.png',
     planState: 'published',
     capacity: 12,
     booked: 10,

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../data/store';
 import { t } from '../i18n';
 import { Button, Textarea } from '../components/DesignSystem';
-import { CheckCircle, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 interface FeedbackPageProps {
   reservationId: string;
@@ -54,9 +54,12 @@ export function FeedbackPage({ reservationId, onBack, onBookAnother }: FeedbackP
   if (submitted) {
     return (
       <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 rounded-full bg-success-bg flex items-center justify-center mb-5">
-          <CheckCircle className="w-8 h-8 text-success" />
-        </div>
+        <img
+          src="https://image.qwenlm.ai/generated-images/7d694f15-4dbf-4657-a666-fbcb38ba75c3/_result.png"
+          alt=""
+          className="w-40 h-40 object-contain mb-4"
+          aria-hidden="true"
+        />
         <h2 className="text-xl font-bold text-text-primary mb-2">{t('feedback.thankYou', lang)}</h2>
         <p className="text-sm text-text-secondary mb-8 max-w-xs">
           {lang === 'ar' ? 'ملاحظاتك خاصة ولن تُشارك مع الآخرين.' : 'Your feedback is private and will not be shared with other participants.'}
@@ -139,7 +142,7 @@ function YesNoQuestion({ label, value, onChange, lang }: {
   label: string;
   value: boolean | null;
   onChange: (v: boolean) => void;
-  lang: string;
+  lang: 'en' | 'ar';
 }) {
   return (
     <div className="bg-surface-raised rounded-xl border border-border p-5">
@@ -152,7 +155,7 @@ function YesNoQuestion({ label, value, onChange, lang }: {
           }`}
           aria-pressed={value === true}
         >
-          {t('common.yes', lang as 'en' | 'ar')}
+          {t('common.yes', lang)}
         </button>
         <button
           onClick={() => onChange(false)}
@@ -161,7 +164,7 @@ function YesNoQuestion({ label, value, onChange, lang }: {
           }`}
           aria-pressed={value === false}
         >
-          {t('common.no', lang as 'en' | 'ar')}
+          {t('common.no', lang)}
         </button>
       </div>
     </div>

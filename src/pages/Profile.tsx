@@ -38,7 +38,7 @@ export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
           className="w-full flex items-center gap-3.5 p-4 bg-surface-raised rounded-xl border border-border hover:bg-surface-sunken transition-colors text-start"
         >
           <div className="w-9 h-9 rounded-full bg-brand-50 flex items-center justify-center">
-            <HeadphonesIcon className="w-4.5 h-4.5 text-brand-600" />
+            <HeadphonesIcon className="w-5 h-5 text-brand-600" />
           </div>
           <span className="text-sm font-medium text-text-primary flex-1">{t('support.title', lang)}</span>
         </button>
@@ -82,21 +82,21 @@ export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
             onClick={() => setShowExportDialog(true)}
             className="w-full flex items-center gap-3.5 p-4 hover:bg-surface-sunken transition-colors text-start"
           >
-            <Download className="w-4.5 h-4.5 text-text-tertiary" />
+            <Download className="w-5 h-5 text-text-tertiary" />
             <div className="flex-1">
               <p className="text-sm font-medium text-text-primary">{t('profile.exportData', lang)}</p>
               <p className="text-xs text-text-tertiary mt-0.5">{lang === 'ar' ? 'JSON' : 'Machine-readable format'}</p>
             </div>
           </button>
           <button className="w-full flex items-center gap-3.5 p-4 hover:bg-surface-sunken transition-colors text-start">
-            <Edit3 className="w-4.5 h-4.5 text-text-tertiary" />
+            <Edit3 className="w-5 h-5 text-text-tertiary" />
             <p className="text-sm font-medium text-text-primary flex-1">{t('profile.correctData', lang)}</p>
           </button>
           <button
             onClick={() => setShowDeleteDialog(true)}
             className="w-full flex items-center gap-3.5 p-4 hover:bg-accent-50 transition-colors text-start"
           >
-            <Trash2 className="w-4.5 h-4.5 text-accent-500" />
+            <Trash2 className="w-5 h-5 text-accent-500" />
             <p className="text-sm font-medium text-accent-600 flex-1">{t('profile.deleteData', lang)}</p>
           </button>
         </div>
@@ -107,11 +107,11 @@ export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
         <h2 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">{lang === 'ar' ? 'قانوني' : 'Legal'}</h2>
         <div className="bg-surface-raised rounded-xl border border-border divide-y divide-border">
           <button className="w-full flex items-center gap-3.5 p-4 hover:bg-surface-sunken transition-colors text-start">
-            <Shield className="w-4.5 h-4.5 text-text-tertiary" />
+            <Shield className="w-5 h-5 text-text-tertiary" />
             <span className="text-sm text-text-primary">{t('profile.privacyNotice', lang)}</span>
           </button>
           <button className="w-full flex items-center gap-3.5 p-4 hover:bg-surface-sunken transition-colors text-start">
-            <FileText className="w-4.5 h-4.5 text-text-tertiary" />
+            <FileText className="w-5 h-5 text-text-tertiary" />
             <span className="text-sm text-text-primary">{t('profile.terms', lang)}</span>
           </button>
           <div className="flex items-center gap-3.5 p-4">

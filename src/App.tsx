@@ -27,6 +27,11 @@ function AppContent() {
     document.documentElement.lang = lang;
   }, [lang]);
 
+  // Scroll to top on view change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, [currentView, selectedExperienceId, selectedReservationId]);
+
   const toggleLanguage = () => {
     dispatch({ type: 'SET_LANGUAGE', payload: lang === 'en' ? 'ar' : 'en' });
   };

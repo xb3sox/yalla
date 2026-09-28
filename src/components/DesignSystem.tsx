@@ -104,6 +104,7 @@ interface ExperienceCardProps {
     groupSizeMax: number;
     accessibility: string;
     accessibilityAr: string;
+    imageUrl: string;
   };
   onPress: () => void;
 }
@@ -114,15 +115,6 @@ export function ExperienceCard({ experience, onPress }: ExperienceCardProps) {
   const spotsLeft = experience.capacity - experience.booked;
   const isFull = spotsLeft <= 0;
 
-  // Refined gradient palette — warm, sophisticated
-  const palettes = [
-    { from: '#14736A', to: '#0B3A35' }, // deep teal
-    { from: '#8B6914', to: '#4A3808' }, // warm amber
-    { from: '#4A5568', to: '#1A202C' }, // slate
-  ];
-  const idx = parseInt(experience.id.replace('exp-', '')) % 3;
-  const palette = palettes[idx];
-
   return (
     <button
       onClick={onPress}
@@ -130,12 +122,16 @@ export function ExperienceCard({ experience, onPress }: ExperienceCardProps) {
       aria-label={lang === 'ar' ? experience.titleAr : experience.title}
     >
       {/* Visual */}
-      <div
-        className="relative h-44 flex items-end p-5"
-        style={{ background: `linear-gradient(135deg, ${palette.from}, ${palette.to})` }}
-      >
+      <div className="relative h-48 overflow-hidden">
+        <img
+          src={experience.imageUrl}
+          alt={lang === 'ar' ? experience.titleAr : experience.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         {isFull ? (
-          <span className="absolute top-3 end-3 bg-black/30 backdrop-blur-sm text-white/90 text-[11px] font-medium px-2.5 py-1 rounded-full">
+          <span className="absolute top-3 end-3 bg-black/40 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1 rounded-full">
             {t('explore.full', lang)}
           </span>
         ) : (
@@ -143,7 +139,7 @@ export function ExperienceCard({ experience, onPress }: ExperienceCardProps) {
             {t('explore.spotsLeft', lang, { count: spotsLeft })}
           </span>
         )}
-        <h3 className="text-white text-lg font-semibold leading-tight drop-shadow-sm">
+        <h3 className="absolute bottom-4 start-4 end-4 text-white text-lg font-semibold leading-tight drop-shadow-md">
           {lang === 'ar' ? experience.titleAr : experience.title}
         </h3>
       </div>
