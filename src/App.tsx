@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './data/store';
 import { ToastProvider } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp';
+import { PageTransition } from './components/PageTransition';
+import { BackToTop } from './components/BackToTop';
+import { useNavigationShortcuts } from './hooks/useKeyboardShortcuts';
 import { t } from './i18n';
 import { ExplorePage } from './pages/Explore';
 import { ExperienceDetailsPage } from './pages/ExperienceDetails';
@@ -33,6 +37,9 @@ function AppContent() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   }, [currentView, selectedExperienceId, selectedReservationId]);
+
+  // Keyboard shortcuts
+  useNavigationShortcuts((view) => setCurrentView(view as any));
 
   const toggleLanguage = () => {
     dispatch({ type: 'SET_LANGUAGE', payload: lang === 'en' ? 'ar' : 'en' });
@@ -101,19 +108,21 @@ function AppContent() {
       </header>
 
       {/* Main content */}
-      <main className="page-enter" key={currentView + selectedExperienceId + selectedReservationId}>
-        {currentView === 'explore' && <ExplorePage onSelectExperience={handleSelectExperience} />}
-        {currentView === 'details' && (
-          <ExperienceDetailsPage experienceId={selectedExperienceId} onBack={() => setCurrentView('explore')} onBookSuccess={() => setCurrentView('plans')} />
-        )}
-        {currentView === 'plans' && (
-          <MyPlansPage onViewExperience={handleSelectExperience} onGoToArrival={handleGoToArrival} onGoToFeedback={handleGoToFeedback} />
-        )}
-        {currentView === 'arrival' && <ArrivalModePage experienceId={selectedExperienceId} onBack={() => setCurrentView('plans')} />}
-        {currentView === 'feedback' && <FeedbackPage reservationId={selectedReservationId} onBack={() => setCurrentView('plans')} onBookAnother={() => setCurrentView('explore')} />}
-        {currentView === 'profile' && <ProfilePage onGoToSupport={() => setCurrentView('support')} />}
-        {currentView === 'support' && <SupportPage onBack={() => setCurrentView('profile')} />}
-      </main>
+      <PageTransition transitionKey={currentView + selectedExperienceId + selectedReservationId}>
+        <main>
+          {currentView === 'explore' && <ExplorePage onSelectExperience={handleSelectExperience} />}
+          {currentView === 'details' && (
+            <ExperienceDetailsPage experienceId={selectedExperienceId} onBack={() => setCurrentView('explore')} onBookSuccess={() => setCurrentView('plans')} />
+          )}
+          {currentView === 'plans' && (
+            <MyPlansPage onViewExperience={handleSelectExperience} onGoToArrival={handleGoToArrival} onGoToFeedback={handleGoToFeedback} />
+          )}
+          {currentView === 'arrival' && <ArrivalModePage experienceId={selectedExperienceId} onBack={() => setCurrentView('plans')} />}
+          {currentView === 'feedback' && <FeedbackPage reservationId={selectedReservationId} onBack={() => setCurrentView('plans')} onBookAnother={() => setCurrentView('explore')} />}
+          {currentView === 'profile' && <ProfilePage onGoToSupport={() => setCurrentView('support')} />}
+          {currentView === 'support' && <SupportPage onBack={() => setCurrentView('profile')} />}
+        </main>
+      </PageTransition>
 
       {/* Bottom navigation — 3 tabs only */}
       <nav className="fixed bottom-0 start-0 end-0 bg-surface-raised/95 backdrop-blur-md border-t border-border z-40 safe-bottom" aria-label="Main navigation">
@@ -129,6 +138,12 @@ function AppContent() {
           <NavButton icon={<User className="w-[22px] h-[22px]" />} label={t('nav.profile', lang)} active={currentView === 'profile' || currentView === 'support'} onClick={() => setCurrentView('profile')} />
         </div>
       </nav>
+
+      {/* Keyboard shortcuts help */}
+      <KeyboardShortcutsHelp />
+
+      {/* Back to top button */}
+      <BackToTop />
     </div>
   );
 }

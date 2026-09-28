@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../data/store';
 import { useToast } from '../components/Toast';
+import { ProgressBar } from '../components/ProgressBar';
 import { t } from '../i18n';
 import { Button, PriceSummary, Timeline, Dialog, SyntheticPaymentLabel } from '../components/DesignSystem';
 import { ArrowLeft, Clock, MapPin, Users, Globe, Shield, CheckCircle, ChevronDown } from 'lucide-react';
@@ -96,6 +97,24 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
             experience.physicalDemand === 'moderate' ? t('details.physicalModerate', lang).split('—')[0].trim() :
             t('details.physicalHigh', lang).split('—')[0].trim()
           } />
+        </div>
+
+        {/* Capacity indicator */}
+        <div className="bg-surface-raised rounded-xl border border-border p-4">
+          <ProgressBar 
+            progress={(experience.booked / experience.capacity) * 100} 
+            color={experience.booked >= experience.capacity ? 'error' : experience.booked >= experience.capacity * 0.8 ? 'warning' : 'brand'}
+            showLabel
+            label={lang === 'ar' ? 'السعة' : 'Capacity'}
+          />
+          <p className="text-xs text-text-tertiary mt-2">
+            {experience.booked} {lang === 'ar' ? 'محجوز من' : 'booked of'} {experience.capacity} {lang === 'ar' ? 'أماكن' : 'spots'}
+            {spotsLeft > 0 && spotsLeft <= 3 && (
+              <span className="text-warning font-medium ms-1">
+                ({lang === 'ar' ? `${spotsLeft} متبقي!` : `${spotsLeft} left!`})
+              </span>
+            )}
+          </p>
         </div>
 
         {/* Description */}
