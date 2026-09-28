@@ -15,7 +15,7 @@ import { FeedbackPage } from './pages/Feedback';
 import { ProfilePage } from './pages/Profile';
 import { SupportPage } from './pages/Support';
 import { StaffPage } from './pages/Staff';
-import { Compass, Calendar, User, Globe, Bell, Shield, LogOut } from 'lucide-react';
+import { Compass, Calendar, User, Globe, Bell, Shield } from 'lucide-react';
 import { OnboardingPage } from './pages/Onboarding';
 import { NotificationCenter, NotificationBell } from './components/NotificationCenter';
 import { RoleSwitcher } from './components/RoleSwitcher';
