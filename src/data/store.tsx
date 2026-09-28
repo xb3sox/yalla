@@ -1,9 +1,9 @@
 import { createContext, useContext, useReducer, ReactNode } from 'react';
 import type { Language, Role, Experience, Reservation, UserProfile, SupportRequest, Feedback, Notification } from '../types';
-import { mockExperiences, mockUser, mockReservations, mockNotifications } from '../infrastructure/mock/mockData';
+import { allExperiences, mockUser, mockReservations, mockNotifications } from '../infrastructure/mock/mockData';
 
 // Re-export mock data for backward compatibility
-export { mockExperiences };
+export const mockExperiences = allExperiences;
 
 // State
 interface AppState {

@@ -15,7 +15,7 @@ import { FeedbackPage } from './pages/Feedback';
 import { ProfilePage } from './pages/Profile';
 import { SupportPage } from './pages/Support';
 import { StaffPage } from './pages/Staff';
-import { Compass, Calendar, User, Globe, Bell, Shield } from 'lucide-react';
+import { Compass, Calendar, User, Globe, Bell, Shield, Heart } from 'lucide-react';
 import { OnboardingPage } from './pages/Onboarding';
 import { NotificationCenter, NotificationBell } from './components/NotificationCenter';
 import { RoleSwitcher } from './components/RoleSwitcher';
@@ -23,7 +23,9 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { SessionTimeoutWarning } from './components/SessionTimeoutWarning';
 import { SkipToContent } from './components/SkipToContent';
 
-type View = 'explore' | 'details' | 'plans' | 'arrival' | 'feedback' | 'profile' | 'support' | 'staff';
+import { FavoritesPage } from './pages/Favorites';
+
+type View = 'explore' | 'details' | 'plans' | 'arrival' | 'feedback' | 'profile' | 'support' | 'staff' | 'favorites';
 
 function AppContent() {
   const { state, dispatch } = useApp();
@@ -151,6 +153,12 @@ function AppContent() {
           {currentView === 'details' && (
             <ExperienceDetailsPage experienceId={selectedExperienceId} onBack={() => setCurrentView('explore')} onBookSuccess={() => setCurrentView('plans')} />
           )}
+          {currentView === 'favorites' && (
+            <FavoritesPage 
+              onSelectExperience={handleSelectExperience} 
+              onExplore={() => setCurrentView('explore')} 
+            />
+          )}
           {currentView === 'plans' && (
             <MyPlansPage onViewExperience={handleSelectExperience} onGoToArrival={handleGoToArrival} onGoToFeedback={handleGoToFeedback} />
           )}
@@ -161,10 +169,17 @@ function AppContent() {
         </main>
       </PageTransition>
 
-      {/* Bottom navigation — 3 tabs only */}
+      {/* Bottom navigation — 4 tabs */}
       <nav className="fixed bottom-0 start-0 end-0 bg-surface-raised/95 backdrop-blur-md border-t border-border z-40 safe-bottom" aria-label="Main navigation">
         <div className="max-w-lg mx-auto flex items-center justify-around py-1.5">
           <NavButton icon={<Compass className="w-[22px] h-[22px]" />} label={t('nav.explore', lang)} active={currentView === 'explore' || currentView === 'details'} onClick={() => setCurrentView('explore')} />
+          <NavButton
+            icon={<Heart className="w-[22px] h-[22px]" />}
+            label={lang === 'ar' ? 'المفضلة' : 'Favorites'}
+            active={currentView === 'favorites'}
+            onClick={() => setCurrentView('favorites')}
+            badge={state.favorites.length}
+          />
           <NavButton
             icon={<Calendar className="w-[22px] h-[22px]" />}
             label={t('nav.myPlans', lang)}
