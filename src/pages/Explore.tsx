@@ -6,6 +6,7 @@ import { ExperienceCard, EmptyState, Button, Input } from '../components/DesignS
 import { FilterChips } from '../components/FilterChip';
 import { ExplorePageSkeleton } from '../components/LoadingSkeleton';
 import { Search, X } from 'lucide-react';
+import type { Experience } from '../types';
 
 interface ExplorePageProps {
   onSelectExperience: (id: string) => void;
@@ -96,7 +97,7 @@ export function ExplorePage({ onSelectExperience }: ExplorePageProps) {
       {/* Experience list */}
       {filteredExperiences.length > 0 ? (
         <div className="space-y-4">
-          {filteredExperiences.map((exp: any) => (
+          {filteredExperiences.map((exp: Experience) => (
             <ExperienceCard
               key={exp.id}
               experience={exp}

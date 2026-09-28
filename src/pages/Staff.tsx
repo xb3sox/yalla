@@ -3,6 +3,7 @@ import { useApp } from '../data/store';
 import { t } from '../i18n';
 import { Button, StatusBadge, Dialog, Select, Input } from '../components/DesignSystem';
 import { ArrowLeft, Layout, Users, MapPin, ClipboardList, Clock, CheckSquare, Bell, Wrench, Shield, FileText, BarChart3 } from 'lucide-react';
+import type { Experience, Reservation, Notification } from '../types';
 
 interface StaffPageProps {
   onBack: () => void;
@@ -111,10 +112,10 @@ export function StaffPage({ onBack }: StaffPageProps) {
   );
 }
 
-function PlansSection({ lang, state, onAssign }: { lang: 'en' | 'ar'; state: any; onAssign: (id: string) => void }) {
+function PlansSection({ lang, state, onAssign }: { lang: 'en' | 'ar'; state: ReturnType<typeof useApp>['state']; onAssign: (id: string) => void }) {
   return (
     <div className="space-y-3">
-      {state.experiences.map((exp: any) => (
+      {state.experiences.map((exp: Experience) => (
         <div key={exp.id} className="bg-surface-raised rounded-xl border border-border p-4">
           <div className="flex items-start justify-between mb-2">
             <div>
@@ -182,12 +183,12 @@ function VenuesSection({ lang }: { lang: 'en' | 'ar' }) {
   );
 }
 
-function WaitlistSection({ lang, state }: { lang: 'en' | 'ar'; state: any }) {
-  const waitlisted = state.reservations.filter((r: any) => r.state === 'waitlisted');
+function WaitlistSection({ lang, state }: { lang: 'en' | 'ar'; state: ReturnType<typeof useApp>['state'] }) {
+  const waitlisted = state.reservations.filter((r: Reservation) => r.state === 'waitlisted');
   return (
     <div className="space-y-2">
-      {waitlisted.length > 0 ? waitlisted.map((r: any) => {
-        const exp = state.experiences.find((e: any) => e.id === r.planId);
+      {waitlisted.length > 0 ? waitlisted.map((r: Reservation) => {
+        const exp = state.experiences.find((e: Experience) => e.id === r.planId);
         return (
           <div key={r.id} className="bg-surface-raised rounded-xl border border-border p-4 flex items-center justify-between">
             <div>
@@ -202,12 +203,12 @@ function WaitlistSection({ lang, state }: { lang: 'en' | 'ar'; state: any }) {
   );
 }
 
-function AttendanceSection({ lang, state, onCorrect }: { lang: 'en' | 'ar'; state: any; onCorrect: () => void }) {
-  const confirmed = state.reservations.filter((r: any) => ['confirmed', 'reconfirmed'].includes(r.state));
+function AttendanceSection({ lang, state, onCorrect }: { lang: 'en' | 'ar'; state: ReturnType<typeof useApp>['state']; onCorrect: () => void }) {
+  const confirmed = state.reservations.filter((r: Reservation) => ['confirmed', 'reconfirmed'].includes(r.state));
   return (
     <div className="space-y-2">
-      {confirmed.map((r: any) => {
-        const exp = state.experiences.find((e: any) => e.id === r.planId);
+      {confirmed.map((r: Reservation) => {
+        const exp = state.experiences.find((e: Experience) => e.id === r.planId);
         return (
           <div key={r.id} className="bg-surface-raised rounded-xl border border-border p-4 flex items-center justify-between">
             <div>
@@ -222,10 +223,10 @@ function AttendanceSection({ lang, state, onCorrect }: { lang: 'en' | 'ar'; stat
   );
 }
 
-function NotificationsSection({ lang, state }: { lang: 'en' | 'ar'; state: any }) {
+function NotificationsSection({ lang, state }: { lang: 'en' | 'ar'; state: ReturnType<typeof useApp>['state'] }) {
   return (
     <div className="space-y-2">
-      {state.notifications.map((n: any) => (
+      {state.notifications.map((n: Notification) => (
         <div key={n.id} className="bg-surface-raised rounded-xl border border-border p-4 flex items-center justify-between">
           <div>
             <p className="font-medium text-text-primary text-sm">{lang === 'ar' ? n.titleAr : n.title}</p>
@@ -277,10 +278,10 @@ function AuditSection({ lang }: { lang: 'en' | 'ar' }) {
   );
 }
 
-function MetricsSection({ lang, state }: { lang: 'en' | 'ar'; state: any }) {
+function MetricsSection({ lang, state }: { lang: 'en' | 'ar'; state: ReturnType<typeof useApp>['state'] }) {
   const totalPlans = state.experiences.length;
   const totalBookings = state.reservations.length;
-  const confirmed = state.reservations.filter((r: any) => ['confirmed', 'reconfirmed'].includes(r.state)).length;
+  const confirmed = state.reservations.filter((r: Reservation) => ['confirmed', 'reconfirmed'].includes(r.state)).length;
   return (
     <div className="bg-surface-raised rounded-xl border border-border p-5">
       <p className="text-xs text-text-tertiary mb-4">{lang === 'ar' ? 'مقاييس تجريبية' : 'Pilot metrics'}</p>
