@@ -39,7 +39,11 @@ function AppContent() {
   }, [currentView, selectedExperienceId, selectedReservationId]);
 
   // Keyboard shortcuts
-  useNavigationShortcuts((view) => setCurrentView(view as any));
+  useNavigationShortcuts((view) => {
+    if (['explore', 'plans', 'profile'].includes(view)) {
+      setCurrentView(view as View);
+    }
+  });
 
   const toggleLanguage = () => {
     dispatch({ type: 'SET_LANGUAGE', payload: lang === 'en' ? 'ar' : 'en' });

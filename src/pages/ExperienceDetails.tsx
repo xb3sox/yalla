@@ -257,7 +257,7 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
               </div>
             </div>
             <h3 className="text-lg font-bold text-text-primary mb-2">
-              {lang === 'ar' ? 'تم الحجز بنجاح!' : 'Booking Confirmed!'}
+              {t('booking.successTitle', lang)}
             </h3>
             <p className="text-sm text-text-secondary mb-5">{t('booking.success', lang)}</p>
             <Button variant="primary" className="w-full" onClick={() => { setShowBookingDialog(false); onBookSuccess(); }}>
@@ -274,7 +274,7 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
               </div>
             </div>
             <h3 className="text-lg font-bold text-text-primary mb-2">
-              {lang === 'ar' ? 'أنت في قائمة الانتظار' : "You're on the Waitlist"}
+              {t('booking.waitlistTitle', lang)}
             </h3>
             <p className="text-sm text-text-secondary mb-5">{t('booking.waitlisted', lang)}</p>
             <Button variant="primary" className="w-full" onClick={() => { setShowBookingDialog(false); onBookSuccess(); }}>

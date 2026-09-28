@@ -3,7 +3,7 @@ import { useApp } from '../data/store';
 import { useToast } from '../components/Toast';
 import { t } from '../i18n';
 import { Button, Textarea, Select } from '../components/DesignSystem';
-import { ArrowLeft, AlertTriangle, Shield, Ban, Phone, CheckCircle } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Shield, Ban, Phone, CheckCircle, HelpCircle } from 'lucide-react';
 
 interface SupportPageProps {
   onBack: () => void;
@@ -77,7 +77,7 @@ export function SupportPage({ onBack }: SupportPageProps) {
         {mode === 'menu' && (
           <div className="space-y-2">
             <MenuOption
-              icon={<span className="text-lg">💬</span>}
+              icon={<HelpCircle className="w-5 h-5 text-brand-600" />}
               title={t('support.operationalHelp', lang)}
               subtitle={lang === 'ar' ? 'مساعدة في الحجز أو الوصول' : 'Booking, arrival, or changes'}
               onClick={() => setMode('help')}

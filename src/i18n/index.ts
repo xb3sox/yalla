@@ -105,7 +105,9 @@ type TranslationKeys = {
   'booking.title': string;
   'booking.processing': string;
   'booking.success': string;
+  'booking.successTitle': string;
   'booking.waitlisted': string;
+  'booking.waitlistTitle': string;
   'booking.approvalPending': string;
   'booking.duplicateWarning': string;
   'booking.seatConflict': string;
@@ -326,7 +328,9 @@ const en: TranslationKeys = {
   'booking.title': 'Confirm your booking',
   'booking.processing': 'Processing your booking...',
   'booking.success': 'You\'re booked! Check My Plans for details.',
+  'booking.successTitle': 'Booking Confirmed!',
   'booking.waitlisted': 'You\'re on the waitlist. We\'ll notify you if a spot opens.',
+  'booking.waitlistTitle': 'You\'re on the Waitlist',
   'booking.approvalPending': 'Your request is pending approval.',
   'booking.duplicateWarning': 'You already have an active reservation for this experience.',
   'booking.seatConflict': 'This seat was just taken. Please choose another experience.',
@@ -539,7 +543,9 @@ const ar: TranslationKeys = {
   'booking.title': 'أكد حجزك',
   'booking.processing': 'جاري معالجة حجزك...',
   'booking.success': 'تم حجزك! تحقق من خططي للتفاصيل.',
+  'booking.successTitle': 'تم الحجز بنجاح!',
   'booking.waitlisted': 'أنت في قائمة الانتظار. سنُعلمك إذا توفر مكان.',
+  'booking.waitlistTitle': 'أنت في قائمة الانتظار',
   'booking.approvalPending': 'طلبك قيد الموافقة.',
   'booking.duplicateWarning': 'لديك بالفعل حجز نشط لهذه التجربة.',
   'booking.seatConflict': 'هذا المكان محجوز للتو. يرجى اختيار تجربة أخرى.',
