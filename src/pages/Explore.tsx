@@ -3,6 +3,7 @@ import { useApp } from '../data/store';
 import { useExperienceSearch } from '../hooks/useExperienceSearch';
 import { t } from '../i18n';
 import { ExperienceCard, EmptyState, Button, Input } from '../components/DesignSystem';
+import { FilterChips } from '../components/FilterChip';
 import { ExplorePageSkeleton } from '../components/LoadingSkeleton';
 import { Search, X } from 'lucide-react';
 
@@ -70,6 +71,26 @@ export function ExplorePage({ onSelectExperience }: ExplorePageProps) {
             </button>
           </div>
         )}
+      </div>
+
+      {/* Quick Filters */}
+      <div className="mb-6">
+        <FilterChips
+          filters={[
+            { id: 'weekend', label: lang === 'ar' ? 'عطلة نهاية الأسبوع' : 'Weekend', active: false },
+            { id: 'evening', label: lang === 'ar' ? 'مسائي' : 'Evening', active: false },
+            { id: 'outdoor', label: lang === 'ar' ? 'خارجي' : 'Outdoor', active: false },
+            { id: 'indoor', label: lang === 'ar' ? 'داخلي' : 'Indoor', active: false },
+            { id: 'accessible', label: lang === 'ar' ? 'متاح' : 'Accessible', active: filters.accessibility || false },
+          ]}
+          onToggle={(id) => {
+            if (id === 'accessible') {
+              updateFilter('accessibility', !filters.accessibility);
+            }
+            // Other filters would be implemented with backend support
+          }}
+          onClearAll={clearFilters}
+        />
       </div>
 
       {/* Experience list */}

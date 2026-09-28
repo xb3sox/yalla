@@ -15,8 +15,13 @@ import { FeedbackPage } from './pages/Feedback';
 import { ProfilePage } from './pages/Profile';
 import { SupportPage } from './pages/Support';
 import { StaffPage } from './pages/Staff';
-import { Compass, Calendar, User, Globe } from 'lucide-react';
+import { Compass, Calendar, User, Globe, Bell, Shield, LogOut } from 'lucide-react';
 import { OnboardingPage } from './pages/Onboarding';
+import { NotificationCenter, NotificationBell } from './components/NotificationCenter';
+import { RoleSwitcher } from './components/RoleSwitcher';
+import { OfflineIndicator } from './components/OfflineIndicator';
+import { SessionTimeoutWarning } from './components/SessionTimeoutWarning';
+import { SkipToContent } from './components/SkipToContent';
 
 type View = 'explore' | 'details' | 'plans' | 'arrival' | 'feedback' | 'profile' | 'support' | 'staff';
 
@@ -26,6 +31,8 @@ function AppContent() {
   const [currentView, setCurrentView] = useState<View>('explore');
   const [selectedExperienceId, setSelectedExperienceId] = useState('');
   const [selectedReservationId, setSelectedReservationId] = useState('');
+  const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // Apply RTL/LTR
   useEffect(() => {
@@ -97,19 +104,45 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-surface max-w-lg mx-auto relative">
       {/* Minimal header */}
-      <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md">
+      <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-border">
         <div className="flex items-center justify-between px-5 h-14">
           <span className="text-lg font-semibold text-text-primary tracking-tight">Yalla</span>
-          <button
-            onClick={toggleLanguage}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-sunken text-xs font-medium text-text-secondary hover:bg-border transition-colors"
-            aria-label={lang === 'en' ? 'Switch to Arabic' : 'Switch to English'}
-          >
-            <Globe className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>{lang === 'en' ? 'العربية' : 'EN'}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <NotificationBell
+              onClick={() => setShowNotifications(!showNotifications)}
+              count={state.notifications.filter(n => n.recipientId === 'user-1').length}
+            />
+            <button
+              onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
+              className="p-2 hover:bg-surface-sunken rounded-full transition-colors"
+              aria-label={t('nav.switchRole', lang)}
+              title={t('nav.switchRole', lang)}
+            >
+              <Shield className="w-5 h-5 text-text-secondary" />
+            </button>
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-sunken text-xs font-medium text-text-secondary hover:bg-border transition-colors"
+              aria-label={lang === 'en' ? 'Switch to Arabic' : 'Switch to English'}
+            >
+              <Globe className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>{lang === 'en' ? 'العربية' : 'EN'}</span>
+            </button>
+          </div>
         </div>
       </header>
+
+      {/* Notification Center */}
+      <NotificationCenter
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
+
+      {/* Role Switcher */}
+      <RoleSwitcher
+        isOpen={showRoleSwitcher}
+        onClose={() => setShowRoleSwitcher(false)}
+      />
 
       {/* Main content */}
       <PageTransition transitionKey={currentView + selectedExperienceId + selectedReservationId}>
@@ -148,6 +181,15 @@ function AppContent() {
 
       {/* Back to top button */}
       <BackToTop />
+
+      {/* Offline indicator */}
+      <OfflineIndicator />
+
+      {/* Session timeout warning */}
+      <SessionTimeoutWarning />
+
+      {/* Skip to content link (accessibility) */}
+      <SkipToContent />
     </div>
   );
 }

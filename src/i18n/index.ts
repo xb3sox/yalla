@@ -8,6 +8,8 @@ type TranslationKeys = {
   'nav.staff': string;
   'nav.support': string;
   'nav.language': string;
+  'nav.notifications': string;
+  'nav.switchRole': string;
 
   // Common
   'common.loading': string;
@@ -236,6 +238,8 @@ const en: TranslationKeys = {
   'nav.staff': 'Staff',
   'nav.support': 'Support',
   'nav.language': 'العربية',
+  'nav.notifications': 'Notifications',
+  'nav.switchRole': 'Switch Role',
 
   'common.loading': 'Loading...',
   'common.error': 'Something went wrong',
@@ -451,6 +455,8 @@ const ar: TranslationKeys = {
   'nav.staff': 'الفريق',
   'nav.support': 'الدعم',
   'nav.language': 'English',
+  'nav.notifications': 'الإشعارات',
+  'nav.switchRole': 'تبديل الدور',
 
   'common.loading': 'جاري التحميل...',
   'common.error': 'حدث خطأ ما',
