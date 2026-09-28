@@ -78,7 +78,21 @@ export function useExperienceSearch(initialFilters: Partial<SearchFilters> = {})
       // Accessibility
       if (filters.accessibility) {
         const accessibilityText = lang === 'ar' ? exp.accessibilityAr : exp.accessibility;
-        if (!accessibilityText || accessibilityText.length < 10) {
+        
+        if (!accessibilityText) {
+          return false;
+        }
+        
+        // Check for accessibility keywords
+        const keywords = lang === 'ar' 
+          ? ['متاح', 'كراسي متحركة', 'وصول', 'بدون درجات', 'مناسب']
+          : ['accessible', 'wheelchair', 'access', 'step-free', 'suitable'];
+        
+        const hasAccessibility = keywords.some(keyword => 
+          accessibilityText.toLowerCase().includes(keyword)
+        );
+        
+        if (!hasAccessibility) {
           return false;
         }
       }

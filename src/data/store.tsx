@@ -321,8 +321,20 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, onboardingStep: action.payload };
     case 'COMPLETE_ONBOARDING':
       return { ...state, onboardingStep: 'complete' };
-    case 'ADD_RESERVATION':
+    case 'ADD_RESERVATION': {
+      // Check for duplicate active reservation
+      const hasActiveReservation = state.reservations.some(
+        r => r.participantId === action.payload.participantId &&
+             r.planId === action.payload.planId &&
+             ['initiated', 'payment_pending', 'confirmed', 'reconfirmation_required', 'reconfirmed'].includes(r.state)
+      );
+      
+      if (hasActiveReservation) {
+        return state; // Reject duplicate
+      }
+      
       return { ...state, reservations: [...state.reservations, action.payload] };
+    }
     case 'UPDATE_RESERVATION':
       return {
         ...state,
@@ -330,13 +342,26 @@ function reducer(state: AppState, action: Action): AppState {
           r.id === action.payload.id ? { ...r, state: action.payload.state } : r
         ),
       };
-    case 'RECONFIRM_RESERVATION':
+    case 'RECONFIRM_RESERVATION': {
+      const reservation = state.reservations.find(r => r.id === action.payload);
+      
+      // Only allow reconfirmation if in valid state
+      if (!reservation || reservation.state !== 'reconfirmation_required') {
+        return state;
+      }
+      
+      // Check if expired
+      if (reservation.expiryAt && new Date(reservation.expiryAt) < new Date()) {
+        return state;
+      }
+      
       return {
         ...state,
         reservations: state.reservations.map(r =>
           r.id === action.payload ? { ...r, state: 'reconfirmed' as const, reconfirmedAt: new Date().toISOString() } : r
         ),
       };
+    }
     case 'CANCEL_RESERVATION':
       return {
         ...state,
@@ -350,8 +375,13 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, supportRequests: [...state.supportRequests, action.payload] };
     case 'SET_VIEW':
       return { ...state, currentView: action.payload };
-    case 'ADD_FAVORITE':
+    case 'ADD_FAVORITE': {
+      // Check for duplicate
+      if (state.favorites.includes(action.payload)) {
+        return state; // Already in favorites
+      }
       return { ...state, favorites: [...state.favorites, action.payload] };
+    }
     case 'REMOVE_FAVORITE':
       return { ...state, favorites: state.favorites.filter(id => id !== action.payload) };
     default:

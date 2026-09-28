@@ -60,9 +60,28 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
   };
 
   const endTime = (() => {
-    const [h, m] = experience.time.split(':').map(Number);
-    const endMin = h * 60 + m + experience.durationMinutes;
-    return `${Math.floor(endMin / 60) % 24}:${(endMin % 60).toString().padStart(2, '0')}`;
+    try {
+      if (!experience.time || !experience.durationMinutes) {
+        return '';
+      }
+      
+      const parts = experience.time.split(':');
+      if (parts.length !== 2) {
+        return '';
+      }
+      
+      const h = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      
+      if (isNaN(h) || isNaN(m)) {
+        return '';
+      }
+      
+      const endMin = h * 60 + m + experience.durationMinutes;
+      return `${Math.floor(endMin / 60) % 24}:${(endMin % 60).toString().padStart(2, '0')}`;
+    } catch (error) {
+      return '';
+    }
   })();
 
   return (

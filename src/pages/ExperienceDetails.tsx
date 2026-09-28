@@ -35,6 +35,24 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
   const isFull = spotsLeft <= 0;
 
   const handleBook = () => {
+    // Check if experience is available
+    if (experience.planState !== 'published') {
+      showToast('error', lang === 'ar' ? 'هذه التجربة غير متاحة' : 'This experience is not available');
+      return;
+    }
+    
+    // Check if user already has active reservation for this experience
+    const hasActiveReservation = state.reservations.some(
+      r => r.participantId === 'user-1' &&
+           r.planId === experience.id &&
+           ['initiated', 'payment_pending', 'confirmed', 'reconfirmation_required', 'reconfirmed'].includes(r.state)
+    );
+    
+    if (hasActiveReservation) {
+      showToast('error', lang === 'ar' ? 'لديك حجز نشط بالفعل لهذه التجربة' : 'You already have an active reservation for this experience');
+      return;
+    }
+    
     setBookingState('processing');
     setTimeout(() => {
       const newReservation = {

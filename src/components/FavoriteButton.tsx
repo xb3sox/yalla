@@ -18,6 +18,13 @@ export function FavoriteButton({ experienceId, size = 'md' }: FavoriteButtonProp
     e.preventDefault();
     e.stopPropagation();
 
+    // Verify experience exists
+    const experienceExists = state.experiences.some(e => e.id === experienceId);
+    if (!experienceExists) {
+      showToast('error', lang === 'ar' ? 'التجربة غير موجودة' : 'Experience not found');
+      return;
+    }
+
     if (isFavorite) {
       dispatch({ type: 'REMOVE_FAVORITE', payload: experienceId });
       showToast('info', lang === 'ar' ? 'تمت الإزالة من المفضلة' : 'Removed from favorites');

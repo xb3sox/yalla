@@ -40,6 +40,11 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback }:
   const getExperience = (planId: string) => state.experiences.find(e => e.id === planId);
 
   const getNextAction = (reservation: typeof userReservations[0]) => {
+    // Check if reservation is expired
+    if (reservation.expiryAt && new Date(reservation.expiryAt) < new Date()) {
+      return null;
+    }
+    
     switch (reservation.state) {
       case 'reconfirmation_required':
         return {

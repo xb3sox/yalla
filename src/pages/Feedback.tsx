@@ -36,6 +36,17 @@ export function FeedbackPage({ reservationId, onBack, onBookAnother }: FeedbackP
 
   const handleSubmit = () => {
     if (!canSubmit) return;
+    
+    // Check if feedback already exists for this reservation
+    const hasExistingFeedback = state.feedbacks.some(
+      f => f.reservationId === reservationId
+    );
+    
+    if (hasExistingFeedback) {
+      showToast('error', lang === 'ar' ? 'لقد أرسلت ملاحظاتك بالفعل' : 'You have already submitted feedback');
+      return;
+    }
+    
     dispatch({
       type: 'ADD_FEEDBACK',
       payload: {
