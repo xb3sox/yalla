@@ -1,0 +1,30 @@
+// Domain Entities - Core business models
+// These are pure TypeScript interfaces with no framework dependencies
+
+export type {
+  Language,
+  Role,
+  PlanState,
+  ReservationState,
+  RequestState,
+  WaitlistState,
+  SupportState,
+  SafetyState,
+  NotificationState,
+  PaymentState,
+  DataClassification,
+  Experience,
+  Venue,
+  Host,
+  Reservation,
+  Plan,
+  MaterialChange,
+  SupportRequest,
+  SafetyCase,
+  Block,
+  Feedback,
+  Notification,
+  AuditEvent,
+  UserProfile,
+  Preferences,
+} from '../../types';
