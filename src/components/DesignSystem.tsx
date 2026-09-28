@@ -400,11 +400,12 @@ export function Dialog({ open, onClose, title, children, actions }: DialogProps)
     document.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
     // Focus first focusable element
-    setTimeout(() => {
+    const focusTimer = setTimeout(() => {
       const first = dialogRef.current?.querySelector<HTMLElement>('button, [href], input, select, textarea');
       first?.focus();
     }, 50);
     return () => {
+      clearTimeout(focusTimer);
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
     };
