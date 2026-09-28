@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../data/store';
 import { t } from '../i18n';
 import { Button, Input, Select } from '../components/DesignSystem';
-import { Phone, Shield, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Phone, Shield, CheckCircle } from 'lucide-react';
 
 interface OnboardingPageProps {
   onComplete: () => void;
@@ -17,20 +17,13 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
   const [adultAccepted, setAdultAccepted] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [area, setArea] = useState('');
-  const [budget, setBudget] = useState('');
   const [expLang, setExpLang] = useState<'en' | 'ar'>('en');
 
   const handleNext = () => {
     switch (step) {
-      case 'phone':
-        if (phone.trim()) setStep('code');
-        break;
-      case 'code':
-        setStep('adult');
-        break;
-      case 'adult':
-        if (adultAccepted && termsAccepted) setStep('preferences');
-        break;
+      case 'phone': if (phone.trim()) setStep('code'); break;
+      case 'code': setStep('adult'); break;
+      case 'adult': if (adultAccepted && termsAccepted) setStep('preferences'); break;
       case 'preferences':
         setStep('complete');
         setTimeout(onComplete, 1500);
@@ -38,39 +31,36 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
     }
   };
 
+  const steps = ['phone', 'code', 'adult', 'preferences', 'complete'];
+  const progress = (steps.indexOf(step) + 1) / 4;
+
   return (
-    <div className="min-h-screen bg-ivory flex flex-col">
-      {/* Logo */}
-      <div className="flex items-center justify-center pt-12 pb-8">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-teal-600 flex items-center justify-center">
-            <span className="text-white font-bold text-xl">Y</span>
-          </div>
-          <span className="text-2xl font-bold text-charcoal-900">Yalla</span>
-        </div>
+    <div className="min-h-screen bg-surface flex flex-col">
+      {/* Progress bar */}
+      <div className="h-0.5 bg-border">
+        <div className="h-full bg-brand-500 transition-all duration-500 ease-out" style={{ width: `${Math.min(progress * 100, 100)}%` }} />
       </div>
 
-      {/* Progress */}
-      <div className="px-8 mb-8">
-        <div className="flex gap-2">
-          {['phone', 'adult', 'preferences'].map((s, i) => (
-            <div key={s} className={`h-1 flex-1 rounded-full transition-colors ${
-              ['phone', 'code', 'adult', 'preferences', 'complete'].indexOf(step) > i ? 'bg-teal-500' : 'bg-sand-200'
-            }`} />
-          ))}
+      {/* Logo */}
+      <div className="flex items-center justify-center pt-16 pb-10">
+        <div className="flex items-center gap-2.5">
+          <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center">
+            <span className="text-white font-bold text-lg">Y</span>
+          </div>
+          <span className="text-xl font-semibold text-text-primary tracking-tight">Yalla</span>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-6 pb-8">
+      <div className="flex-1 px-6 pb-10">
         {step === 'phone' && (
-          <div className="space-y-6">
+          <div className="space-y-6 slide-up">
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-4">
-                <Phone className="w-8 h-8 text-teal-600" />
+              <div className="w-14 h-14 rounded-full bg-brand-50 flex items-center justify-center mx-auto mb-4">
+                <Phone className="w-6 h-6 text-brand-600" />
               </div>
-              <h1 className="text-xl font-bold text-charcoal-900 mb-2">{t('onboarding.phoneVerification', lang)}</h1>
-              <p className="text-sm text-charcoal-500">{lang === 'ar' ? 'أدخل رقم هاتفك للبدء' : 'Enter your phone number to get started'}</p>
+              <h1 className="text-xl font-bold text-text-primary">{t('onboarding.phoneVerification', lang)}</h1>
+              <p className="text-sm text-text-secondary mt-1.5">{lang === 'ar' ? 'أدخل رقم هاتفك للبدء' : 'Enter your phone number to get started'}</p>
             </div>
             <Input
               label={lang === 'ar' ? 'رقم الهاتف' : 'Phone number'}
@@ -86,10 +76,10 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
         )}
 
         {step === 'code' && (
-          <div className="space-y-6">
+          <div className="space-y-6 slide-up">
             <div className="text-center">
-              <h1 className="text-xl font-bold text-charcoal-900 mb-2">{t('onboarding.verifyCode', lang)}</h1>
-              <p className="text-sm text-charcoal-500">{lang === 'ar' ? `أرسلنا رمزاً إلى ${phone}` : `We sent a code to ${phone}`}</p>
+              <h1 className="text-xl font-bold text-text-primary">{t('onboarding.verifyCode', lang)}</h1>
+              <p className="text-sm text-text-secondary mt-1.5">{lang === 'ar' ? `أرسلنا رمزاً إلى ${phone}` : `We sent a code to ${phone}`}</p>
             </div>
             <Input
               label={lang === 'ar' ? 'رمز التحقق' : 'Verification code'}
@@ -99,9 +89,7 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
               placeholder="••••"
               maxLength={4}
             />
-            <p className="text-xs text-charcoal-400 text-center">
-              {lang === 'ar' ? 'استخدم أي رمز للاختبار' : 'Use any code for testing'}
-            </p>
+            <p className="text-xs text-text-tertiary text-center">{lang === 'ar' ? 'استخدم أي رمز للاختبار' : 'Use any code for testing'}</p>
             <Button variant="primary" size="lg" className="w-full" onClick={handleNext}>
               {t('common.confirm', lang)}
             </Button>
@@ -109,31 +97,21 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
         )}
 
         {step === 'adult' && (
-          <div className="space-y-6">
+          <div className="space-y-6 slide-up">
             <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-teal-600" />
+              <div className="w-14 h-14 rounded-full bg-brand-50 flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-6 h-6 text-brand-600" />
               </div>
-              <h1 className="text-xl font-bold text-charcoal-900 mb-2">{t('onboarding.adultDeclaration', lang)}</h1>
+              <h1 className="text-xl font-bold text-text-primary">{t('onboarding.adultDeclaration', lang)}</h1>
             </div>
-            <div className="space-y-4">
-              <label className="flex items-start gap-3 p-4 bg-white rounded-xl border border-sand-200 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={adultAccepted}
-                  onChange={(e) => setAdultAccepted(e.target.checked)}
-                  className="mt-0.5 w-5 h-5 rounded border-sand-300 text-teal-600 focus:ring-teal-500"
-                />
-                <span className="text-sm text-charcoal-700">{t('onboarding.adultText', lang)}</span>
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 p-4 bg-surface-raised rounded-xl border border-border cursor-pointer hover:bg-surface-sunken transition-colors">
+                <input type="checkbox" checked={adultAccepted} onChange={(e) => setAdultAccepted(e.target.checked)} className="mt-0.5 w-5 h-5 rounded border-border text-brand-600 focus:ring-brand-500" />
+                <span className="text-sm text-text-primary">{t('onboarding.adultText', lang)}</span>
               </label>
-              <label className="flex items-start gap-3 p-4 bg-white rounded-xl border border-sand-200 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={termsAccepted}
-                  onChange={(e) => setTermsAccepted(e.target.checked)}
-                  className="mt-0.5 w-5 h-5 rounded border-sand-300 text-teal-600 focus:ring-teal-500"
-                />
-                <span className="text-sm text-charcoal-700">{t('onboarding.termsAccept', lang)}</span>
+              <label className="flex items-start gap-3 p-4 bg-surface-raised rounded-xl border border-border cursor-pointer hover:bg-surface-sunken transition-colors">
+                <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} className="mt-0.5 w-5 h-5 rounded border-border text-brand-600 focus:ring-brand-500" />
+                <span className="text-sm text-text-primary">{t('onboarding.termsAccept', lang)}</span>
               </label>
             </div>
             <Button variant="primary" size="lg" className="w-full" disabled={!adultAccepted || !termsAccepted} onClick={handleNext}>
@@ -143,10 +121,10 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
         )}
 
         {step === 'preferences' && (
-          <div className="space-y-6">
+          <div className="space-y-6 slide-up">
             <div className="text-center">
-              <h1 className="text-xl font-bold text-charcoal-900 mb-2">{t('onboarding.preferences', lang)}</h1>
-              <p className="text-sm text-charcoal-500">{t('onboarding.whyCollectText', lang)}</p>
+              <h1 className="text-xl font-bold text-text-primary">{t('onboarding.preferences', lang)}</h1>
+              <p className="text-sm text-text-secondary mt-1.5 max-w-xs mx-auto">{t('onboarding.whyCollectText', lang)}</p>
             </div>
             <div className="space-y-4">
               <Select
@@ -169,17 +147,6 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
                 value={expLang}
                 onChange={(e) => setExpLang(e.target.value as 'en' | 'ar')}
               />
-              <Select
-                label={t('onboarding.budgetRange', lang)}
-                options={[
-                  { value: '', label: lang === 'ar' ? 'اختر...' : 'Select...' },
-                  { value: '100-200', label: `100–200 ${t('common.sar', lang)}` },
-                  { value: '200-350', label: `200–350 ${t('common.sar', lang)}` },
-                  { value: '350-500', label: `350–500 ${t('common.sar', lang)}` },
-                ]}
-                value={budget}
-                onChange={(e) => setBudget(e.target.value)}
-              />
             </div>
             <Button variant="primary" size="lg" className="w-full" onClick={handleNext}>
               {lang === 'ar' ? 'ابدأ الاستكشاف' : 'Start exploring'}
@@ -188,12 +155,14 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
         )}
 
         {step === 'complete' && (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
-            <h2 className="text-xl font-bold text-charcoal-900 mb-2">
-              {lang === 'ar' ? 'مرحباً بك في يلا!' : 'Welcome to Yalla!'}
+          <div className="flex flex-col items-center justify-center py-16 text-center slide-up">
+            <div className="w-16 h-16 rounded-full bg-success-bg flex items-center justify-center mb-5">
+              <CheckCircle className="w-8 h-8 text-success" />
+            </div>
+            <h2 className="text-xl font-bold text-text-primary mb-2">
+              {lang === 'ar' ? 'مرحباً بك!' : 'Welcome!'}
             </h2>
-            <p className="text-sm text-charcoal-500">
+            <p className="text-sm text-text-secondary">
               {lang === 'ar' ? 'جاري تحضير تجاربك...' : 'Preparing your experiences...'}
             </p>
           </div>

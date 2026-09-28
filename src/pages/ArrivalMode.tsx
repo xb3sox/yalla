@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../data/store';
 import { t } from '../i18n';
 import { Button, ArrivalAction, Dialog } from '../components/DesignSystem';
-import { ArrowLeft, MapPin, Clock, User, Shield, Wifi, Navigation, CheckCircle, AlertTriangle, HelpCircle, Phone } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, User, Shield, Wifi, Navigation, CheckCircle, AlertTriangle, HelpCircle } from 'lucide-react';
 
 interface ArrivalModePageProps {
   experienceId: string;
@@ -17,21 +17,24 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
   const [actionDialog, setActionDialog] = useState<string | null>(null);
   const [actionSubmitted, setActionSubmitted] = useState(false);
 
-  // Check entitlement
   const isEntitled = reservation && ['confirmed', 'reconfirmed'].includes(reservation.state);
 
   if (!experience || !isEntitled) {
     return (
-      <div className="min-h-screen bg-ivory flex flex-col items-center justify-center p-6 text-center">
-        <Shield className="w-12 h-12 text-charcoal-300 mb-4" />
-        <h2 className="text-lg font-semibold text-charcoal-700 mb-2">{t('arrival.notEntitled', lang)}</h2>
-        <p className="text-sm text-charcoal-500 mb-6">{t('arrival.notEntitledText', lang)}</p>
+      <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6 text-center">
+        <Shield className="w-10 h-10 text-text-tertiary mb-4" />
+        <h2 className="text-lg font-semibold text-text-primary mb-2">{t('arrival.notEntitled', lang)}</h2>
+        <p className="text-sm text-text-secondary mb-6 max-w-xs">{t('arrival.notEntitledText', lang)}</p>
         <Button variant="secondary" onClick={onBack}>{t('common.back', lang)}</Button>
       </div>
     );
   }
 
-  const venue = { name: lang === 'ar' ? 'حي الفن بالخبر' : 'Al Khobar Art District', address: lang === 'ar' ? 'شارع الأمير تركي، الخبر' : 'Prince Turkey St, Al Khobar', meetingPoint: lang === 'ar' ? 'بجوار نافورة الفسيفساء الزرقاء' : 'Near the blue mosaic fountain' };
+  const venue = {
+    name: lang === 'ar' ? 'حي الفن بالخبر' : 'Al Khobar Art District',
+    address: lang === 'ar' ? 'شارع الأمير تركي، الخبر' : 'Prince Turkey St, Al Khobar',
+    meetingPoint: lang === 'ar' ? 'بجوار نافورة الفسيفساء الزرقاء' : 'Near the blue mosaic fountain',
+  };
   const hostName = lang === 'ar' ? 'سارة الراشد' : 'Sarah Al-Rashid';
 
   const handleAction = (action: string) => {
@@ -41,105 +44,90 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
 
   const submitAction = () => {
     setActionSubmitted(true);
-    setTimeout(() => {
-      setActionDialog(null);
-      setActionSubmitted(false);
-    }, 2000);
+    setTimeout(() => { setActionDialog(null); setActionSubmitted(false); }, 2000);
   };
 
+  const endTime = (() => {
+    const [h, m] = experience.time.split(':').map(Number);
+    const endMin = h * 60 + m + experience.durationMinutes;
+    return `${Math.floor(endMin / 60) % 24}:${(endMin % 60).toString().padStart(2, '0')}`;
+  })();
+
   return (
-    <div className="min-h-screen bg-ivory">
-      {/* Header */}
-      <div className="bg-teal-700 text-white px-5 pt-6 pb-8">
+    <div className="min-h-screen bg-surface">
+      {/* Header — calm, informative */}
+      <div className="bg-brand-700 text-white px-5 pt-5 pb-6">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-teal-100 hover:text-white transition-colors mb-4"
+          className="flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-3"
           aria-label={t('common.back', lang)}
         >
-          <ArrowLeft className="w-5 h-5 flip-rtl" />
+          <ArrowLeft className="w-4 h-4 flip-rtl" />
           <span className="text-sm">{t('common.back', lang)}</span>
         </button>
-        <h1 className="text-xl font-bold">{t('arrival.title', lang)}</h1>
-        <p className="text-teal-200 text-sm mt-1">{lang === 'ar' ? experience.titleAr : experience.title}</p>
+        <p className="text-xs text-white/60 uppercase tracking-wider mb-1">{t('arrival.title', lang)}</p>
+        <h1 className="text-xl font-bold">{lang === 'ar' ? experience.titleAr : experience.title}</h1>
       </div>
 
-      <div className="px-5 py-6 space-y-5">
-        {/* Venue Info */}
-        <div className="bg-white rounded-xl border border-sand-200 p-4 space-y-3">
-          <div className="flex items-center gap-3">
-            <MapPin className="w-5 h-5 text-teal-500" />
-            <div>
-              <p className="text-xs text-charcoal-400">{t('arrival.venue', lang)}</p>
-              <p className="font-semibold text-charcoal-900">{venue.name}</p>
+      <div className="px-5 py-6 space-y-4">
+        {/* Venue */}
+        <section className="bg-surface-raised rounded-xl border border-border p-4">
+          <div className="flex items-start gap-3">
+            <MapPin className="w-5 h-5 text-brand-500 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-text-primary">{venue.name}</p>
+              <p className="text-sm text-text-secondary mt-0.5">{venue.address}</p>
+              <div className="mt-3 pt-3 border-t border-border">
+                <p className="text-xs text-text-tertiary">{t('arrival.meetingPoint', lang)}</p>
+                <p className="text-sm font-medium text-brand-600 mt-0.5">{venue.meetingPoint}</p>
+              </div>
+              <a href="#" className="inline-flex items-center gap-1.5 text-sm text-brand-600 hover:text-brand-700 mt-3">
+                <Navigation className="w-3.5 h-3.5" />
+                {t('arrival.mapLink', lang)}
+              </a>
             </div>
           </div>
-          <div className="ps-8">
-            <p className="text-sm text-charcoal-600">{venue.address}</p>
-          </div>
-          <div className="ps-8">
-            <p className="text-xs text-charcoal-400">{t('arrival.meetingPoint', lang)}</p>
-            <p className="text-sm font-medium text-teal-700">{venue.meetingPoint}</p>
-          </div>
-          <a href="#" className="ps-8 flex items-center gap-2 text-sm text-teal-600 hover:text-teal-700">
-            <Navigation className="w-4 h-4" />
-            {t('arrival.mapLink', lang)}
-          </a>
-        </div>
+        </section>
 
-        {/* Host Info */}
-        <div className="bg-white rounded-xl border border-sand-200 p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center">
-              <User className="w-5 h-5 text-teal-600" />
+        {/* Host + Time — combined */}
+        <section className="bg-surface-raised rounded-xl border border-border p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 rounded-full bg-brand-50 flex items-center justify-center">
+              <User className="w-4 h-4 text-brand-600" />
             </div>
             <div>
-              <p className="text-xs text-charcoal-400">{t('arrival.host', lang)}</p>
-              <p className="font-semibold text-charcoal-900">{hostName}</p>
+              <p className="text-xs text-text-tertiary">{t('arrival.host', lang)}</p>
+              <p className="font-medium text-text-primary">{hostName}</p>
             </div>
           </div>
-        </div>
+          <div className="h-px bg-border" />
+          <div className="flex items-center justify-between pt-3">
+            <div>
+              <p className="text-xs text-text-tertiary">{t('arrival.startTime', lang)}</p>
+              <p className="text-lg font-semibold text-text-primary tabular-nums">{experience.time}</p>
+            </div>
+            <div className="text-end">
+              <p className="text-xs text-text-tertiary">{t('arrival.endTime', lang)}</p>
+              <p className="text-lg font-semibold text-text-secondary tabular-nums">{endTime}</p>
+            </div>
+          </div>
+        </section>
 
-        {/* Time Info */}
-        <div className="bg-white rounded-xl border border-sand-200 p-4">
-          <div className="flex items-center gap-3 mb-2">
-            <Clock className="w-5 h-5 text-teal-500" />
-            <div>
-              <p className="text-xs text-charcoal-400">{t('arrival.startTime', lang)}</p>
-              <p className="font-semibold text-charcoal-900">{experience.time}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 ps-8">
-            <Clock className="w-5 h-5 text-charcoal-300" />
-            <div>
-              <p className="text-xs text-charcoal-400">{t('arrival.endTime', lang)}</p>
-              <p className="text-sm text-charcoal-600">
-                {(() => {
-                  const [h, m] = experience.time.split(':').map(Number);
-                  const endMin = h * 60 + m + experience.durationMinutes;
-                  const endH = Math.floor(endMin / 60) % 24;
-                  const endM = endMin % 60;
-                  return `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`;
-                })()}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Accessibility Notes */}
+        {/* Accessibility */}
         {experience.accessibility && (
-          <div className="bg-white rounded-xl border border-sand-200 p-4">
+          <section className="bg-surface-raised rounded-xl border border-border p-4">
             <div className="flex items-start gap-3">
-              <Shield className="w-5 h-5 text-teal-500 mt-0.5" />
+              <Shield className="w-4.5 h-4.5 text-text-tertiary mt-0.5" />
               <div>
-                <p className="text-xs text-charcoal-400">{t('arrival.accessibilityNotes', lang)}</p>
-                <p className="text-sm text-charcoal-600 mt-1">{lang === 'ar' ? experience.accessibilityAr : experience.accessibility}</p>
+                <p className="text-xs text-text-tertiary mb-0.5">{t('arrival.accessibilityNotes', lang)}</p>
+                <p className="text-sm text-text-secondary">{lang === 'ar' ? experience.accessibilityAr : experience.accessibility}</p>
               </div>
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Last Updated & Offline */}
-        <div className="flex items-center justify-between text-xs text-charcoal-400">
+        {/* Meta */}
+        <div className="flex items-center justify-between text-xs text-text-tertiary px-1">
           <span className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
             {t('arrival.lastUpdated', lang)}: {new Date().toLocaleTimeString(lang === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
@@ -150,26 +138,26 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
           </span>
         </div>
 
-        {/* Arrival Actions */}
-        <div className="space-y-3 pt-4">
+        {/* Actions */}
+        <div className="space-y-2.5 pt-2">
           <ArrivalAction
-            icon={<CheckCircle className="w-5 h-5 text-green-500" />}
+            icon={<CheckCircle className="w-5 h-5 text-success" />}
             label={t('arrival.imHere', lang)}
             onClick={() => handleAction('here')}
             variant="primary"
           />
           <ArrivalAction
-            icon={<Clock className="w-5 h-5 text-amber-500" />}
+            icon={<Clock className="w-5 h-5 text-warning" />}
             label={t('arrival.illBeLate', lang)}
             onClick={() => handleAction('late')}
           />
           <ArrivalAction
-            icon={<AlertTriangle className="w-5 h-5 text-terracotta-500" />}
+            icon={<AlertTriangle className="w-5 h-5 text-accent-500" />}
             label={t('arrival.cantFind', lang)}
             onClick={() => handleAction('cantFind')}
           />
           <ArrivalAction
-            icon={<HelpCircle className="w-5 h-5 text-charcoal-500" />}
+            icon={<HelpCircle className="w-5 h-5 text-text-tertiary" />}
             label={t('arrival.needHelp', lang)}
             onClick={() => handleAction('help')}
           />
@@ -186,26 +174,26 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
           actionDialog === 'cantFind' ? t('arrival.cantFind', lang) :
           t('arrival.needHelp', lang)
         }
-        actions={!actionSubmitted ? (
-          <>
-            <Button variant="secondary" onClick={() => setActionDialog(null)}>{t('common.cancel', lang)}</Button>
-            <Button variant="primary" onClick={submitAction}>{t('common.submit', lang)}</Button>
-          </>
-        ) : undefined}
+        actions={!actionSubmitted ? <>
+          <Button variant="secondary" onClick={() => setActionDialog(null)}>{t('common.cancel', lang)}</Button>
+          <Button variant="primary" onClick={submitAction}>{t('common.submit', lang)}</Button>
+        </> : undefined}
       >
         {actionSubmitted ? (
           <div className="text-center py-4">
-            <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-3" />
-            <p className="text-sm text-charcoal-600">
-              {lang === 'ar' ? 'تم الإرسال. سيتواصل معك المضيف أو فريق يلا.' : 'Sent. Your host or Yalla team will reach out.'}
+            <div className="w-12 h-12 rounded-full bg-success-bg flex items-center justify-center mx-auto mb-3">
+              <CheckCircle className="w-6 h-6 text-success" />
+            </div>
+            <p className="text-sm text-text-secondary">
+              {lang === 'ar' ? 'تم الإرسال. سيتواصل معك المضيف أو فريق يلا.' : 'Sent. Your host or the Yalla team will reach out.'}
             </p>
           </div>
         ) : (
-          <p className="text-sm text-charcoal-600">
+          <p className="text-sm text-text-secondary">
             {actionDialog === 'here' && (lang === 'ar' ? 'سيتم إشعار مضيفك بأنك وصلت.' : 'Your host will be notified that you\'ve arrived.')}
             {actionDialog === 'late' && (lang === 'ar' ? 'سيتم إشعار مضيفك. لا تقلق، خذ وقتك.' : 'Your host will be notified. No worries, take your time.')}
-            {actionDialog === 'cantFind' && (lang === 'ar' ? 'سيتواصل معك فريق يلا للمساعدة في تحديد موقعك.' : 'Yalla support will reach out to help locate the group.')}
-            {actionDialog === 'help' && (lang === 'ar' ? 'فريق يلا هنا للمساعدة. كيف يمكننا مساعدتك؟' : 'Yalla support is here to help. How can we assist?')}
+            {actionDialog === 'cantFind' && (lang === 'ar' ? 'سيتواصل معك فريق يلا للمساعدة.' : 'Yalla support will reach out to help you find the group.')}
+            {actionDialog === 'help' && (lang === 'ar' ? 'فريق يلا هنا للمساعدة.' : 'Yalla support is here to help. How can we assist?')}
           </p>
         )}
       </Dialog>

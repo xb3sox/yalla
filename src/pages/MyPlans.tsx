@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../data/store';
 import { t } from '../i18n';
 import { StatusPanel, StatusBadge, Button, Dialog, MaterialChangeBanner } from '../components/DesignSystem';
-import { Calendar, Clock, AlertCircle } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 
 interface MyPlansPageProps {
   onViewExperience: (id: string) => void;
@@ -32,8 +32,6 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback }:
       case 'confirmed':
       case 'reconfirmed':
         return { label: t('arrival.title', lang), action: () => onGoToArrival(reservation.planId) };
-      case 'waitlisted':
-        return null;
       default:
         return null;
     }
@@ -46,24 +44,22 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback }:
     const hasMaterialChanges = exp.materialChanges && exp.materialChanges.length > 0;
 
     return (
-      <div key={reservation.id} className="bg-white rounded-xl border border-sand-200 p-4 space-y-3">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="font-semibold text-charcoal-900 text-sm">
+      <div key={reservation.id} className="bg-surface-raised rounded-xl border border-border p-4 space-y-3">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-text-primary text-[15px] truncate">
               {lang === 'ar' ? exp.titleAr : exp.title}
             </h3>
-            <div className="flex items-center gap-2 mt-1 text-xs text-charcoal-500">
-              <Calendar className="w-3 h-3" />
-              <span>{exp.date}</span>
-              <span>•</span>
-              <Clock className="w-3 h-3" />
-              <span>{exp.time}</span>
+            <div className="flex items-center gap-1.5 mt-1 text-xs text-text-tertiary">
+              <Calendar className="w-3 h-3" aria-hidden="true" />
+              <span>{exp.date} · {exp.time}</span>
             </div>
           </div>
           <StatusBadge state={reservation.state} size="sm" />
         </div>
 
-        {/* Status Panel */}
+        {/* Status */}
         <StatusPanel
           reservationState={reservation.state}
           expiryAt={reservation.expiryAt}
@@ -84,21 +80,21 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback }:
           />
         )}
 
-        {/* Actions */}
-        <div className="flex gap-2 pt-2">
+        {/* Secondary actions */}
+        <div className="flex items-center gap-1 pt-1">
           {['confirmed', 'reconfirmed'].includes(reservation.state) && (
             <Button variant="ghost" size="sm" onClick={() => onViewExperience(exp.id)}>
-              {lang === 'ar' ? 'عرض التفاصيل' : 'View details'}
+              {lang === 'ar' ? 'التفاصيل' : 'Details'}
             </Button>
           )}
           {['confirmed', 'reconfirmed', 'reconfirmation_required'].includes(reservation.state) && (
-            <Button variant="ghost" size="sm" className="text-terracotta-600" onClick={() => setCancelDialog(reservation.id)}>
+            <Button variant="ghost" size="sm" className="text-accent-600 hover:bg-accent-50" onClick={() => setCancelDialog(reservation.id)}>
               {t('plans.cancelPlan', lang)}
             </Button>
           )}
           {['completed', 'attended'].includes(reservation.state) && (
             <Button variant="ghost" size="sm" onClick={() => onGoToFeedback(reservation.id)}>
-              {lang === 'ar' ? 'إرسال ملاحظات' : 'Give feedback'}
+              {lang === 'ar' ? 'ملاحظات' : 'Feedback'}
             </Button>
           )}
         </div>
@@ -110,7 +106,7 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback }:
     if (items.length === 0) return null;
     return (
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-charcoal-500 uppercase tracking-wide">{title}</h2>
+        <h2 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">{title}</h2>
         {items.map(renderPlanCard)}
       </section>
     );
@@ -119,49 +115,44 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback }:
   const hasAnyPlans = userReservations.length > 0;
 
   return (
-    <div className="min-h-screen bg-ivory">
-      <div className="px-5 pt-8 pb-4">
-        <h1 className="text-2xl font-bold text-charcoal-900">{t('plans.title', lang)}</h1>
+    <div className="px-5 pt-4 pb-28">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-text-primary tracking-tight">{t('plans.title', lang)}</h1>
       </div>
 
-      <div className="px-5 pb-8 space-y-6">
-        {hasAnyPlans ? (
-          <>
-            {renderSection(t('plans.actionRequired', lang), actionRequired)}
-            {renderSection(t('plans.upcoming', lang), upcoming)}
-            {renderSection(t('plans.pendingWaitlisted', lang), pendingWaitlisted)}
-            {renderSection(t('plans.cancelled', lang), cancelled)}
-            {renderSection(t('plans.past', lang), past)}
-          </>
-        ) : (
-          <div className="text-center py-16">
-            <AlertCircle className="w-12 h-12 text-charcoal-300 mx-auto mb-4" />
-            <p className="text-charcoal-500">{t('plans.empty', lang)}</p>
-          </div>
-        )}
-      </div>
+      {hasAnyPlans ? (
+        <div className="space-y-6">
+          {renderSection(t('plans.actionRequired', lang), actionRequired)}
+          {renderSection(t('plans.upcoming', lang), upcoming)}
+          {renderSection(t('plans.pendingWaitlisted', lang), pendingWaitlisted)}
+          {renderSection(t('plans.cancelled', lang), cancelled)}
+          {renderSection(t('plans.past', lang), past)}
+        </div>
+      ) : (
+        <div className="text-center py-20">
+          <p className="text-text-secondary">{t('plans.empty', lang)}</p>
+        </div>
+      )}
 
       {/* Cancel Dialog */}
       <Dialog
         open={!!cancelDialog}
         onClose={() => setCancelDialog(null)}
         title={t('plans.cancelPlan', lang)}
-        actions={
-          <>
-            <Button variant="secondary" onClick={() => setCancelDialog(null)}>{t('common.cancel', lang)}</Button>
-            <Button variant="danger" onClick={() => {
-              if (cancelDialog) {
-                dispatch({ type: 'CANCEL_RESERVATION', payload: cancelDialog });
-                setCancelDialog(null);
-              }
-            }}>{t('common.confirm', lang)}</Button>
-          </>
-        }
+        actions={<>
+          <Button variant="secondary" onClick={() => setCancelDialog(null)}>{t('common.cancel', lang)}</Button>
+          <Button variant="danger" onClick={() => {
+            if (cancelDialog) {
+              dispatch({ type: 'CANCEL_RESERVATION', payload: cancelDialog });
+              setCancelDialog(null);
+            }
+          }}>{lang === 'ar' ? 'إلغاء الحجز' : 'Cancel booking'}</Button>
+        </>}
       >
-        <p className="text-sm text-charcoal-600">
+        <p className="text-sm text-text-secondary">
           {lang === 'ar'
-            ? 'هل أنت متأكد من إلغاء حجزك؟ قد لا يكون الاسترداد متاحاً اعتماداً على سياسة الإلغاء.'
-            : 'Are you sure you want to cancel? Refunds may not be available depending on the cancellation policy.'}
+            ? 'هل أنت متأكد من إلغاء حجزك؟ قد لا يكون الاسترداد متاحاً.'
+            : 'Are you sure you want to cancel this booking? Refunds may not be available.'}
         </p>
       </Dialog>
     </div>
