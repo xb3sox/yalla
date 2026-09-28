@@ -2,6 +2,7 @@ import { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes, TextareaHTMLAttri
 import { useApp } from '../data/store';
 import { t, TranslationKey } from '../i18n';
 import { CheckCircle, Clock, XCircle, Info, Loader2, AlertTriangle, ChevronRight } from 'lucide-react';
+import { FavoriteButton } from './FavoriteButton';
 
 /* ═══════════════════════════════════════════
    BUTTON
@@ -130,15 +131,20 @@ export function ExperienceCard({ experience, onPress }: ExperienceCardProps) {
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-        {isFull ? (
-          <span className="absolute top-3 end-3 bg-black/40 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1 rounded-full">
-            {t('explore.full', lang)}
-          </span>
-        ) : (
-          <span className="absolute top-3 end-3 bg-white/20 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1 rounded-full">
-            {t('explore.spotsLeft', lang, { count: spotsLeft })}
-          </span>
-        )}
+        <div className="absolute top-3 end-3 flex gap-2">
+          {isFull ? (
+            <span className="bg-black/40 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1 rounded-full">
+              {t('explore.full', lang)}
+            </span>
+          ) : (
+            <span className="bg-white/20 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1 rounded-full">
+              {t('explore.spotsLeft', lang, { count: spotsLeft })}
+            </span>
+          )}
+          <div onClick={(e) => e.stopPropagation()}>
+            <FavoriteButton experienceId={experience.id} size="sm" />
+          </div>
+        </div>
         <h3 className="absolute bottom-4 start-4 end-4 text-white text-lg font-semibold leading-tight drop-shadow-md">
           {lang === 'ar' ? experience.titleAr : experience.title}
         </h3>

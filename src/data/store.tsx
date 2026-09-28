@@ -268,6 +268,7 @@ interface AppState {
   notifications: Notification[];
   supportRequests: SupportRequest[];
   feedbacks: Feedback[];
+  favorites: string[];
   currentView: string;
 }
 
@@ -284,7 +285,9 @@ type Action =
   | { type: 'ADD_SUPPORT_REQUEST'; payload: SupportRequest }
   | { type: 'SET_VIEW'; payload: string }
   | { type: 'RECONFIRM_RESERVATION'; payload: string }
-  | { type: 'CANCEL_RESERVATION'; payload: string };
+  | { type: 'CANCEL_RESERVATION'; payload: string }
+  | { type: 'ADD_FAVORITE'; payload: string }
+  | { type: 'REMOVE_FAVORITE'; payload: string };
 
 const initialState: AppState = {
   language: 'en',
@@ -297,6 +300,7 @@ const initialState: AppState = {
   notifications: mockNotifications,
   supportRequests: [],
   feedbacks: [],
+  favorites: [],
   currentView: 'explore',
 };
 
@@ -346,6 +350,10 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, supportRequests: [...state.supportRequests, action.payload] };
     case 'SET_VIEW':
       return { ...state, currentView: action.payload };
+    case 'ADD_FAVORITE':
+      return { ...state, favorites: [...state.favorites, action.payload] };
+    case 'REMOVE_FAVORITE':
+      return { ...state, favorites: state.favorites.filter(id => id !== action.payload) };
     default:
       return state;
   }

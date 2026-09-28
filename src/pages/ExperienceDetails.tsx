@@ -3,6 +3,7 @@ import { useApp } from '../data/store';
 import { useToast } from '../components/Toast';
 import { ProgressBar } from '../components/ProgressBar';
 import { ShareExperience } from '../components/ShareExperience';
+import { FavoriteButton } from '../components/FavoriteButton';
 import { t } from '../i18n';
 import { Button, PriceSummary, Timeline, Dialog, SyntheticPaymentLabel } from '../components/DesignSystem';
 import { ArrowLeft, Clock, MapPin, Users, Globe, Shield, CheckCircle, ChevronDown } from 'lucide-react';
@@ -76,9 +77,12 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
         >
           <ArrowLeft className="w-5 h-5 flip-rtl" />
         </button>
-        <div className="absolute top-4 end-4">
+        <div className="absolute top-4 end-4 flex gap-2">
           <div className="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 transition-colors">
             <ShareExperience experienceId={experience.id} title={lang === 'ar' ? experience.titleAr : experience.title} />
+          </div>
+          <div className="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 transition-colors">
+            <FavoriteButton experienceId={experience.id} size="md" />
           </div>
         </div>
         <div className="absolute bottom-0 start-0 end-0 p-5">
