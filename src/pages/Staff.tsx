@@ -75,7 +75,7 @@ export function StaffPage({ onBack }: StaffPageProps) {
         {activeSection === 'waitlist' && <WaitlistSection lang={lang} state={state} />}
         {activeSection === 'attendance' && <AttendanceSection lang={lang} state={state} onCorrect={() => setAssignDialog({ type: 'attendance', id: 'res-1' })} />}
         {activeSection === 'notifications' && <NotificationsSection lang={lang} state={state} />}
-        {activeSection === 'recovery' && <EmptySection lang={lang} message={lang === 'ar' ? 'لا توجد عمليات تحتاج استرداد' : 'No operations require recovery'} icon={<Wrench className="w-8 h-8 text-text-tertiary mx-auto mb-2" />} />}
+        {activeSection === 'recovery' && <RecoverySection lang={lang} />}
         {activeSection === 'safety' && <SafetySection lang={lang} />}
         {activeSection === 'audit' && <AuditSection lang={lang} />}
         {activeSection === 'metrics' && <MetricsSection lang={lang} state={state} />}
@@ -190,20 +190,62 @@ function VenuesSection({ lang }: { lang: 'en' | 'ar' }) {
 
 function WaitlistSection({ lang, state }: { lang: 'en' | 'ar'; state: ReturnType<typeof useApp>['state'] }) {
   const waitlisted = state.reservations.filter((r: Reservation) => r.state === 'waitlisted');
+  
+  const handleOfferSeat = (reservationId: string) => {
+    // In a real app, this would update the reservation state to 'offered'
+    // and send a notification to the user
+    alert(lang === 'ar' 
+      ? `سيتم عرض المقعد على المستخدم. سيتلقون إشعاراً.`
+      : `Seat will be offered to user. They will receive a notification.`);
+  };
+
   return (
-    <div className="space-y-2">
-      {waitlisted.length > 0 ? waitlisted.map((r: Reservation) => {
-        const exp = state.experiences.find((e: Experience) => e.id === r.planId);
-        return (
-          <div key={r.id} className="bg-surface-raised rounded-xl border border-border p-4 flex items-center justify-between">
-            <div>
-              <p className="font-medium text-text-primary text-sm">{exp ? (lang === 'ar' ? exp.titleAr : exp.title) : r.planId}</p>
-              <p className="text-xs text-text-tertiary">{lang === 'ar' ? 'في الانتظار' : 'Waiting'}</p>
-            </div>
-            <Button variant="ghost" size="sm">{lang === 'ar' ? 'عرض' : 'Offer'}</Button>
-          </div>
-        );
-      }) : <EmptySection lang={lang} message={lang === 'ar' ? 'لا يوجد أشخاص في قائمة الانتظار' : 'No one on the waitlist'} />}
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-text-tertiary">
+          {lang === 'ar' 
+            ? `${waitlisted.length} ${waitlisted.length === 1 ? 'شخص' : 'أشخاص'} في قائمة الانتظار`
+            : `${waitlisted.length} ${waitlisted.length === 1 ? 'person' : 'people'} on waitlist`}
+        </p>
+      </div>
+      {waitlisted.length > 0 ? (
+        <div className="space-y-2">
+          {waitlisted.map((r: Reservation) => {
+            const exp = state.experiences.find((e: Experience) => e.id === r.planId);
+            return (
+              <div key={r.id} className="bg-surface-raised rounded-xl border border-border p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <p className="font-medium text-text-primary text-sm mb-1">
+                      {exp ? (lang === 'ar' ? exp.titleAr : exp.title) : r.planId}
+                    </p>
+                    <p className="text-xs text-text-tertiary">
+                      {lang === 'ar' ? 'في الانتظار منذ' : 'Waiting since'} {new Date(r.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}
+                    </p>
+                  </div>
+                  <span className="text-xs px-2 py-1 rounded-full bg-info-bg text-info font-medium">
+                    {lang === 'ar' ? 'في الانتظار' : 'Waitlisted'}
+                  </span>
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <Button 
+                    variant="primary" 
+                    size="sm"
+                    onClick={() => handleOfferSeat(r.id)}
+                  >
+                    {lang === 'ar' ? 'عرض مقعد' : 'Offer seat'}
+                  </Button>
+                  <Button variant="ghost" size="sm">
+                    {lang === 'ar' ? 'عرض التفاصيل' : 'View details'}
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <EmptySection lang={lang} message={lang === 'ar' ? 'لا يوجد أشخاص في قائمة الانتظار' : 'No one on the waitlist'} />
+      )}
     </div>
   );
 }
@@ -245,6 +287,57 @@ function NotificationsSection({ lang, state }: { lang: 'en' | 'ar'; state: Retur
 }
 
 function SafetySection({ lang }: { lang: 'en' | 'ar' }) {
+  // Mock safety cases for demonstration
+  const safetyCases = [
+    {
+      id: 'case-1',
+      category: lang === 'ar' ? 'سلوك غير لائق' : 'Inappropriate behavior',
+      status: 'under_review',
+      reporter: 'user-2',
+      reported: 'user-3',
+      createdAt: '2026-01-28',
+      priority: 'high',
+    },
+    {
+      id: 'case-2',
+      category: lang === 'ar' ? 'مخاوف تتعلق بالسلامة' : 'Safety concern',
+      status: 'triage',
+      reporter: 'user-4',
+      reported: 'venue-2',
+      createdAt: '2026-01-29',
+      priority: 'medium',
+    },
+  ];
+
+  const getStatusBadge = (status: string) => {
+    const statusMap: Record<string, { label: string; labelAr: string; color: string }> = {
+      triage: { label: 'Triage', labelAr: 'فرز', color: 'bg-warning-bg text-warning' },
+      under_review: { label: 'Under Review', labelAr: 'قيد المراجعة', color: 'bg-info-bg text-info' },
+      action_taken: { label: 'Action Taken', labelAr: 'تم اتخاذ إجراء', color: 'bg-success-bg text-success' },
+      closed: { label: 'Closed', labelAr: 'مغلق', color: 'bg-surface-sunken text-text-tertiary' },
+    };
+    const s = statusMap[status] || statusMap.triage;
+    return (
+      <span className={`text-xs px-2 py-1 rounded-full font-medium ${s.color}`}>
+        {lang === 'ar' ? s.labelAr : s.label}
+      </span>
+    );
+  };
+
+  const getPriorityBadge = (priority: string) => {
+    const priorityMap: Record<string, { label: string; labelAr: string; color: string }> = {
+      high: { label: 'High', labelAr: 'عالي', color: 'bg-accent-50 text-accent-600' },
+      medium: { label: 'Medium', labelAr: 'متوسط', color: 'bg-warning-bg text-warning' },
+      low: { label: 'Low', labelAr: 'منخفض', color: 'bg-surface-sunken text-text-tertiary' },
+    };
+    const p = priorityMap[priority] || priorityMap.medium;
+    return (
+      <span className={`text-xs px-2 py-1 rounded-full font-medium ${p.color}`}>
+        {lang === 'ar' ? p.labelAr : p.label}
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-4">
       <div className="rounded-xl bg-accent-50 border border-accent-100 p-4">
@@ -253,32 +346,182 @@ function SafetySection({ lang }: { lang: 'en' | 'ar' }) {
           <p className="text-xs font-medium text-accent-600">{lang === 'ar' ? 'وصول مقيد' : 'Restricted access'}</p>
         </div>
         <p className="text-xs text-text-secondary">
-          {lang === 'ar' ? 'حالات السلامة مقيدة ولا يمكن الوصول إليها إلا من قبل فريق الثقة والسلامة.' : 'Safety cases are restricted to Trust & Safety staff only. All actions are audited.'}
+          {lang === 'ar' ? 'حالات السلامة مقيدة ولا يمكن الوصول إليها إلا من قبل فريق الثقة والسلامة. جميع الإجراءات مدققة.' : 'Safety cases are restricted to Trust & Safety staff only. All actions are audited.'}
         </p>
       </div>
-      <EmptySection lang={lang} message={lang === 'ar' ? 'لا توجد حالات مفتوحة' : 'No open cases'} />
+
+      {safetyCases.length > 0 ? (
+        <div className="space-y-2">
+          {safetyCases.map(c => (
+            <div key={c.id} className="bg-surface-raised rounded-xl border border-border p-4">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <p className="font-medium text-text-primary text-sm mb-1">{c.category}</p>
+                  <p className="text-xs text-text-tertiary">{c.createdAt}</p>
+                </div>
+                <div className="flex flex-col gap-1 items-end">
+                  {getPriorityBadge(c.priority)}
+                  {getStatusBadge(c.status)}
+                </div>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <Button variant="ghost" size="sm">
+                  {lang === 'ar' ? 'عرض التفاصيل' : 'View details'}
+                </Button>
+                <Button variant="ghost" size="sm">
+                  {lang === 'ar' ? 'تحديث الحالة' : 'Update status'}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <EmptySection lang={lang} message={lang === 'ar' ? 'لا توجد حالات مفتوحة' : 'No open cases'} />
+      )}
     </div>
   );
 }
 
 function AuditSection({ lang }: { lang: 'en' | 'ar' }) {
   const events = [
-    { action: lang === 'ar' ? 'إنشاء خطة' : 'Plan created', actor: 'ops-1', time: '2026-01-20 14:00' },
-    { action: lang === 'ar' ? 'تعيين مضيف' : 'Host assigned', actor: 'ops-1', time: '2026-01-20 14:05' },
-    { action: lang === 'ar' ? 'نشر خطة' : 'Plan published', actor: 'ops-1', time: '2026-01-20 14:10' },
-    { action: lang === 'ar' ? 'حجز مؤكد' : 'Booking confirmed', actor: 'system', time: '2026-01-20 14:15' },
+    { action: lang === 'ar' ? 'إنشاء خطة' : 'Plan created', actor: 'ops-1', actorName: lang === 'ar' ? 'أحمد' : 'Ahmed', time: '2026-01-20 14:00', resource: 'exp-1', classification: 'internal' },
+    { action: lang === 'ar' ? 'تعيين مضيف' : 'Host assigned', actor: 'ops-1', actorName: lang === 'ar' ? 'أحمد' : 'Ahmed', time: '2026-01-20 14:05', resource: 'exp-1', classification: 'internal' },
+    { action: lang === 'ar' ? 'تعيين مكان' : 'Venue assigned', actor: 'ops-1', actorName: lang === 'ar' ? 'أحمد' : 'Ahmed', time: '2026-01-20 14:08', resource: 'exp-1', classification: 'internal' },
+    { action: lang === 'ar' ? 'نشر خطة' : 'Plan published', actor: 'ops-1', actorName: lang === 'ar' ? 'أحمد' : 'Ahmed', time: '2026-01-20 14:10', resource: 'exp-1', classification: 'internal' },
+    { action: lang === 'ar' ? 'حجز مؤكد' : 'Booking confirmed', actor: 'system', actorName: 'System', time: '2026-01-20 14:15', resource: 'res-1', classification: 'confidential' },
+    { action: lang === 'ar' ? 'إرسال إشعار' : 'Notification sent', actor: 'system', actorName: 'System', time: '2026-01-20 14:16', resource: 'notif-1', classification: 'internal' },
+    { action: lang === 'ar' ? 'تأكيد الحضور' : 'Attendance confirmed', actor: 'user-1', actorName: lang === 'ar' ? 'محمد' : 'Mohammed', time: '2026-01-22 09:01', resource: 'res-2', classification: 'confidential' },
+    { action: lang === 'ar' ? 'تصحيح حضور' : 'Attendance corrected', actor: 'ops-2', actorName: lang === 'ar' ? 'فاطمة' : 'Fatima', time: '2026-01-22 18:30', resource: 'res-1', classification: 'confidential' },
   ];
+
+  const getClassificationBadge = (classification: string) => {
+    const classMap: Record<string, { label: string; labelAr: string; color: string }> = {
+      public: { label: 'Public', labelAr: 'عام', color: 'bg-success-bg text-success' },
+      internal: { label: 'Internal', labelAr: 'داخلي', color: 'bg-info-bg text-info' },
+      confidential: { label: 'Confidential', labelAr: 'سري', color: 'bg-warning-bg text-warning' },
+      restricted: { label: 'Restricted', labelAr: 'مقيد', color: 'bg-accent-50 text-accent-600' },
+    };
+    const c = classMap[classification] || classMap.internal;
+    return (
+      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${c.color}`}>
+        {lang === 'ar' ? c.labelAr : c.label}
+      </span>
+    );
+  };
+
   return (
-    <div className="space-y-2">
-      {events.map((e, i) => (
-        <div key={i} className="bg-surface-raised rounded-lg border border-border p-3 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-text-primary">{e.action}</p>
-            <p className="text-xs text-text-tertiary">{e.actor}</p>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-text-tertiary">
+          {lang === 'ar' ? `${events.length} حدث` : `${events.length} events`}
+        </p>
+      </div>
+      <div className="space-y-2">
+        {events.map((e, i) => (
+          <div key={i} className="bg-surface-raised rounded-lg border border-border p-3">
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm font-medium text-text-primary">{e.action}</p>
+                  {getClassificationBadge(e.classification)}
+                </div>
+                <p className="text-xs text-text-tertiary">
+                  {e.actorName} ({e.actor}) → {e.resource}
+                </p>
+              </div>
+              <span className="text-xs text-text-tertiary tabular-nums whitespace-nowrap ms-2">{e.time}</span>
+            </div>
           </div>
-          <span className="text-xs text-text-tertiary tabular-nums">{e.time}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RecoverySection({ lang }: { lang: 'en' | 'ar' }) {
+  // Mock recovery scenarios
+  const recoveryItems = [
+    {
+      id: 'rec-1',
+      type: lang === 'ar' ? 'إشعار فاشل' : 'Failed notification',
+      description: lang === 'ar' ? 'فشل إرسال إشعار تأكيد الحجز' : 'Failed to send booking confirmation notification',
+      resourceId: 'notif-3',
+      status: 'retrying',
+      attempts: 2,
+      lastAttempt: '2026-01-29 10:30',
+    },
+    {
+      id: 'rec-2',
+      type: lang === 'ar' ? 'نتيجة دفع غير معروفة' : 'Unknown payment outcome',
+      description: lang === 'ar' ? 'حالة الدفع غير معروفة - بحاجة للمصالحة' : 'Payment status unknown - needs reconciliation',
+      resourceId: 'pay-synth-3',
+      status: 'manual_recovery',
+      attempts: 1,
+      lastAttempt: '2026-01-29 09:15',
+    },
+  ];
+
+  const getStatusBadge = (status: string) => {
+    const statusMap: Record<string, { label: string; labelAr: string; color: string }> = {
+      retrying: { label: 'Retrying', labelAr: 'إعادة المحاولة', color: 'bg-warning-bg text-warning' },
+      manual_recovery: { label: 'Manual Recovery', labelAr: 'استرداد يدوي', color: 'bg-accent-50 text-accent-600' },
+      resolved: { label: 'Resolved', labelAr: 'تم الحل', color: 'bg-success-bg text-success' },
+    };
+    const s = statusMap[status] || statusMap.retrying;
+    return (
+      <span className={`text-xs px-2 py-1 rounded-full font-medium ${s.color}`}>
+        {lang === 'ar' ? s.labelAr : s.label}
+      </span>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl bg-warning-bg border border-warning/20 p-4">
+        <div className="flex items-center gap-2 mb-1">
+          <Wrench className="w-4 h-4 text-warning" />
+          <p className="text-xs font-medium text-warning">{lang === 'ar' ? 'عمليات تحتاج استرداد' : 'Operations requiring recovery'}</p>
         </div>
-      ))}
+        <p className="text-xs text-text-secondary">
+          {lang === 'ar' 
+            ? 'هذه العمليات فشلت أو حالتها غير معروفة. راجعها واتخذ الإجراء المناسب.'
+            : 'These operations failed or have unknown status. Review and take appropriate action.'}
+        </p>
+      </div>
+
+      {recoveryItems.length > 0 ? (
+        <div className="space-y-2">
+          {recoveryItems.map(item => (
+            <div key={item.id} className="bg-surface-raised rounded-xl border border-border p-4">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <p className="font-medium text-text-primary text-sm mb-1">{item.type}</p>
+                  <p className="text-xs text-text-secondary">{item.description}</p>
+                </div>
+                {getStatusBadge(item.status)}
+              </div>
+              <div className="flex items-center gap-4 text-xs text-text-tertiary mt-3">
+                <span>{lang === 'ar' ? 'المحاولات' : 'Attempts'}: {item.attempts}</span>
+                <span>{lang === 'ar' ? 'آخر محاولة' : 'Last attempt'}: {item.lastAttempt}</span>
+                <span>ID: {item.resourceId}</span>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <Button variant="ghost" size="sm">
+                  {lang === 'ar' ? 'إعادة المحاولة' : 'Retry'}
+                </Button>
+                <Button variant="ghost" size="sm">
+                  {lang === 'ar' ? 'وضع يدوي' : 'Manual resolve'}
+                </Button>
+                <Button variant="ghost" size="sm">
+                  {lang === 'ar' ? 'تفاصيل' : 'Details'}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <EmptySection lang={lang} message={lang === 'ar' ? 'لا توجد عمليات تحتاج استرداد' : 'No operations require recovery'} icon={<Wrench className="w-8 h-8 text-text-tertiary mx-auto mb-2" />} />
+      )}
     </div>
   );
 }

@@ -101,7 +101,9 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback }:
               oldValue: mc.oldValue,
               newValue: mc.newValue,
             }))}
-            onAccept={() => {}}
+            onAccept={() => {
+              showToast('success', lang === 'ar' ? 'تم قبول التغييرات' : 'Changes accepted');
+            }}
           />
         )}
 

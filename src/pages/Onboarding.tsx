@@ -149,9 +149,9 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
                 label={t('onboarding.preferredArea', lang)}
                 options={[
                   { value: '', label: lang === 'ar' ? 'اختر...' : 'Select...' },
-                  { value: 'riyadh', label: lang === 'ar' ? 'الرياض' : 'Riyadh' },
-                  { value: 'jeddah', label: lang === 'ar' ? 'جدة' : 'Jeddah' },
-                  { value: 'khobar', label: lang === 'ar' ? 'الخبر' : 'Al Khobar' },
+                  { value: 'Riyadh', label: lang === 'ar' ? 'الرياض' : 'Riyadh' },
+                  { value: 'Jeddah', label: lang === 'ar' ? 'جدة' : 'Jeddah' },
+                  { value: 'Al Khobar', label: lang === 'ar' ? 'الخبر' : 'Al Khobar' },
                 ]}
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
@@ -165,8 +165,38 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
                 value={expLang}
                 onChange={(e) => setExpLang(e.target.value as 'en' | 'ar')}
               />
+              <Select
+                label={t('onboarding.budgetRange', lang)}
+                options={[
+                  { value: '', label: lang === 'ar' ? 'اختر...' : 'Select...' },
+                  { value: '100-200', label: `100–200 ${t('common.sar', lang)}` },
+                  { value: '200-350', label: `200–350 ${t('common.sar', lang)}` },
+                  { value: '350-500', label: `350–500 ${t('common.sar', lang)}` },
+                ]}
+              />
             </div>
-            <Button variant="primary" size="lg" className="w-full" onClick={handleNext}>
+            <Button 
+              variant="primary" 
+              size="lg" 
+              className="w-full" 
+              onClick={() => {
+                // Save preferences to state
+                if (state.user && area) {
+                  dispatch({
+                    type: 'LOGIN',
+                    payload: {
+                      ...state.user,
+                      preferences: {
+                        ...state.user.preferences,
+                        preferredArea: area,
+                        experienceLanguage: expLang,
+                      }
+                    }
+                  });
+                }
+                handleNext();
+              }}
+            >
               {lang === 'ar' ? 'ابدأ الاستكشاف' : 'Start exploring'}
             </Button>
           </div>
