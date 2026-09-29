@@ -10,6 +10,8 @@ import authRoutes from './routes/auth.routes';
 import experienceRoutes from './routes/experience.routes';
 import reservationRoutes from './routes/reservation.routes';
 import paymentRoutes from './routes/payment.routes';
+import notificationRoutes from './routes/notification.routes';
+import auditRoutes from './routes/audit.routes';
 
 const app = express();
 
@@ -63,6 +65,8 @@ app.use(`/api/${config.apiVersion}/auth`, authRoutes);
 app.use(`/api/${config.apiVersion}/experiences`, experienceRoutes);
 app.use(`/api/${config.apiVersion}/reservations`, reservationRoutes);
 app.use(`/api/${config.apiVersion}/payments`, paymentRoutes);
+app.use(`/api/${config.apiVersion}/notifications`, notificationRoutes);
+app.use(`/api/${config.apiVersion}/audit`, auditRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
