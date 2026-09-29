@@ -175,6 +175,56 @@ class PaymentModel {
   }
 
   /**
+   * Refund payment (alias for processRefund with better naming)
+   */
+  async refundPayment(paymentId: string, amount?: number): Promise<Payment> {
+    const payment = await this.findById(paymentId);
+    
+    if (!payment) {
+      throw new Error('Payment not found');
+    }
+    
+    if (payment.status !== 'completed') {
+      throw new Error('Payment is not in completed status');
+    }
+    
+    if (!payment.stripe_payment_id) {
+      throw new Error('Payment has no Stripe payment ID');
+    }
+    
+    return await this.processRefund(payment.stripe_payment_id, amount);
+  }
+
+  /**
+   * Find payment by ID
+   */
+  async findById(id: string): Promise<Payment | null> {
+    const query = 'SELECT * FROM payments WHERE id = $1';
+    const result = await pool.query(query, [id]);
+    
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Get payment statistics
+   */
+  async getPaymentStatistics(): Promise<any> {
+    const query = `
+      SELECT 
+        COUNT(*) as total_payments,
+        COALESCE(SUM(amount), 0) as total_revenue,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_payments,
+        COUNT(CASE WHEN status = 'refunded' THEN 1 END) as refunded_payments,
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_payments,
+        COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_payments
+      FROM payments
+    `;
+    
+    const result = await pool.query(query);
+    return result.rows[0];
+  }
+
+  /**
    * Handle Stripe webhook
    */
   async handleWebhook(event: Stripe.Event): Promise<void> {
