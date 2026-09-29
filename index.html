@@ -3,19 +3,102 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#14736A" />
+    
+    <!-- Primary Meta Tags -->
     <title>Yalla — Discover Local Experiences</title>
-    <meta name="description" content="Yalla helps adults discover, book, and attend enjoyable local experiences with small groups." />
+    <meta name="title" content="Yalla — Discover Local Experiences" />
+    <meta name="description" content="Yalla helps adults discover, book, and attend enjoyable local experiences with small groups. Find curated experiences, book with confidence, and enjoy with peace of mind." />
+    <meta name="keywords" content="experiences, local experiences, booking, activities, events, Saudi Arabia, Riyadh, Jeddah, things to do" />
+    <meta name="author" content="Yalla Team" />
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://yalla.app/" />
+    <meta property="og:title" content="Yalla — Discover Local Experiences" />
+    <meta property="og:description" content="Yalla helps adults discover, book, and attend enjoyable local experiences with small groups." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="ar_SA" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://yalla.app/" />
+    <meta property="twitter:title" content="Yalla — Discover Local Experiences" />
+    <meta property="twitter:description" content="Yalla helps adults discover, book, and attend enjoyable local experiences with small groups." />
+    <meta property="twitter:image" content="/og-image.png" />
+    
+    <!-- Arabic Meta Tags -->
+    <meta name="description" lang="ar" content="يلا تساعد البالغين على اكتشاف وحجز وحضور التجارب المحلية الممتعة مع مجموعات صغيرة." />
+    <meta name="keywords" lang="ar" content="تجارب, تجارب محلية, حجز, أنشطة, فعاليات, السعودية, الرياض, جدة, أشياء للقيام بها" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Yalla" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- Styles -->
     <style>
       html, body { margin: 0; padding: 0; width: 100%; min-height: 100vh; }
       body { font-family: 'Inter', 'Noto Sans Arabic', sans-serif; }
       [dir="rtl"] body { font-family: 'Noto Sans Arabic', 'Inter', sans-serif; }
+      
+      /* Prevent layout shift */
+      #root {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      /* Loading spinner */
+      .initial-loader {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+      }
+      
+      .initial-loader .spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid #E8E7E3;
+        border-top-color: #14736A;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 16px;
+      }
+      
+      .initial-loader p {
+        color: #6B6B6F;
+        font-size: 14px;
+        margin: 0;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Initial loading state -->
+      <div class="initial-loader">
+        <div class="spinner"></div>
+        <p>Loading Yalla...</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
