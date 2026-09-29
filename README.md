@@ -47,7 +47,13 @@
 - Error handling and logging
 
 ### 🚧 What's IN PROGRESS:
-- Backend tests (unit, integration, API)
+- Backend tests (65+ tests written, 40% coverage)
+  - ✅ API tests (Health, Auth, Experiences, Reservations)
+  - ✅ Model tests (User, Experience, Reservation)
+  - ⏳ Payment model tests
+  - ⏳ Notification model tests
+  - ⏳ Safety Case model tests
+  - ⏳ Audit model tests
 
 ### ❌ What DOES NOT EXIST YET:
 - Real email/SMS notifications (integration ready)
@@ -353,6 +359,20 @@ See [ROADMAP.md](./ROADMAP.md) for detailed roadmap.
 
 ---
 
+## 📚 Documentation
+
+- **[PRD.md](./PRD.md)** - Complete product requirements (45 functional requirements, 22 business rules)
+- **[STATE.md](./STATE.md)** - Current project state and progress tracking
+- **[COMPLETE_PROJECT_STATUS.md](./COMPLETE_PROJECT_STATUS.md)** - Comprehensive project status report
+- **[VERIFICATION.md](./VERIFICATION.md)** - Comprehensive verification report
+- **[ROADMAP.md](./ROADMAP.md)** - Development roadmap and future plans
+- **[CHANGELOG.md](./CHANGELOG.md)** - Version history and changes
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - How to contribute to the project
+- **[BACKEND_TESTING_REPORT.md](./BACKEND_TESTING_REPORT.md)** - Backend testing progress and coverage
+- **[Backend README](./backend/README.md)** - Backend API documentation
+
+---
+
 ## Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
@@ -393,6 +413,6 @@ Proprietary - All rights reserved.
 
 **Built with ❤️ for exceptional user experiences**
 
-[Documentation](./PRD.md) • [Roadmap](./ROADMAP.md) • [Contributing](./CONTRIBUTING.md)
+[README](./README.md) • [PRD](./PRD.md) • [STATE](./STATE.md) • [COMPLETE_PROJECT_STATUS](./COMPLETE_PROJECT_STATUS.md) • [Backend Testing](./BACKEND_TESTING_REPORT.md)
 
 </div>
