@@ -9,6 +9,33 @@
 
 ---
 
+## ⚠️ IMPORTANT: Project Status
+
+**This is a FRONTEND PROTOTYPE with mock data.**
+
+### ✅ What EXISTS:
+- Complete frontend application (45/45 requirements implemented)
+- All 6 user journeys working
+- Excellent code quality (0 TypeScript errors)
+- WCAG 2.2 AA accessibility compliant
+- Bilingual support (English & Arabic with RTL)
+- Comprehensive documentation
+
+### ❌ What DOES NOT EXIST:
+- No automated tests (0% test coverage)
+- No backend API
+- No database
+- No real authentication (simulated only)
+- No real payment processing (simulated only)
+- No real notifications (simulated only)
+- No CI/CD pipeline
+- No deployment configuration
+- No monitoring/observability
+
+**👉 See [FINAL_ASSESSMENT.md](./FINAL_ASSESSMENT.md) for complete analysis and next steps.**
+
+---
+
 ## Overview
 
 Yalla is a managed service platform that helps adults discover, book, attend, and repeat enjoyable local experiences with small curated groups. Unlike open marketplaces, Yalla creates and controls every aspect of the experience - from hosts and venues to capacity, pricing, and safety.
