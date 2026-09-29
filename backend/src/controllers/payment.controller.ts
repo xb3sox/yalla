@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import paymentModel from '../models/payment.model';
 import reservationModel from '../models/reservation.model';
+import experienceModel from '../models/experience.model';
 import logger from '../utils/logger';
 import { stripe } from '../models/payment.model';
 
@@ -58,17 +59,25 @@ export const createPaymentIntent = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Get experience price (you'll need to implement this)
-    // For now, using a placeholder
-    const amount = 100; // TODO: Get from experience
-
-    // Create payment intent
+    // Get experience to retrieve the price
+    const experience = await experienceModel.findById(reservation.experience_id);
+    
+    if (!experience) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'EXPERIENCE_NOT_FOUND',
+          message: 'Experience not found for this reservation',
+        },
+      });
+    }
+    
+    // Create payment intent with actual experience price
     const payment = await paymentModel.createPaymentIntent({
       reservation_id,
-      amount,
-      currency: 'sar',
+      amount: experience.price,
+      currency: experience.currency || 'sar',
     });
-
     logger.info('Payment intent created', { 
       userId: req.user.userId, 
       reservationId: reservation_id,

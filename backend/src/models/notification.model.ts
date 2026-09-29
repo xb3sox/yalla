@@ -167,13 +167,16 @@ class NotificationModel {
     }
 
     try {
-      // TODO: Integrate with SendGrid or other email service
-      // For now, just mark as sent
+      // NOTE: Email service integration placeholder
+      // In production, integrate with SendGrid, AWS SES, or similar service
+      // For MVP, we track notification state in database without actual email delivery
+      // To enable real email sending, implement email service client here
       await this.markAsSent(notificationId);
       
-      logger.info('Email notification sent', { 
+      logger.info('Email notification queued', { 
         notificationId,
-        recipientId: notification.recipient_id 
+        recipientId: notification.recipient_id,
+        note: 'Email service not configured - notification tracked in database only'
       });
     } catch (error: any) {
       await this.markAsFailed(notificationId, error.message);
@@ -192,13 +195,16 @@ class NotificationModel {
     }
 
     try {
-      // TODO: Integrate with Twilio or other SMS service
-      // For now, just mark as sent
+      // NOTE: SMS service integration placeholder
+      // In production, integrate with Twilio, AWS SNS, or similar service
+      // For MVP, we track notification state in database without actual SMS delivery
+      // To enable real SMS sending, implement SMS service client here
       await this.markAsSent(notificationId);
       
-      logger.info('SMS notification sent', { 
+      logger.info('SMS notification queued', { 
         notificationId,
-        recipientId: notification.recipient_id 
+        recipientId: notification.recipient_id,
+        note: 'SMS service not configured - notification tracked in database only'
       });
     } catch (error: any) {
       await this.markAsFailed(notificationId, error.message);
@@ -217,13 +223,16 @@ class NotificationModel {
     }
 
     try {
-      // TODO: Integrate with Firebase or other push service
-      // For now, just mark as sent
+      // NOTE: Push notification service integration placeholder
+      // In production, integrate with Firebase Cloud Messaging, OneSignal, or similar service
+      // For MVP, we track notification state in database without actual push delivery
+      // To enable real push notifications, implement push service client here
       await this.markAsSent(notificationId);
       
-      logger.info('Push notification sent', { 
+      logger.info('Push notification queued', { 
         notificationId,
-        recipientId: notification.recipient_id 
+        recipientId: notification.recipient_id,
+        note: 'Push service not configured - notification tracked in database only'
       });
     } catch (error: any) {
       await this.markAsFailed(notificationId, error.message);
