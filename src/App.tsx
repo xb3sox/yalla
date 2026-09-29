@@ -26,8 +26,9 @@ const StaffPage = lazy(() => import('./pages/Staff').then(m => ({ default: m.Sta
 const DashboardPage = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.DashboardPage })));
 const OnboardingPage = lazy(() => import('./pages/Onboarding').then(m => ({ default: m.OnboardingPage })));
 const FavoritesPage = lazy(() => import('./pages/Favorites').then(m => ({ default: m.FavoritesPage })));
+const NotFoundPage = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFoundPage })));
 
-type View = 'dashboard' | 'explore' | 'details' | 'plans' | 'arrival' | 'feedback' | 'profile' | 'support' | 'staff' | 'favorites';
+type View = 'dashboard' | 'explore' | 'details' | 'plans' | 'arrival' | 'feedback' | 'profile' | 'support' | 'staff' | 'favorites' | 'notfound';
 
 function AppContent() {
   const { state, dispatch } = useApp();
@@ -167,7 +168,7 @@ function AppContent() {
             </div>
           </div>
         }>
-          <main>
+          <main id="main-content" tabIndex={-1}>
             {currentView === 'dashboard' && <DashboardPage />}
             {currentView === 'explore' && <ExplorePage onSelectExperience={handleSelectExperience} />}
             {currentView === 'details' && (
@@ -186,6 +187,7 @@ function AppContent() {
             {currentView === 'feedback' && <FeedbackPage reservationId={selectedReservationId} onBack={() => setCurrentView('plans')} onBookAnother={() => setCurrentView('explore')} />}
             {currentView === 'profile' && <ProfilePage onGoToSupport={() => setCurrentView('support')} />}
             {currentView === 'support' && <SupportPage onBack={() => setCurrentView('profile')} />}
+            {currentView === 'notfound' && <NotFoundPage />}
           </main>
         </Suspense>
       </PageTransition>
