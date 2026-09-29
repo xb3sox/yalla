@@ -23,29 +23,31 @@
 - Bilingual support (English & Arabic with RTL)
 - 450+ tests with 80% coverage
 
-**Backend (80% Complete)**:
+**Backend (90% Complete)**:
 - Express.js API with TypeScript
 - PostgreSQL database with 11 tables
 - JWT authentication with refresh tokens
-- 41 API endpoints implemented:
+- 50 API endpoints implemented:
   - Authentication (7 endpoints)
   - Experiences (6 endpoints)
   - Reservations (10 endpoints)
   - Payments (4 endpoints)
   - Notifications (8 endpoints) ✅ NEW
   - Audit (5 endpoints) ✅ NEW
+  - Staff Operations (7 endpoints) ✅ NEW
+  - Safety Cases (7 endpoints) ✅ NEW
   - Health check (1 endpoint)
 - Stripe payment integration
 - Notification system (email/SMS/push ready)
 - Comprehensive audit logging
+- Staff operations management
+- Safety case management with state machine
 - Role-based authorization
 - Input validation with Zod
 - Error handling and logging
 
 ### 🚧 What's IN PROGRESS:
-- Staff operations API
-- Safety cases API
-- Backend tests
+- Backend tests (unit, integration, API)
 
 ### ❌ What DOES NOT EXIST YET:
 - Real email/SMS notifications (integration ready)

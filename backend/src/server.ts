@@ -12,6 +12,8 @@ import reservationRoutes from './routes/reservation.routes';
 import paymentRoutes from './routes/payment.routes';
 import notificationRoutes from './routes/notification.routes';
 import auditRoutes from './routes/audit.routes';
+import staffRoutes from './routes/staff.routes';
+import safetyCaseRoutes from './routes/safety_case.routes';
 
 const app = express();
 
@@ -67,6 +69,8 @@ app.use(`/api/${config.apiVersion}/reservations`, reservationRoutes);
 app.use(`/api/${config.apiVersion}/payments`, paymentRoutes);
 app.use(`/api/${config.apiVersion}/notifications`, notificationRoutes);
 app.use(`/api/${config.apiVersion}/audit`, auditRoutes);
+app.use(`/api/${config.apiVersion}/staff`, staffRoutes);
+app.use(`/api/${config.apiVersion}/safety-cases`, safetyCaseRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
