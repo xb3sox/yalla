@@ -70,6 +70,11 @@ type TranslationKeys = {
   'explore.expectedPrice': string;
   'explore.accessibilitySummary': string;
   'explore.refreshStale': string;
+  'explore.sortBy': string;
+  'explore.sort.date': string;
+  'explore.sort.priceLow': string;
+  'explore.sort.priceHigh': string;
+  'explore.sort.newest': string;
 
   // Experience Details
   'details.whatYoullDo': string;
@@ -297,6 +302,11 @@ const en: TranslationKeys = {
   'explore.expectedPrice': 'Expected total price',
   'explore.accessibilitySummary': 'Accessibility',
   'explore.refreshStale': 'Refresh for latest availability',
+  'explore.sortBy': 'Sort by',
+  'explore.sort.date': 'Date',
+  'explore.sort.priceLow': 'Price: Low to High',
+  'explore.sort.priceHigh': 'Price: High to Low',
+  'explore.sort.newest': 'Newest',
 
   'details.whatYoullDo': 'What you\'ll do',
   'details.timeline': 'Timeline',
@@ -514,6 +524,11 @@ const ar: TranslationKeys = {
   'explore.expectedPrice': 'السعر الإجمالي المتوقع',
   'explore.accessibilitySummary': 'إمكانية الوصول',
   'explore.refreshStale': 'تحديث لأحدث التوفر',
+  'explore.sortBy': 'ترتيب حسب',
+  'explore.sort.date': 'التاريخ',
+  'explore.sort.priceLow': 'السعر: من الأقل للأعلى',
+  'explore.sort.priceHigh': 'السعر: من الأعلى للأقل',
+  'explore.sort.newest': 'الأحدث',
 
   'details.whatYoullDo': 'ماذا ستفعل',
   'details.timeline': 'الجدول الزمني',

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../data/store';
 import { useExperienceSearch } from '../hooks/useExperienceSearch';
 import { t } from '../i18n';
@@ -6,8 +6,10 @@ import { ExperienceCard, EmptyState, Button, Input } from '../components/DesignS
 import { FilterChips } from '../components/FilterChip';
 import { ExplorePageSkeleton } from '../components/LoadingSkeleton';
 import { Recommendations } from '../components/Recommendations';
-import { Search, X } from 'lucide-react';
+import { Search, X, ArrowUpDown } from 'lucide-react';
 import type { Experience } from '../types';
+
+type SortOption = 'date' | 'price-low' | 'price-high' | 'newest';
 
 interface ExplorePageProps {
   onSelectExperience: (id: string) => void;
@@ -17,12 +19,40 @@ export function ExplorePage({ onSelectExperience }: ExplorePageProps) {
   const { state } = useApp();
   const lang = state.language;
   const [isLoading, setIsLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<SortOption>('date');
   const { filters, filteredExperiences, updateFilter, clearFilters, hasActiveFilters, totalResults } = useExperienceSearch();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 600);
     return () => clearTimeout(timer);
   }, []);
+
+  const sortedExperiences = useMemo(() => {
+    const sorted = [...filteredExperiences];
+    
+    switch (sortBy) {
+      case 'price-low':
+        sorted.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high':
+        sorted.sort((a, b) => b.price - a.price);
+        break;
+      case 'newest':
+        // Sort by ID as proxy for newest (higher ID = newer)
+        sorted.sort((a, b) => {
+          const idA = parseInt(a.id.replace('exp-', '')) || 0;
+          const idB = parseInt(b.id.replace('exp-', '')) || 0;
+          return idB - idA;
+        });
+        break;
+      case 'date':
+      default:
+        sorted.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        break;
+    }
+    
+    return sorted;
+  }, [filteredExperiences, sortBy]);
 
   if (isLoading) {
     return <ExplorePageSkeleton />;
@@ -95,10 +125,35 @@ export function ExplorePage({ onSelectExperience }: ExplorePageProps) {
         <Recommendations onSelectExperience={onSelectExperience} limit={2} />
       )}
 
+      {/* Sort controls */}
+      {sortedExperiences.length > 0 && (
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-sm text-text-secondary">
+            {lang === 'ar' 
+              ? `${sortedExperiences.length} ${sortedExperiences.length === 1 ? 'تجربة' : 'تجارب'}`
+              : `${sortedExperiences.length} ${sortedExperiences.length === 1 ? 'experience' : 'experiences'}`}
+          </p>
+          <div className="relative">
+            <ArrowUpDown className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary pointer-events-none" />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="ps-9 pe-8 py-2 text-sm rounded-lg bg-surface-raised border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 appearance-none cursor-pointer"
+              aria-label={t('explore.sortBy', lang)}
+            >
+              <option value="date">{t('explore.sort.date', lang)}</option>
+              <option value="price-low">{t('explore.sort.priceLow', lang)}</option>
+              <option value="price-high">{t('explore.sort.priceHigh', lang)}</option>
+              <option value="newest">{t('explore.sort.newest', lang)}</option>
+            </select>
+          </div>
+        </div>
+      )}
+
       {/* Experience list */}
-      {filteredExperiences.length > 0 ? (
+      {sortedExperiences.length > 0 ? (
         <div className="space-y-4">
-          {filteredExperiences.map((exp: Experience) => (
+          {sortedExperiences.map((exp: Experience) => (
             <ExperienceCard
               key={exp.id}
               experience={exp}
