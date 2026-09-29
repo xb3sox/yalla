@@ -15,7 +15,8 @@ import { FeedbackPage } from './pages/Feedback';
 import { ProfilePage } from './pages/Profile';
 import { SupportPage } from './pages/Support';
 import { StaffPage } from './pages/Staff';
-import { Compass, Calendar, User, Globe, Bell, Shield, Heart } from 'lucide-react';
+import { DashboardPage } from './pages/Dashboard';
+import { Compass, Calendar, User, Globe, Bell, Shield, Heart, LayoutDashboard } from 'lucide-react';
 import { OnboardingPage } from './pages/Onboarding';
 import { NotificationCenter, NotificationBell } from './components/NotificationCenter';
 import { RoleSwitcher } from './components/RoleSwitcher';
@@ -25,12 +26,12 @@ import { SkipToContent } from './components/SkipToContent';
 
 import { FavoritesPage } from './pages/Favorites';
 
-type View = 'explore' | 'details' | 'plans' | 'arrival' | 'feedback' | 'profile' | 'support' | 'staff' | 'favorites';
+type View = 'dashboard' | 'explore' | 'details' | 'plans' | 'arrival' | 'feedback' | 'profile' | 'support' | 'staff' | 'favorites';
 
 function AppContent() {
   const { state, dispatch } = useApp();
   const lang = state.language;
-  const [currentView, setCurrentView] = useState<View>('explore');
+  const [currentView, setCurrentView] = useState<View>('dashboard');
   const [selectedExperienceId, setSelectedExperienceId] = useState('');
   const [selectedReservationId, setSelectedReservationId] = useState('');
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
@@ -49,7 +50,7 @@ function AppContent() {
 
   // Keyboard shortcuts
   useNavigationShortcuts((view) => {
-    if (['explore', 'plans', 'profile'].includes(view)) {
+    if (['dashboard', 'explore', 'plans', 'profile'].includes(view)) {
       setCurrentView(view as View);
     }
   });
@@ -149,6 +150,7 @@ function AppContent() {
       {/* Main content */}
       <PageTransition transitionKey={currentView + selectedExperienceId + selectedReservationId}>
         <main>
+          {currentView === 'dashboard' && <DashboardPage />}
           {currentView === 'explore' && <ExplorePage onSelectExperience={handleSelectExperience} />}
           {currentView === 'details' && (
             <ExperienceDetailsPage experienceId={selectedExperienceId} onBack={() => setCurrentView('explore')} onBookSuccess={() => setCurrentView('plans')} />
@@ -169,9 +171,10 @@ function AppContent() {
         </main>
       </PageTransition>
 
-      {/* Bottom navigation — 4 tabs */}
+      {/* Bottom navigation — 5 tabs */}
       <nav className="fixed bottom-0 start-0 end-0 bg-surface-raised/95 backdrop-blur-md border-t border-border z-40 safe-bottom" aria-label="Main navigation">
         <div className="max-w-lg mx-auto flex items-center justify-around py-1.5">
+          <NavButton icon={<LayoutDashboard className="w-[22px] h-[22px]" />} label={lang === 'ar' ? 'الرئيسية' : 'Dashboard'} active={currentView === 'dashboard'} onClick={() => setCurrentView('dashboard')} />
           <NavButton icon={<Compass className="w-[22px] h-[22px]" />} label={t('nav.explore', lang)} active={currentView === 'explore' || currentView === 'details'} onClick={() => setCurrentView('explore')} />
           <NavButton
             icon={<Heart className="w-[22px] h-[22px]" />}
