@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { AppProvider, useApp } from './data/store';
 import { ToastProvider } from './components/Toast';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -7,24 +7,25 @@ import { PageTransition } from './components/PageTransition';
 import { BackToTop } from './components/BackToTop';
 import { useNavigationShortcuts } from './hooks/useKeyboardShortcuts';
 import { t } from './i18n';
-import { ExplorePage } from './pages/Explore';
-import { ExperienceDetailsPage } from './pages/ExperienceDetails';
-import { MyPlansPage } from './pages/MyPlans';
-import { ArrivalModePage } from './pages/ArrivalMode';
-import { FeedbackPage } from './pages/Feedback';
-import { ProfilePage } from './pages/Profile';
-import { SupportPage } from './pages/Support';
-import { StaffPage } from './pages/Staff';
-import { DashboardPage } from './pages/Dashboard';
 import { Compass, Calendar, User, Globe, Bell, Shield, Heart, LayoutDashboard } from 'lucide-react';
-import { OnboardingPage } from './pages/Onboarding';
 import { NotificationCenter, NotificationBell } from './components/NotificationCenter';
 import { RoleSwitcher } from './components/RoleSwitcher';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { SessionTimeoutWarning } from './components/SessionTimeoutWarning';
 import { SkipToContent } from './components/SkipToContent';
 
-import { FavoritesPage } from './pages/Favorites';
+// Lazy load pages for better performance
+const ExplorePage = lazy(() => import('./pages/Explore').then(m => ({ default: m.ExplorePage })));
+const ExperienceDetailsPage = lazy(() => import('./pages/ExperienceDetails').then(m => ({ default: m.ExperienceDetailsPage })));
+const MyPlansPage = lazy(() => import('./pages/MyPlans').then(m => ({ default: m.MyPlansPage })));
+const ArrivalModePage = lazy(() => import('./pages/ArrivalMode').then(m => ({ default: m.ArrivalModePage })));
+const FeedbackPage = lazy(() => import('./pages/Feedback').then(m => ({ default: m.FeedbackPage })));
+const ProfilePage = lazy(() => import('./pages/Profile').then(m => ({ default: m.ProfilePage })));
+const SupportPage = lazy(() => import('./pages/Support').then(m => ({ default: m.SupportPage })));
+const StaffPage = lazy(() => import('./pages/Staff').then(m => ({ default: m.StaffPage })));
+const DashboardPage = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.DashboardPage })));
+const OnboardingPage = lazy(() => import('./pages/Onboarding').then(m => ({ default: m.OnboardingPage })));
+const FavoritesPage = lazy(() => import('./pages/Favorites').then(m => ({ default: m.FavoritesPage })));
 
 type View = 'dashboard' | 'explore' | 'details' | 'plans' | 'arrival' | 'feedback' | 'profile' | 'support' | 'staff' | 'favorites';
 
@@ -85,12 +86,21 @@ function AppContent() {
   if (isStaffView) {
     return (
       <div className="min-h-screen bg-surface">
-        {currentView === 'staff' && <StaffPage onBack={() => setCurrentView('explore')} />}
-        {currentView === 'support' && <SupportPage onBack={() => setCurrentView('staff')} />}
-        {currentView === 'explore' && <ExplorePage onSelectExperience={handleSelectExperience} />}
-        {currentView === 'details' && (
-          <ExperienceDetailsPage experienceId={selectedExperienceId} onBack={() => setCurrentView('explore')} onBookSuccess={() => setCurrentView('plans')} />
-        )}
+        <Suspense fallback={
+          <div className="min-h-screen bg-surface flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto mb-4"></div>
+              <p className="text-text-secondary">{lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</p>
+            </div>
+          </div>
+        }>
+          {currentView === 'staff' && <StaffPage onBack={() => setCurrentView('explore')} />}
+          {currentView === 'support' && <SupportPage onBack={() => setCurrentView('staff')} />}
+          {currentView === 'explore' && <ExplorePage onSelectExperience={handleSelectExperience} />}
+          {currentView === 'details' && (
+            <ExperienceDetailsPage experienceId={selectedExperienceId} onBack={() => setCurrentView('explore')} onBookSuccess={() => setCurrentView('plans')} />
+          )}
+        </Suspense>
 
         {/* Staff bottom nav */}
         <nav className="fixed bottom-0 start-0 end-0 bg-surface-raised border-t border-border z-40 safe-bottom" aria-label="Staff navigation">
@@ -149,26 +159,35 @@ function AppContent() {
 
       {/* Main content */}
       <PageTransition transitionKey={currentView + selectedExperienceId + selectedReservationId}>
-        <main>
-          {currentView === 'dashboard' && <DashboardPage />}
-          {currentView === 'explore' && <ExplorePage onSelectExperience={handleSelectExperience} />}
-          {currentView === 'details' && (
-            <ExperienceDetailsPage experienceId={selectedExperienceId} onBack={() => setCurrentView('explore')} onBookSuccess={() => setCurrentView('plans')} />
-          )}
-          {currentView === 'favorites' && (
-            <FavoritesPage 
-              onSelectExperience={handleSelectExperience} 
-              onExplore={() => setCurrentView('explore')} 
-            />
-          )}
-          {currentView === 'plans' && (
-            <MyPlansPage onViewExperience={handleSelectExperience} onGoToArrival={handleGoToArrival} onGoToFeedback={handleGoToFeedback} />
-          )}
-          {currentView === 'arrival' && <ArrivalModePage experienceId={selectedExperienceId} onBack={() => setCurrentView('plans')} />}
-          {currentView === 'feedback' && <FeedbackPage reservationId={selectedReservationId} onBack={() => setCurrentView('plans')} onBookAnother={() => setCurrentView('explore')} />}
-          {currentView === 'profile' && <ProfilePage onGoToSupport={() => setCurrentView('support')} />}
-          {currentView === 'support' && <SupportPage onBack={() => setCurrentView('profile')} />}
-        </main>
+        <Suspense fallback={
+          <div className="min-h-screen bg-surface flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto mb-4"></div>
+              <p className="text-text-secondary">{lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</p>
+            </div>
+          </div>
+        }>
+          <main>
+            {currentView === 'dashboard' && <DashboardPage />}
+            {currentView === 'explore' && <ExplorePage onSelectExperience={handleSelectExperience} />}
+            {currentView === 'details' && (
+              <ExperienceDetailsPage experienceId={selectedExperienceId} onBack={() => setCurrentView('explore')} onBookSuccess={() => setCurrentView('plans')} />
+            )}
+            {currentView === 'favorites' && (
+              <FavoritesPage 
+                onSelectExperience={handleSelectExperience} 
+                onExplore={() => setCurrentView('explore')} 
+              />
+            )}
+            {currentView === 'plans' && (
+              <MyPlansPage onViewExperience={handleSelectExperience} onGoToArrival={handleGoToArrival} onGoToFeedback={handleGoToFeedback} />
+            )}
+            {currentView === 'arrival' && <ArrivalModePage experienceId={selectedExperienceId} onBack={() => setCurrentView('plans')} />}
+            {currentView === 'feedback' && <FeedbackPage reservationId={selectedReservationId} onBack={() => setCurrentView('plans')} onBookAnother={() => setCurrentView('explore')} />}
+            {currentView === 'profile' && <ProfilePage onGoToSupport={() => setCurrentView('support')} />}
+            {currentView === 'support' && <SupportPage onBack={() => setCurrentView('profile')} />}
+          </main>
+        </Suspense>
       </PageTransition>
 
       {/* Bottom navigation — 5 tabs */}
