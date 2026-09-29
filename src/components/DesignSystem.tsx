@@ -136,7 +136,26 @@ export function ExperienceCard({ experience, onPress }: ExperienceCardProps) {
             if (parent && !parent.querySelector('.image-fallback')) {
               const fallback = document.createElement('div');
               fallback.className = 'image-fallback absolute inset-0 bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center';
-              fallback.innerHTML = `<svg viewBox="0 0 100 100" class="w-16 h-16 text-white/50"><circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="2"/><path d="M 35 50 L 45 60 L 65 40" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
+              // Safe SVG content - no user input, static content only
+              const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+              svg.setAttribute('viewBox', '0 0 100 100');
+              svg.setAttribute('class', 'w-16 h-16 text-white/50');
+              const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+              circle.setAttribute('cx', '50');
+              circle.setAttribute('cy', '50');
+              circle.setAttribute('r', '40');
+              circle.setAttribute('fill', 'none');
+              circle.setAttribute('stroke', 'currentColor');
+              circle.setAttribute('stroke-width', '2');
+              const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              path.setAttribute('d', 'M 35 50 L 45 60 L 65 40');
+              path.setAttribute('stroke', 'currentColor');
+              path.setAttribute('stroke-width', '3');
+              path.setAttribute('fill', 'none');
+              path.setAttribute('stroke-linecap', 'round');
+              svg.appendChild(circle);
+              svg.appendChild(path);
+              fallback.appendChild(svg);
               parent.insertBefore(fallback, target);
             }
           }}
