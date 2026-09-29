@@ -1,11 +1,19 @@
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import rateLimit from 'express-rate-limit';
 import config from './config';
 import logger from './utils/logger';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
+import {
+  apiLimiter,
+  authLimiter,
+  securityHeaders,
+  requestLogger,
+  corsOptions,
+  sanitizeInput,
+  requestSizeLimiter,
+  healthCheck,
+  metrics,
+} from './middleware/security.middleware';
 import authRoutes from './routes/auth.routes';
 import experienceRoutes from './routes/experience.routes';
 import reservationRoutes from './routes/reservation.routes';
@@ -14,53 +22,43 @@ import notificationRoutes from './routes/notification.routes';
 import auditRoutes from './routes/audit.routes';
 import staffRoutes from './routes/staff.routes';
 import safetyCaseRoutes from './routes/safety_case.routes';
+import supportRoutes from './routes/support.routes';
+import favoritesRoutes from './routes/favorites.routes';
+import blocksRoutes from './routes/blocks.routes';
 
 const app = express();
 
-// Security middleware
-app.use(helmet());
-app.use(cors({
-  origin: config.cors.origin,
-  credentials: config.cors.credentials,
-}));
+// Security headers
+app.use(securityHeaders);
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: config.rateLimit.windowMs,
-  max: config.rateLimit.maxRequests,
-  message: {
-    success: false,
-    error: {
-      code: 'RATE_LIMIT_EXCEEDED',
-      message: 'Too many requests, please try again later',
-    },
-  },
-});
-app.use('/api/', limiter);
+// CORS
+app.use(cors(corsOptions));
 
-// Logging
-app.use(morgan('combined', {
-  stream: {
-    write: (message) => logger.info(message.trim()),
-  },
-}));
+// Request size limiter
+app.use(requestSizeLimiter);
+
+// Input sanitization
+app.use(sanitizeInput);
+
+// Request logging
+app.use(requestLogger);
+
+// Rate limiting - general API
+app.use('/api/', apiLimiter);
+
+// Rate limiting - authentication endpoints (stricter)
+app.use('/api/v1/auth/login', authLimiter);
+app.use('/api/v1/auth/register', authLimiter);
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      environment: config.env,
-      version: '1.0.0',
-    },
-  });
-});
+// Health check endpoint
+app.get('/health', healthCheck);
+
+// Metrics endpoint (for monitoring)
+app.get('/metrics', metrics);
 
 // API routes
 app.use(`/api/${config.apiVersion}/auth`, authRoutes);
@@ -71,6 +69,9 @@ app.use(`/api/${config.apiVersion}/notifications`, notificationRoutes);
 app.use(`/api/${config.apiVersion}/audit`, auditRoutes);
 app.use(`/api/${config.apiVersion}/staff`, staffRoutes);
 app.use(`/api/${config.apiVersion}/safety-cases`, safetyCaseRoutes);
+app.use(`/api/${config.apiVersion}/support-requests`, supportRoutes);
+app.use(`/api/${config.apiVersion}/favorites`, favoritesRoutes);
+app.use(`/api/${config.apiVersion}/blocks`, blocksRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
