@@ -4,23 +4,7 @@ Thank you for your interest in contributing to Yalla! This document provides gui
 
 ---
 
-## 📋 Table of Contents
-
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [Development Workflow](#development-workflow)
-- [Code Style](#code-style)
-- [Component Guidelines](#component-guidelines)
-- [Testing](#testing)
-- [Documentation](#documentation)
-- [Submitting Changes](#submitting-changes)
-- [Review Process](#review-process)
-
----
-
-## 🤝 Code of Conduct
-
-### Our Pledge
+## Code of Conduct
 
 We are committed to making participation in our project a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation.
 
@@ -35,7 +19,7 @@ Examples of behavior that contributes to creating a positive environment:
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -67,15 +51,18 @@ src/
 ├── components/          # Reusable UI components
 ├── pages/              # Page components
 ├── hooks/              # Custom React hooks
-├── data/               # Mock data and state management
-├── i18n/               # Localization files
-├── types/              # TypeScript type definitions
-└── utils/              # Utility functions
+├── domain/             # Business logic (entities, services)
+├── application/        # Use cases
+├── infrastructure/     # External concerns (mock data)
+├── shared/             # Utilities
+├── data/               # State management
+├── i18n/               # Localization
+└── types/              # TypeScript type definitions
 ```
 
 ---
 
-## 🔄 Development Workflow
+## Development Workflow
 
 ### Branch Naming
 
@@ -87,6 +74,8 @@ fix/resolve-booking-error
 enhance/improve-loading-states
 docs/update-readme
 refactor/extract-common-logic
+test/add-unit-tests
+chore/update-dependencies
 ```
 
 ### Commit Messages
@@ -116,7 +105,7 @@ chore: update dependencies
 
 ---
 
-## 💻 Code Style
+## Code Style
 
 ### TypeScript
 
@@ -202,7 +191,7 @@ export function Button(props: any) {
 
 ---
 
-## 🧩 Component Guidelines
+## Component Guidelines
 
 ### Creating New Components
 
@@ -281,7 +270,7 @@ export function MyComponent({ title, onAction }: MyComponentProps) {
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Running Tests
 
@@ -329,7 +318,7 @@ describe('MyComponent', () => {
 
 ---
 
-## 📖 Documentation
+## Documentation
 
 ### Code Comments
 
@@ -368,7 +357,7 @@ When adding new features, update:
 
 ---
 
-## 📤 Submitting Changes
+## Submitting Changes
 
 ### Pull Request Process
 
@@ -415,7 +404,7 @@ Closes #123
 
 ---
 
-## 🔍 Review Process
+## Review Process
 
 ### Reviewer Responsibilities
 
@@ -440,7 +429,7 @@ Closes #123
 
 ---
 
-## 🎨 Design Guidelines
+## Design Guidelines
 
 ### Using the Design System
 
@@ -461,7 +450,7 @@ Closes #123
 
 ---
 
-## 🌍 Localization
+## Localization
 
 ### Adding Translations
 
@@ -489,7 +478,7 @@ import { t } from '../i18n';
 
 ---
 
-## 🐛 Reporting Issues
+## Reporting Issues
 
 ### Bug Reports
 
@@ -511,7 +500,7 @@ Describe:
 
 ---
 
-## 📚 Resources
+## Resources
 
 ### Documentation
 
@@ -529,7 +518,7 @@ Describe:
 
 ---
 
-## ❓ Questions?
+## Questions?
 
 - Check existing issues and discussions
 - Ask in the team chat
@@ -541,6 +530,6 @@ Describe:
 
 **Thank you for contributing to Yalla! 🎉**
 
-[README](./README.md) • [ROADMAP](./ROADMAP.md) • [CHANGELOG](./CHANGELOG.md)
+[README](./README.md) • [PRD](./PRD.md) • [ROADMAP](./ROADMAP.md) • [CHANGELOG](./CHANGELOG.md)
 
 </div>
