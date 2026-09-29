@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../data/store';
 import { useToast } from '../components/Toast';
 import { Avatar } from '../components/Avatar';
+import { RewardsWidget } from '../components/RewardsWidget';
 import { t } from '../i18n';
 import { Button, Select, Input, Dialog } from '../components/DesignSystem';
 import { Shield, FileText, Trash2, Download, Edit3, HeadphonesIcon } from 'lucide-react';
@@ -43,6 +44,9 @@ export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
           <span className="text-sm font-medium text-text-primary flex-1">{t('support.title', lang)}</span>
         </button>
       </div>
+
+      {/* Rewards Widget */}
+      <RewardsWidget />
 
       {/* Preferences */}
       <section className="space-y-4">

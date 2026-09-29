@@ -5,6 +5,7 @@ import { t } from '../i18n';
 import { ExperienceCard, EmptyState, Button, Input } from '../components/DesignSystem';
 import { FilterChips } from '../components/FilterChip';
 import { ExplorePageSkeleton } from '../components/LoadingSkeleton';
+import { Recommendations } from '../components/Recommendations';
 import { Search, X } from 'lucide-react';
 import type { Experience } from '../types';
 
@@ -93,6 +94,11 @@ export function ExplorePage({ onSelectExperience }: ExplorePageProps) {
           onClearAll={clearFilters}
         />
       </div>
+
+      {/* Recommendations */}
+      {!hasActiveFilters && !filters.query && (
+        <Recommendations onSelectExperience={onSelectExperience} limit={2} />
+      )}
 
       {/* Experience list */}
       {filteredExperiences.length > 0 ? (

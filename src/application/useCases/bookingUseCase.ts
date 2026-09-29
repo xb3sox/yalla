@@ -6,7 +6,7 @@
  */
 
 import type { Experience, Reservation } from '../../domain/entities';
-import { ReservationStateMachine, hasConfirmedPlace, isActiveReservation } from '../../domain/services';
+import { isActiveReservation } from '../../domain/services';
 
 export interface BookingRequest {
   participantId: string;
