@@ -62,11 +62,25 @@ export function RewardsWidget() {
       )}
 
       <div className="mt-4 pt-4 border-t border-brand-200">
-        <p className="text-xs text-text-secondary">
+        <p className="text-xs text-text-secondary mb-2">
           {lang === 'ar'
-            ? 'اكسب نقاط من الحجوزات والحضور والتقييمات'
-            : 'Earn points from bookings, attendance, and feedback'}
+            ? 'كيف تكسب النقاط:'
+            : 'How to earn points:'}
         </p>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <p className="text-lg font-bold text-brand-600">10</p>
+            <p className="text-[10px] text-text-tertiary">{lang === 'ar' ? 'حجز' : 'Booking'}</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-brand-600">20</p>
+            <p className="text-[10px] text-text-tertiary">{lang === 'ar' ? 'حضور' : 'Attend'}</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-brand-600">5</p>
+            <p className="text-[10px] text-text-tertiary">{lang === 'ar' ? 'تقييم' : 'Review'}</p>
+          </div>
+        </div>
       </div>
     </div>
   );

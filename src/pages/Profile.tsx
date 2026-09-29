@@ -69,12 +69,23 @@ export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
             ]}
             defaultValue={user.preferences.experienceLanguage}
           />
-          <Input
-            label={t('onboarding.budgetRange', lang)}
-            defaultValue={`${user.preferences.budgetRange?.min || 100}–${user.preferences.budgetRange?.max || 400} ${t('common.sar', lang)}`}
-            hint={lang === 'ar' ? 'نطاق تقريبي' : 'Approximate range'}
-          />
-          <Button variant="primary" className="w-full">{t('common.save', lang)}</Button>
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label={lang === 'ar' ? 'الحد الأدنى' : 'Min budget'}
+              type="number"
+              defaultValue={user.preferences.budgetRange?.min || 100}
+              hint={t('common.sar', lang)}
+            />
+            <Input
+              label={lang === 'ar' ? 'الحد الأقصى' : 'Max budget'}
+              type="number"
+              defaultValue={user.preferences.budgetRange?.max || 400}
+              hint={t('common.sar', lang)}
+            />
+          </div>
+          <Button variant="primary" className="w-full" onClick={() => showToast('success', lang === 'ar' ? 'تم حفظ التفضيلات' : 'Preferences saved')}>
+            {t('common.save', lang)}
+          </Button>
         </div>
       </section>
 

@@ -75,21 +75,16 @@ export function ExplorePage({ onSelectExperience }: ExplorePageProps) {
         )}
       </div>
 
-      {/* Quick Filters */}
+      {/* Quick Filters - Only show working filters */}
       <div className="mb-6">
         <FilterChips
           filters={[
-            { id: 'weekend', label: lang === 'ar' ? 'عطلة نهاية الأسبوع' : 'Weekend', active: false },
-            { id: 'evening', label: lang === 'ar' ? 'مسائي' : 'Evening', active: false },
-            { id: 'outdoor', label: lang === 'ar' ? 'خارجي' : 'Outdoor', active: false },
-            { id: 'indoor', label: lang === 'ar' ? 'داخلي' : 'Indoor', active: false },
-            { id: 'accessible', label: lang === 'ar' ? 'متاح' : 'Accessible', active: filters.accessibility || false },
+            { id: 'accessible', label: lang === 'ar' ? '♿ متاح' : '♿ Accessible', active: filters.accessibility || false },
           ]}
           onToggle={(id) => {
             if (id === 'accessible') {
               updateFilter('accessibility', !filters.accessibility);
             }
-            // Other filters would be implemented with backend support
           }}
           onClearAll={clearFilters}
         />

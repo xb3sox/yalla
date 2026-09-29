@@ -155,7 +155,15 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback }:
         </div>
       ) : (
         <div className="text-center py-20">
-          <p className="text-text-secondary">{t('plans.empty', lang)}</p>
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-surface-sunken flex items-center justify-center">
+            <Calendar className="w-10 h-10 text-text-tertiary" />
+          </div>
+          <h3 className="text-lg font-semibold text-text-primary mb-2">{t('plans.empty', lang)}</h3>
+          <p className="text-sm text-text-secondary mb-6 max-w-xs mx-auto">
+            {lang === 'ar' 
+              ? 'لم تحجز أي تجارب بعد. ابدأ بالاستكشاف!'
+              : "You haven't booked any experiences yet. Start exploring!"}
+          </p>
         </div>
       )}
 

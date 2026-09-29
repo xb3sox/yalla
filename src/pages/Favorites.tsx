@@ -50,11 +50,15 @@ export function FavoritesPage({ onSelectExperience, onExplore }: FavoritesPagePr
         </div>
       ) : (
         <EmptyState
-          icon={<Heart className="w-16 h-16" />}
-          title={lang === 'ar' ? 'لا توجد تجارب محفوظة' : 'No favorites yet'}
+          icon={
+            <div className="w-24 h-24 rounded-full bg-accent-50 flex items-center justify-center">
+              <Heart className="w-12 h-12 text-accent-300" />
+            </div>
+          }
+          title={lang === 'ar' ? 'لا توجد تجارب محفوظة بعد' : 'No favorites yet'}
           description={lang === 'ar' 
-            ? 'ابدأ بحفظ التجارب التي تعجبك بالضغط على أيقونة القلب'
-            : 'Start saving experiences you like by tapping the heart icon'}
+            ? 'ابدأ بحفظ التجارب التي تعجبك بالضغط على أيقونة القلب في أي تجربة'
+            : 'Start saving experiences you like by tapping the heart icon on any experience'}
           action={
             <Button variant="primary" size="md" onClick={onExplore}>
               {lang === 'ar' ? 'استكشف التجارب' : 'Explore experiences'}

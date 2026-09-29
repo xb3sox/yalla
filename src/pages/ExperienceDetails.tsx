@@ -172,11 +172,11 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
         {/* Progressive disclosure — show more */}
         <button
           onClick={() => setShowAllDetails(!showAllDetails)}
-          className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-brand-600 hover:text-brand-700 transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-3 px-4 my-2 text-sm font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-xl transition-all border border-brand-200"
           aria-expanded={showAllDetails}
         >
-          {showAllDetails ? (lang === 'ar' ? 'عرض أقل' : 'Show less') : (lang === 'ar' ? 'عرض المزيد من التفاصيل' : 'Show more details')}
-          <ChevronDown className={`w-4 h-4 transition-transform ${showAllDetails ? 'rotate-180' : ''}`} />
+          {showAllDetails ? (lang === 'ar' ? 'عرض أقل' : 'Show less') : (lang === 'ar' ? 'عرض المزيد من التفاصيل' : 'View all details')}
+          <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showAllDetails ? 'rotate-180' : ''}`} />
         </button>
 
         {showAllDetails && (

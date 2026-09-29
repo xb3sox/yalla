@@ -62,13 +62,27 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
           <h2 className="text-base font-semibold text-text-primary">
             {t('nav.notifications', lang)}
           </h2>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-surface-sunken rounded-lg transition-colors"
-            aria-label={t('common.close', lang)}
-          >
-            <X className="w-4 h-4 text-text-tertiary" />
-          </button>
+          <div className="flex items-center gap-2">
+            {userNotifications.length > 0 && (
+              <button
+                onClick={() => {
+                  // In a real app, this would mark all as read
+                  onClose();
+                }}
+                className="text-xs text-brand-600 hover:text-brand-700 font-medium px-2 py-1 rounded hover:bg-brand-50 transition-colors"
+                aria-label={lang === 'ar' ? 'تعيين الكل كمقروء' : 'Mark all as read'}
+              >
+                {lang === 'ar' ? 'مقروء' : 'Read all'}
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-surface-sunken rounded-lg transition-colors"
+              aria-label={t('common.close', lang)}
+            >
+              <X className="w-4 h-4 text-text-tertiary" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}

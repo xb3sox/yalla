@@ -18,18 +18,19 @@ export function StaffPage({ onBack }: StaffPageProps) {
   const [assignDialog, setAssignDialog] = useState<{ type: string; id: string } | null>(null);
   const [reason, setReason] = useState('');
 
-  const sections: { key: StaffSection; icon: React.ReactNode; label: string }[] = [
-    { key: 'plans', icon: <Layout className="w-4 h-4" />, label: t('staff.plans', lang) },
-    { key: 'hosts', icon: <Users className="w-4 h-4" />, label: t('staff.hosts', lang) },
-    { key: 'venues', icon: <MapPin className="w-4 h-4" />, label: t('staff.venues', lang) },
-    { key: 'requests', icon: <ClipboardList className="w-4 h-4" />, label: t('staff.requests', lang) },
-    { key: 'waitlist', icon: <Clock className="w-4 h-4" />, label: t('staff.waitlist', lang) },
-    { key: 'attendance', icon: <CheckSquare className="w-4 h-4" />, label: t('staff.attendance', lang) },
-    { key: 'notifications', icon: <Bell className="w-4 h-4" />, label: t('staff.notifications', lang) },
-    { key: 'recovery', icon: <Wrench className="w-4 h-4" />, label: t('staff.recovery', lang) },
-    { key: 'safety', icon: <Shield className="w-4 h-4" />, label: t('staff.safetyCases', lang) },
-    { key: 'audit', icon: <FileText className="w-4 h-4" />, label: t('staff.audit', lang) },
-    { key: 'metrics', icon: <BarChart3 className="w-4 h-4" />, label: t('staff.metrics', lang) },
+  // Simplified sections - grouped by category
+  const sections: { key: StaffSection; icon: React.ReactNode; label: string; category: string }[] = [
+    { key: 'plans', icon: <Layout className="w-4 h-4" />, label: t('staff.plans', lang), category: 'main' },
+    { key: 'hosts', icon: <Users className="w-4 h-4" />, label: t('staff.hosts', lang), category: 'main' },
+    { key: 'venues', icon: <MapPin className="w-4 h-4" />, label: t('staff.venues', lang), category: 'main' },
+    { key: 'requests', icon: <ClipboardList className="w-4 h-4" />, label: t('staff.requests', lang), category: 'operations' },
+    { key: 'waitlist', icon: <Clock className="w-4 h-4" />, label: t('staff.waitlist', lang), category: 'operations' },
+    { key: 'attendance', icon: <CheckSquare className="w-4 h-4" />, label: t('staff.attendance', lang), category: 'operations' },
+    { key: 'notifications', icon: <Bell className="w-4 h-4" />, label: t('staff.notifications', lang), category: 'system' },
+    { key: 'recovery', icon: <Wrench className="w-4 h-4" />, label: t('staff.recovery', lang), category: 'system' },
+    { key: 'safety', icon: <Shield className="w-4 h-4" />, label: t('staff.safetyCases', lang), category: 'system' },
+    { key: 'audit', icon: <FileText className="w-4 h-4" />, label: t('staff.audit', lang), category: 'system' },
+    { key: 'metrics', icon: <BarChart3 className="w-4 h-4" />, label: t('staff.metrics', lang), category: 'system' },
   ];
 
   return (
@@ -43,20 +44,24 @@ export function StaffPage({ onBack }: StaffPageProps) {
         <h1 className="text-lg font-semibold">{lang === 'ar' ? 'العمليات' : 'Operations'}</h1>
       </div>
 
-      {/* Section tabs */}
+      {/* Section tabs - with visual grouping */}
       <div className="overflow-x-auto border-b border-border bg-surface-raised sticky top-0 z-30">
         <div className="flex min-w-max px-2">
-          {sections.map(s => (
-            <button
-              key={s.key}
-              onClick={() => setActiveSection(s.key)}
-              className={`flex items-center gap-1.5 px-3 py-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeSection === s.key ? 'border-brand-500 text-brand-600' : 'border-transparent text-text-tertiary hover:text-text-secondary'
-              }`}
-            >
-              {s.icon}
-              {s.label}
-            </button>
+          {sections.map((s, index) => (
+            <div key={s.key} className="flex items-center">
+              {index > 0 && sections[index - 1].category !== s.category && (
+                <div className="w-px h-6 bg-border mx-1" />
+              )}
+              <button
+                onClick={() => setActiveSection(s.key)}
+                className={`flex items-center gap-1.5 px-3 py-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
+                  activeSection === s.key ? 'border-brand-500 text-brand-600' : 'border-transparent text-text-tertiary hover:text-text-secondary'
+                }`}
+              >
+                {s.icon}
+                {s.label}
+              </button>
+            </div>
           ))}
         </div>
       </div>

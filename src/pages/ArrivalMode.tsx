@@ -169,7 +169,7 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
           </span>
         </div>
 
-        {/* Actions */}
+        {/* Actions - Simplified to 3 main actions */}
         <div className="space-y-2.5 pt-2">
           <ArrivalAction
             icon={<CheckCircle className="w-5 h-5 text-success" />}
@@ -183,13 +183,8 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
             onClick={() => handleAction('late')}
           />
           <ArrivalAction
-            icon={<AlertTriangle className="w-5 h-5 text-accent-500" />}
-            label={t('arrival.cantFind', lang)}
-            onClick={() => handleAction('cantFind')}
-          />
-          <ArrivalAction
             icon={<HelpCircle className="w-5 h-5 text-text-tertiary" />}
-            label={t('arrival.needHelp', lang)}
+            label={lang === 'ar' ? 'أحتاج مساعدة' : 'Need help'}
             onClick={() => handleAction('help')}
           />
         </div>
