@@ -51,8 +51,8 @@ export function KeyboardShortcutsHelp() {
         }
       >
         <div className="space-y-3">
-          {shortcuts.map((shortcut, i) => (
-            <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+          {shortcuts.map((shortcut) => (
+            <div key={shortcut.keys} className="flex items-center justify-between py-2 border-b border-border last:border-0">
               <span className="text-sm text-text-secondary">{shortcut.description}</span>
               <kbd className="px-3 py-1 text-xs font-mono font-semibold bg-surface-sunken border border-border rounded-lg text-text-primary">
                 {shortcut.keys}

@@ -151,8 +151,8 @@ function HostsSection({ lang }: { lang: 'en' | 'ar' }) {
   ];
   return (
     <div className="space-y-2">
-      {hosts.map((h, i) => (
-        <div key={i} className="bg-surface-raised rounded-xl border border-border p-4 flex items-center justify-between">
+      {hosts.map((h) => (
+        <div key={h.name} className="bg-surface-raised rounded-xl border border-border p-4 flex items-center justify-between">
           <div>
             <p className="font-medium text-text-primary text-sm">{h.name}</p>
             <p className="text-xs text-text-tertiary">{h.role}</p>
@@ -173,8 +173,8 @@ function VenuesSection({ lang }: { lang: 'en' | 'ar' }) {
   ];
   return (
     <div className="space-y-2">
-      {venues.map((v, i) => (
-        <div key={i} className="bg-surface-raised rounded-xl border border-border p-4 flex items-center justify-between">
+      {venues.map((v) => (
+        <div key={v.name} className="bg-surface-raised rounded-xl border border-border p-4 flex items-center justify-between">
           <div>
             <p className="font-medium text-text-primary text-sm">{v.name}</p>
             <p className="text-xs text-text-tertiary">{v.area}</p>
@@ -417,8 +417,8 @@ function AuditSection({ lang }: { lang: 'en' | 'ar' }) {
         </p>
       </div>
       <div className="space-y-2">
-        {events.map((e, i) => (
-          <div key={i} className="bg-surface-raised rounded-lg border border-border p-3">
+        {events.map((e) => (
+          <div key={`${e.time}-${e.action}-${e.actor}`} className="bg-surface-raised rounded-lg border border-border p-3">
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">

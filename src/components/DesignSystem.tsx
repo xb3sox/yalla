@@ -276,8 +276,8 @@ export function MaterialChangeBanner({ changes, onAccept }: MaterialChangeBanner
         <h3 className="text-sm font-semibold text-text-primary">{lang === 'ar' ? 'تغييرات مهمة' : 'Important changes'}</h3>
       </div>
       <div className="space-y-1.5 mb-4">
-        {changes.map((change, i) => (
-          <p key={i} className="text-sm text-text-secondary">
+        {changes.map((change) => (
+          <p key={change.field} className="text-sm text-text-secondary">
             <span className="font-medium text-text-primary">{lang === 'ar' ? change.fieldAr : change.field}: </span>
             <span className="line-through text-text-tertiary">{change.oldValue}</span>
             <span className="mx-1.5 text-text-tertiary">→</span>
@@ -488,8 +488,8 @@ export function PriceSummary({ price, included, excluded }: PriceSummaryProps) {
       <div>
         <p className="text-xs font-medium text-text-tertiary uppercase tracking-wide mb-2">{t('details.included', lang)}</p>
         <ul className="space-y-1.5">
-          {included.map((item, i) => (
-            <li key={i} className="flex items-center gap-2 text-sm text-text-secondary">
+          {included.map((item) => (
+            <li key={item} className="flex items-center gap-2 text-sm text-text-secondary">
               <CheckCircle className="w-3.5 h-3.5 text-success flex-shrink-0" aria-hidden="true" />
               {item}
             </li>
@@ -500,8 +500,8 @@ export function PriceSummary({ price, included, excluded }: PriceSummaryProps) {
         <div>
           <p className="text-xs font-medium text-text-tertiary uppercase tracking-wide mb-2">{t('details.excluded', lang)}</p>
           <ul className="space-y-1.5">
-            {excluded.map((item, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm text-text-tertiary">
+            {excluded.map((item) => (
+              <li key={item} className="flex items-center gap-2 text-sm text-text-tertiary">
                 <XCircle className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
                 {item}
               </li>
@@ -530,7 +530,7 @@ export function Timeline({ items }: TimelineProps) {
   return (
     <div className="space-y-0">
       {items.map((item, i) => (
-        <div key={i} className="flex gap-4">
+        <div key={item.time} className="flex gap-4">
           <div className="flex flex-col items-center">
             <div className="w-2 h-2 rounded-full bg-brand-500 mt-2" />
             {i < items.length - 1 && <div className="w-px flex-1 bg-border my-1" />}

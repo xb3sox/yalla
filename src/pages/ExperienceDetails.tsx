@@ -206,8 +206,8 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
             {/* Requirements */}
             <DetailSection title={t('details.requirements', lang)}>
               <ul className="text-sm text-text-secondary space-y-1">
-                {(lang === 'ar' ? experience.requirementsAr : experience.requirements).map((req, i) => (
-                  <li key={i} className="flex items-start gap-2">
+                {(lang === 'ar' ? experience.requirementsAr : experience.requirements).map((req) => (
+                  <li key={req} className="flex items-start gap-2">
                     <span className="w-1 h-1 rounded-full bg-text-tertiary mt-2 flex-shrink-0" />
                     {req}
                   </li>
