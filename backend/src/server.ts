@@ -8,6 +8,8 @@ import logger from './utils/logger';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import authRoutes from './routes/auth.routes';
 import experienceRoutes from './routes/experience.routes';
+import reservationRoutes from './routes/reservation.routes';
+import paymentRoutes from './routes/payment.routes';
 
 const app = express();
 
@@ -59,6 +61,8 @@ app.get('/health', (req, res) => {
 // API routes
 app.use(`/api/${config.apiVersion}/auth`, authRoutes);
 app.use(`/api/${config.apiVersion}/experiences`, experienceRoutes);
+app.use(`/api/${config.apiVersion}/reservations`, reservationRoutes);
+app.use(`/api/${config.apiVersion}/payments`, paymentRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
