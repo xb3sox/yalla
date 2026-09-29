@@ -12,7 +12,7 @@ interface ProfilePageProps {
 }
 
 export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const { showToast } = useToast();
   const lang = state.language;
   const user = state.user;
@@ -88,6 +88,39 @@ export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
           </Button>
         </div>
       </section>
+
+      {/* Blocked Users */}
+      {state.blocks.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">
+            {lang === 'ar' ? 'المستخدمون المحظورون' : 'Blocked Users'}
+          </h2>
+          <div className="bg-surface-raised rounded-xl border border-border divide-y divide-border">
+            {state.blocks.map(block => (
+              <div key={block.id} className="flex items-center justify-between p-4">
+                <div>
+                  <p className="text-sm font-medium text-text-primary">
+                    {block.blockedEntityId}
+                  </p>
+                  <p className="text-xs text-text-tertiary">
+                    {new Date(block.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    dispatch({ type: 'REMOVE_BLOCK', payload: block.id });
+                    showToast('success', lang === 'ar' ? 'تم إلغاء الحظر' : 'Block removed');
+                  }}
+                >
+                  {lang === 'ar' ? 'إلغاء الحظر' : 'Unblock'}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Data Rights */}
       <section className="space-y-4">

@@ -19,17 +19,34 @@ export function SupportPage({ onBack }: SupportPageProps) {
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = () => {
+    // Handle block action
+    if (mode === 'block') {
+      dispatch({
+        type: 'ADD_BLOCK',
+        payload: {
+          id: `block-${Date.now()}`,
+          blockerId: 'user-1',
+          blockedEntityId: reportType || 'unknown',
+          blockedEntityType: 'participant',
+          createdAt: new Date().toISOString(),
+          reason: description || undefined,
+        },
+      });
+    }
+
     dispatch({
       type: 'ADD_SUPPORT_REQUEST',
       payload: {
         id: `sr-${Date.now()}`,
         participantId: 'user-1',
-        type: mode === 'report' ? 'report' : mode === 'block' ? 'report' : 'operational',
+        type: mode === 'report' ? 'report' : mode === 'block' ? 'safety' : 'operational',
         state: 'submitted',
         subject: mode === 'report' ? `Report: ${reportType}` : mode === 'block' ? 'Block request' : 'Help request',
         subjectAr: mode === 'report' ? `بلاغ: ${reportType}` : mode === 'block' ? 'طلب حظر' : 'طلب مساعدة',
         description,
         descriptionAr: description,
+        targetEntityId: reportType || undefined,
+        targetEntityType: mode === 'report' ? (reportType as 'participant' | 'host' | 'venue' | 'general') || 'general' : undefined,
         createdAt: new Date().toISOString(),
       },
     });

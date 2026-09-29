@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, ReactNode } from 'react';
-import type { Language, Role, Experience, Reservation, UserProfile, SupportRequest, Feedback, Notification } from '../types';
+import type { Language, Role, Experience, Reservation, UserProfile, SupportRequest, Feedback, Notification, Block, SafetyCase, AuditEvent } from '../types';
 import { allExperiences, mockUser, mockReservations, mockNotifications } from '../infrastructure/mock/mockData';
 
 // Re-export mock data for backward compatibility
@@ -18,6 +18,9 @@ interface AppState {
   supportRequests: SupportRequest[];
   feedbacks: Feedback[];
   favorites: string[];
+  blocks: Block[];
+  safetyCases: SafetyCase[];
+  auditEvents: AuditEvent[];
   currentView: string;
 }
 
@@ -36,7 +39,13 @@ type Action =
   | { type: 'RECONFIRM_RESERVATION'; payload: string }
   | { type: 'CANCEL_RESERVATION'; payload: string }
   | { type: 'ADD_FAVORITE'; payload: string }
-  | { type: 'REMOVE_FAVORITE'; payload: string };
+  | { type: 'REMOVE_FAVORITE'; payload: string }
+  | { type: 'ADD_BLOCK'; payload: Block }
+  | { type: 'REMOVE_BLOCK'; payload: string }
+  | { type: 'ADD_SAFETY_CASE'; payload: SafetyCase }
+  | { type: 'UPDATE_SAFETY_CASE'; payload: { id: string; state: SafetyCase['state'] } }
+  | { type: 'ACCEPT_MATERIAL_CHANGES'; payload: { reservationId: string; changeIds: string[] } }
+  | { type: 'ADD_AUDIT_EVENT'; payload: AuditEvent };
 
 const initialState: AppState = {
   language: 'en',
@@ -50,6 +59,9 @@ const initialState: AppState = {
   supportRequests: [],
   feedbacks: [],
   favorites: [],
+  blocks: [],
+  safetyCases: [],
+  auditEvents: [],
   currentView: 'explore',
 };
 
@@ -133,6 +145,56 @@ function reducer(state: AppState, action: Action): AppState {
     }
     case 'REMOVE_FAVORITE':
       return { ...state, favorites: state.favorites.filter(id => id !== action.payload) };
+    case 'ADD_BLOCK': {
+      // Check for duplicate block
+      const hasBlock = state.blocks.some(
+        b => b.blockerId === action.payload.blockerId && 
+             b.blockedEntityId === action.payload.blockedEntityId
+      );
+      if (hasBlock) {
+        return state; // Already blocked
+      }
+      return { ...state, blocks: [...state.blocks, action.payload] };
+    }
+    case 'REMOVE_BLOCK':
+      return { ...state, blocks: state.blocks.filter(b => b.id !== action.payload) };
+    case 'ADD_SAFETY_CASE':
+      return { ...state, safetyCases: [...state.safetyCases, action.payload] };
+    case 'UPDATE_SAFETY_CASE':
+      return {
+        ...state,
+        safetyCases: state.safetyCases.map(c =>
+          c.id === action.payload.id ? { ...c, state: action.payload.state } : c
+        ),
+      };
+    case 'ACCEPT_MATERIAL_CHANGES': {
+      // Mark material changes as acknowledged for this reservation
+      // Also add audit event
+      const auditEvent: AuditEvent = {
+        id: `audit-${Date.now()}`,
+        actorId: state.user?.id || 'unknown',
+        actorRole: state.role,
+        action: 'material_changes_accepted',
+        resourceType: 'reservation',
+        resourceId: action.payload.reservationId,
+        details: { changeIds: action.payload.changeIds },
+        timestamp: new Date().toISOString(),
+        classification: 'confidential',
+      };
+      return {
+        ...state,
+        reservations: state.reservations.map(r => {
+          if (r.id === action.payload.reservationId) {
+            // In a real app, this would update the acknowledgedBy field
+            return r;
+          }
+          return r;
+        }),
+        auditEvents: [...state.auditEvents, auditEvent],
+      };
+    }
+    case 'ADD_AUDIT_EVENT':
+      return { ...state, auditEvents: [...state.auditEvents, action.payload] };
     default:
       return state;
   }

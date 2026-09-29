@@ -102,6 +102,13 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback }:
               newValue: mc.newValue,
             }))}
             onAccept={() => {
+              dispatch({
+                type: 'ACCEPT_MATERIAL_CHANGES',
+                payload: {
+                  reservationId: reservation.id,
+                  changeIds: exp.materialChanges!.map(mc => mc.id),
+                },
+              });
               showToast('success', lang === 'ar' ? 'تم قبول التغييرات' : 'Changes accepted');
             }}
           />
