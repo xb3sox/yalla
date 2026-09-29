@@ -43,12 +43,24 @@ export function OnboardingPage({ onComplete }: OnboardingPageProps) {
 
       {/* Logo + Illustration */}
       <div className="flex flex-col items-center pt-12 pb-8">
-        <img
-          src="https://image.qwenlm.ai/generated-images/ad0e75be-481f-4009-9dcf-f6b162c82f9d/_result.png"
-          alt=""
-          className="w-48 h-48 object-contain mb-4 opacity-90"
-          aria-hidden="true"
-        />
+        <div className="w-48 h-48 mb-4 opacity-90 flex items-center justify-center">
+          <svg viewBox="0 0 200 200" className="w-full h-full" aria-hidden="true">
+            <defs>
+              <linearGradient id="onboardingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#14736A" />
+                <stop offset="100%" stopColor="#0B3A35" />
+              </linearGradient>
+            </defs>
+            <circle cx="100" cy="100" r="90" fill="url(#onboardingGrad)" opacity="0.1" />
+            <circle cx="100" cy="100" r="70" fill="url(#onboardingGrad)" opacity="0.2" />
+            <circle cx="100" cy="100" r="50" fill="url(#onboardingGrad)" opacity="0.3" />
+            <path d="M 70 120 Q 100 80 130 120" stroke="#14736A" strokeWidth="3" fill="none" />
+            <circle cx="70" cy="120" r="8" fill="#14736A" />
+            <circle cx="100" cy="95" r="8" fill="#14736A" />
+            <circle cx="130" cy="120" r="8" fill="#14736A" />
+            <path d="M 85 140 L 100 155 L 115 140" stroke="#D95030" strokeWidth="3" fill="none" strokeLinecap="round" />
+          </svg>
+        </div>
         <div className="flex items-center gap-2.5">
           <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center">
             <span className="text-white font-bold text-lg">Y</span>

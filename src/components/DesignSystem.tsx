@@ -129,6 +129,17 @@ export function ExperienceCard({ experience, onPress }: ExperienceCardProps) {
           alt={lang === 'ar' ? experience.titleAr : experience.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            const parent = target.parentElement;
+            if (parent && !parent.querySelector('.image-fallback')) {
+              const fallback = document.createElement('div');
+              fallback.className = 'image-fallback absolute inset-0 bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center';
+              fallback.innerHTML = `<svg viewBox="0 0 100 100" class="w-16 h-16 text-white/50"><circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="2"/><path d="M 35 50 L 45 60 L 65 40" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
+              parent.insertBefore(fallback, target);
+            }
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="absolute top-3 end-3 flex items-center gap-2">

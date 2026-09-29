@@ -86,6 +86,16 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
           src={experience.imageUrl}
           alt={lang === 'ar' ? experience.titleAr : experience.title}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            const parent = target.parentElement;
+            if (parent && !parent.querySelector('.hero-fallback')) {
+              const fallback = document.createElement('div');
+              fallback.className = 'hero-fallback absolute inset-0 bg-gradient-to-br from-brand-600 to-brand-900';
+              parent.insertBefore(fallback, target);
+            }
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
         <button

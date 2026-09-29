@@ -114,12 +114,20 @@ export function ExplorePage({ onSelectExperience }: ExplorePageProps) {
       ) : (
         <EmptyState
           icon={
-            <img
-              src="https://image.qwenlm.ai/generated-images/27a5e16f-a66f-4bb8-89c3-f7823cc38f8e/_result.png"
-              alt=""
-              className="w-32 h-32 object-contain opacity-80"
-              aria-hidden="true"
-            />
+            <div className="w-32 h-32 opacity-80 flex items-center justify-center" aria-hidden="true">
+              <svg viewBox="0 0 128 128" className="w-full h-full">
+                <defs>
+                  <linearGradient id="emptyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#14736A" />
+                    <stop offset="100%" stopColor="#0B3A35" />
+                  </linearGradient>
+                </defs>
+                <circle cx="64" cy="64" r="50" fill="url(#emptyGrad)" opacity="0.1" />
+                <circle cx="64" cy="64" r="35" fill="none" stroke="url(#emptyGrad)" strokeWidth="3" />
+                <path d="M 64 40 L 64 88 M 40 64 L 88 64" stroke="url(#emptyGrad)" strokeWidth="3" strokeLinecap="round" />
+                <circle cx="64" cy="64" r="8" fill="url(#emptyGrad)" />
+              </svg>
+            </div>
           }
           title={hasActiveFilters 
             ? (lang === 'ar' ? 'لا توجد نتائج' : 'No results found')

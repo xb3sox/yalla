@@ -68,12 +68,20 @@ export function FeedbackPage({ reservationId, onBack, onBookAnother }: FeedbackP
   if (submitted) {
     return (
       <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6 text-center">
-        <img
-          src="https://image.qwenlm.ai/generated-images/7d694f15-4dbf-4657-a666-fbcb38ba75c3/_result.png"
-          alt=""
-          className="w-40 h-40 object-contain mb-4"
-          aria-hidden="true"
-        />
+        <div className="w-40 h-40 mb-4 flex items-center justify-center" aria-hidden="true">
+          <svg viewBox="0 0 160 160" className="w-full h-full">
+            <defs>
+              <linearGradient id="successGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#16A34A" />
+                <stop offset="100%" stopColor="#15803D" />
+              </linearGradient>
+            </defs>
+            <circle cx="80" cy="80" r="70" fill="url(#successGrad)" opacity="0.1" />
+            <circle cx="80" cy="80" r="50" fill="url(#successGrad)" opacity="0.2" />
+            <circle cx="80" cy="80" r="35" fill="url(#successGrad)" />
+            <path d="M 60 80 L 75 95 L 100 65" stroke="white" strokeWidth="6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
         <h2 className="text-xl font-bold text-text-primary mb-2">{t('feedback.thankYou', lang)}</h2>
         <p className="text-sm text-text-secondary mb-8 max-w-xs">
           {lang === 'ar' ? 'ملاحظاتك خاصة ولن تُشارك مع الآخرين.' : 'Your feedback is private and will not be shared with other participants.'}
