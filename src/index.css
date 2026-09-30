@@ -1,0 +1,251 @@
+@import "tailwindcss";
+
+@theme {
+  /* ═══════════════════════════════════════════
+     YALLA DESIGN TOKENS
+     Warm, restrained, premium
+     ═══════════════════════════════════════════ */
+
+  /* Surface */
+  --color-surface: #FAFAF8;
+  --color-surface-raised: #FFFFFF;
+  --color-surface-sunken: #F4F3EF;
+
+  /* Text */
+  --color-text-primary: #1C1C1E;
+  --color-text-secondary: #6B6B6F;
+  --color-text-tertiary: #9D9DA1;
+  --color-text-inverse: #FFFFFF;
+
+  /* Border */
+  --color-border: #E8E7E3;
+  --color-border-strong: #D4D3CF;
+
+  /* Brand — Deep Teal */
+  --color-brand-50: #EFF9F7;
+  --color-brand-100: #D5F0EB;
+  --color-brand-200: #A8DFD5;
+  --color-brand-300: #6CC8BA;
+  --color-brand-400: #38ADA0;
+  --color-brand-500: #1A8F82;
+  --color-brand-600: #14736A;
+  --color-brand-700: #115C55;
+  --color-brand-800: #0E4A44;
+  --color-brand-900: #0B3A35;
+
+  /* Accent — Warm Terracotta (destructive only) */
+  --color-accent-50: #FEF4F1;
+  --color-accent-100: #FDE5DE;
+  --color-accent-200: #FBC5B5;
+  --color-accent-500: #D95030;
+  --color-accent-600: #C43D1E;
+  --color-accent-700: #A3321A;
+
+  /* Semantic */
+  --color-success: #1B8C5A;
+  --color-success-bg: #EDF8F2;
+  --color-warning: #B87A0A;
+  --color-warning-bg: #FEF7E8;
+  --color-error: #C53030;
+  --color-error-bg: #FEF0F0;
+  --color-info: #2B6CB0;
+  --color-info-bg: #EBF4FF;
+
+  /* Legacy compatibility */
+  --color-ivory: #FAFAF8;
+  --color-teal-50: #EFF9F7;
+  --color-teal-100: #D5F0EB;
+  --color-teal-500: #1A8F82;
+  --color-teal-600: #14736A;
+  --color-teal-700: #115C55;
+  --color-charcoal-50: #F4F3EF;
+  --color-charcoal-100: #E8E7E3;
+  --color-charcoal-200: #D4D3CF;
+  --color-charcoal-300: #B0B0B4;
+  --color-charcoal-400: #9D9DA1;
+  --color-charcoal-500: #6B6B6F;
+  --color-charcoal-600: #4A4A4E;
+  --color-charcoal-700: #3A3A3E;
+  --color-charcoal-800: #2A2A2E;
+  --color-charcoal-900: #1C1C1E;
+  --color-sand-50: #F4F3EF;
+  --color-sand-100: #E8E7E3;
+  --color-sand-200: #D4D3CF;
+  --color-terracotta-50: #FEF4F1;
+  --color-terracotta-100: #FDE5DE;
+  --color-terracotta-500: #D95030;
+  --color-terracotta-600: #C43D1E;
+  --color-terracotta-700: #A3321A;
+
+  /* Typography */
+  --font-sans: 'Inter', 'Noto Sans Arabic', system-ui, -apple-system, sans-serif;
+  --font-arabic: 'Noto Sans Arabic', 'Inter', system-ui, sans-serif;
+
+  /* Radius — restrained */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+
+  /* Elevation — subtle */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.03);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 28px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+}
+
+/* ═══════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════ */
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+/* ═══════════════════════════════════════════
+   FOCUS — visible, consistent, accessible
+   ═══════════════════════════════════════════ */
+
+*:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Remove default focus for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ═══════════════════════════════════════════
+   REDUCED MOTION
+   ═══════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   RTL
+   ═══════════════════════════════════════════ */
+
+[dir="rtl"] .flip-rtl {
+  transform: scaleX(-1);
+}
+
+/* ═══════════════════════════════════════════
+   SCROLLBAR
+   ═══════════════════════════════════════════ */
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-charcoal-300); }
+
+/* ═══════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ═══════════════════════════════════════════
+   PAGE TRANSITIONS — subtle, fast
+   ═══════════════════════════════════════════ */
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter {
+  animation: pageEnter var(--duration-normal) var(--ease-out);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn var(--duration-fast) var(--ease-out);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-up {
+  animation: slideUp var(--duration-normal) var(--ease-out);
+}
+
+/* ═══════════════════════════════════════════
+   SAFE AREAS
+   ═══════════════════════════════════════════ */
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   PRINT
+   ═══════════════════════════════════════════ */
+
+@media print {
+  nav, header { display: none !important; }
+  body { background: white; }
+}
+
+/* ═══════════════════════════════════════════
+   HIGH CONTRAST
+   ═══════════════════════════════════════════ */
+
+@media (forced-colors: active) {
+  button, a, input, select, textarea {
+    border: 1px solid ButtonText;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   SELECTION
+   ═══════════════════════════════════════════ */
+
+::selection {
+  background-color: var(--color-brand-100);
+  color: var(--color-brand-900);
+}

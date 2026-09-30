@@ -1,0 +1,91 @@
+import express from 'express';
+import cors from 'cors';
+import config from './config';
+import logger from './utils/logger';
+import { errorHandler, notFoundHandler } from './middleware/error.middleware';
+import {
+  apiLimiter,
+  authLimiter,
+  securityHeaders,
+  requestLogger,
+  corsOptions,
+  sanitizeInput,
+  requestSizeLimiter,
+  healthCheck,
+  metrics,
+} from './middleware/security.middleware';
+import authRoutes from './routes/auth.routes';
+import experienceRoutes from './routes/experience.routes';
+import reservationRoutes from './routes/reservation.routes';
+import paymentRoutes from './routes/payment.routes';
+import notificationRoutes from './routes/notification.routes';
+import auditRoutes from './routes/audit.routes';
+import staffRoutes from './routes/staff.routes';
+import safetyCaseRoutes from './routes/safety_case.routes';
+import supportRoutes from './routes/support.routes';
+import favoritesRoutes from './routes/favorites.routes';
+import blocksRoutes from './routes/blocks.routes';
+
+const app = express();
+
+// Security headers
+app.use(securityHeaders);
+
+// CORS
+app.use(cors(corsOptions));
+
+// Request size limiter
+app.use(requestSizeLimiter);
+
+// Input sanitization
+app.use(sanitizeInput);
+
+// Request logging
+app.use(requestLogger);
+
+// Rate limiting - general API
+app.use('/api/', apiLimiter);
+
+// Rate limiting - authentication endpoints (stricter)
+app.use('/api/v1/auth/login', authLimiter);
+app.use('/api/v1/auth/register', authLimiter);
+
+// Body parsing
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Health check endpoint
+app.get('/health', healthCheck);
+
+// Metrics endpoint (for monitoring)
+app.get('/metrics', metrics);
+
+// API routes
+app.use(`/api/${config.apiVersion}/auth`, authRoutes);
+app.use(`/api/${config.apiVersion}/experiences`, experienceRoutes);
+app.use(`/api/${config.apiVersion}/reservations`, reservationRoutes);
+app.use(`/api/${config.apiVersion}/payments`, paymentRoutes);
+app.use(`/api/${config.apiVersion}/notifications`, notificationRoutes);
+app.use(`/api/${config.apiVersion}/audit`, auditRoutes);
+app.use(`/api/${config.apiVersion}/staff`, staffRoutes);
+app.use(`/api/${config.apiVersion}/safety-cases`, safetyCaseRoutes);
+app.use(`/api/${config.apiVersion}/support-requests`, supportRoutes);
+app.use(`/api/${config.apiVersion}/favorites`, favoritesRoutes);
+app.use(`/api/${config.apiVersion}/blocks`, blocksRoutes);
+
+// 404 handler
+app.use(notFoundHandler);
+
+// Error handler
+app.use(errorHandler);
+
+// Start server
+const PORT = config.port;
+app.listen(PORT, () => {
+  logger.info(`🚀 Server running on port ${PORT}`);
+  logger.info(`📝 Environment: ${config.env}`);
+  logger.info(`🔗 API Version: ${config.apiVersion}`);
+  logger.info(`🏥 Health check: http://localhost:${PORT}/health`);
+});
+
+export default app;

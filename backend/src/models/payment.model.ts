@@ -1,0 +1,253 @@
+import Stripe from 'stripe';
+import config from '../config';
+import logger from '../utils/logger';
+import pool from '../config/database';
+
+// Initialize Stripe
+const stripe = new Stripe(config.stripe.secretKey, {
+  apiVersion: '2023-10-16',
+});
+
+export interface Payment {
+  id: string;
+  reservation_id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  stripe_payment_id?: string;
+  stripe_client_secret?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface CreatePaymentInput {
+  reservation_id: string;
+  amount: number;
+  currency?: string;
+}
+
+class PaymentModel {
+  /**
+   * Create a payment intent
+   */
+  async createPaymentIntent(input: CreatePaymentInput): Promise<Payment> {
+    try {
+      // Create Stripe payment intent
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(input.amount * 100), // Convert to cents
+        currency: input.currency || 'sar',
+        metadata: {
+          reservation_id: input.reservation_id,
+        },
+      });
+
+      // Save to database
+      const query = `
+        INSERT INTO payments (
+          reservation_id, amount, currency, status, stripe_payment_id, stripe_client_secret
+        ) VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `;
+      
+      const values = [
+        input.reservation_id,
+        input.amount,
+        input.currency || 'sar',
+        'pending',
+        paymentIntent.id,
+        paymentIntent.client_secret,
+      ];
+      
+      const result = await pool.query(query, values);
+      
+      logger.info('Payment intent created', { 
+        paymentId: result.rows[0].id,
+        stripePaymentId: paymentIntent.id,
+        amount: input.amount 
+      });
+      
+      return result.rows[0];
+    } catch (error: any) {
+      logger.error('Create payment intent failed', { error: error.message });
+      throw new Error('Failed to create payment intent');
+    }
+  }
+
+  /**
+   * Confirm payment
+   */
+  async confirmPayment(stripePaymentId: string): Promise<Payment> {
+    try {
+      // Verify with Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(stripePaymentId);
+      
+      if (paymentIntent.status !== 'succeeded') {
+        throw new Error(`Payment not succeeded: ${paymentIntent.status}`);
+      }
+
+      // Update database
+      const query = `
+        UPDATE payments
+        SET status = 'completed', updated_at = CURRENT_TIMESTAMP
+        WHERE stripe_payment_id = $1
+        RETURNING *
+      `;
+      
+      const result = await pool.query(query, [stripePaymentId]);
+      
+      if (result.rows.length === 0) {
+        throw new Error('Payment not found');
+      }
+      
+      logger.info('Payment confirmed', { 
+        stripePaymentId,
+        paymentId: result.rows[0].id 
+      });
+      
+      return result.rows[0];
+    } catch (error: any) {
+      logger.error('Confirm payment failed', { error: error.message });
+      throw error;
+    }
+  }
+
+  /**
+   * Process refund
+   */
+  async processRefund(stripePaymentId: string, amount?: number): Promise<Payment> {
+    try {
+      // Create refund with Stripe
+      const refundParams: any = {
+        payment_intent: stripePaymentId,
+      };
+      
+      if (amount) {
+        refundParams.amount = Math.round(amount * 100); // Convert to cents
+      }
+      
+      const refund = await stripe.refunds.create(refundParams);
+
+      // Update database
+      const query = `
+        UPDATE payments
+        SET status = 'refunded', updated_at = CURRENT_TIMESTAMP
+        WHERE stripe_payment_id = $1
+        RETURNING *
+      `;
+      
+      const result = await pool.query(query, [stripePaymentId]);
+      
+      if (result.rows.length === 0) {
+        throw new Error('Payment not found');
+      }
+      
+      logger.info('Refund processed', { 
+        stripePaymentId,
+        refundId: refund.id,
+        amount: amount || 'full' 
+      });
+      
+      return result.rows[0];
+    } catch (error: any) {
+      logger.error('Process refund failed', { error: error.message });
+      throw error;
+    }
+  }
+
+  /**
+   * Get payment by reservation ID
+   */
+  async findByReservationId(reservationId: string): Promise<Payment | null> {
+    const query = 'SELECT * FROM payments WHERE reservation_id = $1';
+    const result = await pool.query(query, [reservationId]);
+    
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Get payment by Stripe payment ID
+   */
+  async findByStripePaymentId(stripePaymentId: string): Promise<Payment | null> {
+    const query = 'SELECT * FROM payments WHERE stripe_payment_id = $1';
+    const result = await pool.query(query, [stripePaymentId]);
+    
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Refund payment (alias for processRefund with better naming)
+   */
+  async refundPayment(paymentId: string, amount?: number): Promise<Payment> {
+    const payment = await this.findById(paymentId);
+    
+    if (!payment) {
+      throw new Error('Payment not found');
+    }
+    
+    if (payment.status !== 'completed') {
+      throw new Error('Payment is not in completed status');
+    }
+    
+    if (!payment.stripe_payment_id) {
+      throw new Error('Payment has no Stripe payment ID');
+    }
+    
+    return await this.processRefund(payment.stripe_payment_id, amount);
+  }
+
+  /**
+   * Find payment by ID
+   */
+  async findById(id: string): Promise<Payment | null> {
+    const query = 'SELECT * FROM payments WHERE id = $1';
+    const result = await pool.query(query, [id]);
+    
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Get payment statistics
+   */
+  async getPaymentStatistics(): Promise<any> {
+    const query = `
+      SELECT 
+        COUNT(*) as total_payments,
+        COALESCE(SUM(amount), 0) as total_revenue,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_payments,
+        COUNT(CASE WHEN status = 'refunded' THEN 1 END) as refunded_payments,
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_payments,
+        COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_payments
+      FROM payments
+    `;
+    
+    const result = await pool.query(query);
+    return result.rows[0];
+  }
+
+  /**
+   * Handle Stripe webhook
+   */
+  async handleWebhook(event: Stripe.Event): Promise<void> {
+    switch (event.type) {
+      case 'payment_intent.succeeded':
+        await this.confirmPayment((event.data.object as any).id);
+        break;
+      
+      case 'payment_intent.payment_failed':
+        logger.warn('Payment failed', { 
+          stripePaymentId: (event.data.object as any).id 
+        });
+        break;
+      
+      case 'charge.refunded':
+        await this.processRefund((event.data.object as any).payment_intent);
+        break;
+      
+      default:
+        logger.info(`Unhandled event type: ${event.type}`);
+    }
+  }
+}
+
+export { stripe };
+export default new PaymentModel();
