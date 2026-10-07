@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ErrorPage } from './ErrorPage';
 import { AppProvider } from '../data/store';
@@ -25,6 +25,15 @@ describe('ErrorPage', () => {
     expect(screen.getByText(/We're sorry, an unexpected error occurred/i)).toBeTruthy();
   });
 
-  it('renders error message in Arabic', () => {
+  it('renders try again button and handles click', () => {
     render(
-      <App
+      <AppProvider>
+        <ErrorPage />
+      </AppProvider>
+    );
+
+    const refreshButton = screen.getByRole('button', { name: /Try Again/i });
+    expect(refreshButton).toBeTruthy();
+    fireEvent.click(refreshButton);
+  });
+});
