@@ -29,13 +29,24 @@ describe('BackToTop Component', () => {
     expect(screen.getByLabelText('Back to top')).toBeTruthy();
   });
 
-  it('should have correct aria-label', () => {
+  it('should have correct aria-label and title tooltip in English', () => {
     Object.defineProperty(window, 'scrollY', { value: 600, writable: true });
     renderWithProvider(<BackToTop />);
     fireEvent.scroll(window);
     
     const button = screen.getByLabelText('Back to top');
     expect(button).toBeTruthy();
+    expect(button.getAttribute('title')).toBe('Back to top');
+  });
+
+  it('should have focus-visible ring classes for keyboard accessibility', () => {
+    Object.defineProperty(window, 'scrollY', { value: 600, writable: true });
+    renderWithProvider(<BackToTop />);
+    fireEvent.scroll(window);
+
+    const button = screen.getByLabelText('Back to top');
+    expect(button.classList.contains('focus-visible:ring-2')).toBe(true);
+    expect(button.classList.contains('focus-visible:ring-brand-500')).toBe(true);
   });
 
   it('should scroll to top when clicked', () => {
