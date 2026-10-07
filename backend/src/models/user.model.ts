@@ -141,13 +141,13 @@ class UserModel {
         role: user.role,
       },
       config.jwt.secret,
-      { expiresIn: config.jwt.expiresIn }
+      { expiresIn: config.jwt.expiresIn as any }
     );
     
     const refreshToken = jwt.sign(
       { userId: user.id },
       config.jwt.refreshSecret,
-      { expiresIn: config.jwt.refreshExpiresIn }
+      { expiresIn: config.jwt.refreshExpiresIn as any }
     );
     
     return { accessToken, refreshToken };

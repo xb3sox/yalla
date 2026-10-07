@@ -82,6 +82,9 @@ export interface CreateExperienceInput {
   image_url?: string;
   capacity: number;
   min_attendance?: number;
+  plan_state?: string;
+  primary_host_id?: string;
+  backup_host_id?: string;
 }
 
 class ExperienceModel {
