@@ -307,7 +307,7 @@ export const api = {
 
   // Experiences
   experiences: {
-    list: (params?: any) => apiClient.get('/experiences', params),
+    list: (params?: any, options?: { cache?: boolean }) => apiClient.get('/experiences', params, options),
     search: (params: any) => apiClient.get('/experiences/search', params),
     get: (id: string) => apiClient.get(`/experiences/${id}`),
     create: (data: any) => apiClient.post('/experiences', data),
