@@ -4,6 +4,7 @@ import paymentModel from '../models/payment.model';
 import reservationModel from '../models/reservation.model';
 import experienceModel from '../models/experience.model';
 import logger from '../utils/logger';
+import config from '../config';
 import { stripe } from '../models/payment.model';
 
 /**
