@@ -16,6 +16,12 @@ export interface RecommendationScore {
   reasons: string[];
 }
 
+export interface PrecomputedRecommendationData {
+  bookedPlanIds?: Set<string>;
+  favoriteIdsSet?: Set<string>;
+  hasPositiveFeedback?: boolean;
+}
+
 /**
  * Calculate recommendation score for an experience
  */
@@ -24,7 +30,8 @@ export function calculateRecommendationScore(
   user: UserProfile,
   reservations: Reservation[],
   feedbacks: Feedback[],
-  favorites: string[]
+  favorites: string[],
+  precomputed?: PrecomputedRecommendationData
 ): RecommendationScore {
   let score = 0;
   const reasons: string[] = [];
@@ -57,16 +64,19 @@ export function calculateRecommendationScore(
   }
 
   // 4. Positive feedback for similar experiences (15 points)
-  const attendedReservations = reservations.filter(r => 
-    r.state === 'attended' || r.state === 'completed'
-  );
-  
-  const positiveFeedbacks = feedbacks.filter(f => 
-    attendedReservations.some(r => r.id === f.reservationId) &&
-    f.worthTime >= 4
-  );
+  // Optimization: use precomputed boolean or evaluate once using Set lookup
+  const hasPositiveFeedback = precomputed?.hasPositiveFeedback ?? (() => {
+    const attendedIds = new Set(
+      reservations
+        .filter(r => r.state === 'attended' || r.state === 'completed')
+        .map(r => r.id)
+    );
+    return feedbacks.some(
+      f => attendedIds.has(f.reservationId) && f.worthTime >= 4
+    );
+  })();
 
-  if (positiveFeedbacks.length > 0) {
+  if (hasPositiveFeedback) {
     score += 15;
     reasons.push('Based on your positive experiences');
   }
@@ -83,13 +93,22 @@ export function calculateRecommendationScore(
   }
 
   // 6. Not already booked (5 points)
-  const hasBooked = reservations.some(r => r.planId === experience.id);
+  // Optimization: use precomputed Set for O(1) lookup
+  const hasBooked = precomputed?.bookedPlanIds
+    ? precomputed.bookedPlanIds.has(experience.id)
+    : reservations.some(r => r.planId === experience.id);
+
   if (!hasBooked) {
     score += 5;
   }
 
   // 7. Not in favorites (bonus for discovery)
-  if (!favorites.includes(experience.id)) {
+  // Optimization: use precomputed Set for O(1) lookup
+  const isFavorite = precomputed?.favoriteIdsSet
+    ? precomputed.favoriteIdsSet.has(experience.id)
+    : favorites.includes(experience.id);
+
+  if (!isFavorite) {
     score += 5;
     reasons.push('New experience to discover');
   }
@@ -103,6 +122,8 @@ export function calculateRecommendationScore(
 
 /**
  * Get top recommended experiences
+ * Optimized to precompute lookup sets and feedback status in O(R + F) once
+ * instead of redundant O(R * F) recalculations for every experience (N).
  */
 export function getRecommendedExperiences(
   experiences: Experience[],
@@ -112,9 +133,28 @@ export function getRecommendedExperiences(
   favorites: string[],
   limit: number = 3
 ): RecommendationScore[] {
+  // Precompute lookup structures outside the iteration loop for O(1) checks
+  const bookedPlanIds = new Set(reservations.map(r => r.planId));
+  const favoriteIdsSet = new Set(favorites);
+
+  const attendedIds = new Set(
+    reservations
+      .filter(r => r.state === 'attended' || r.state === 'completed')
+      .map(r => r.id)
+  );
+  const hasPositiveFeedback = feedbacks.some(
+    f => attendedIds.has(f.reservationId) && f.worthTime >= 4
+  );
+
+  const precomputed: PrecomputedRecommendationData = {
+    bookedPlanIds,
+    favoriteIdsSet,
+    hasPositiveFeedback,
+  };
+
   const scores = experiences
     .filter(exp => exp.planState === 'published')
-    .map(exp => calculateRecommendationScore(exp, user, reservations, feedbacks, favorites))
+    .map(exp => calculateRecommendationScore(exp, user, reservations, feedbacks, favorites, precomputed))
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 
