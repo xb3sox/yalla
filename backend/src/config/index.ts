@@ -4,103 +4,135 @@ import path from 'path';
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
-export const config = {
-  // Server
-  env: process.env.NODE_ENV || 'development',
-  port: parseInt(process.env.PORT || '3000', 10),
-  apiVersion: process.env.API_VERSION || 'v1',
+const INSECURE_JWT_SECRET = 'your-super-secret-jwt-key-change-in-production';
+const INSECURE_JWT_REFRESH_SECRET = 'your-super-secret-refresh-key-change-in-production';
+const INSECURE_SESSION_SECRET = 'your-session-secret-change-in-production';
 
-  // Database
-  database: {
-    url: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/yalla',
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    name: process.env.DB_NAME || 'yalla',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'password',
-  },
+export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
+  const nodeEnv = env.NODE_ENV || 'development';
+  const isProduction = nodeEnv === 'production';
 
-  // JWT
-  jwt: {
-    secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-key-change-in-production',
-    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
-  },
+  const jwtSecret = env.JWT_SECRET || (isProduction ? '' : INSECURE_JWT_SECRET);
+  const jwtRefreshSecret = env.JWT_REFRESH_SECRET || (isProduction ? '' : INSECURE_JWT_REFRESH_SECRET);
+  const sessionSecret = env.SESSION_SECRET || (isProduction ? '' : INSECURE_SESSION_SECRET);
 
-  // Stripe
-  stripe: {
-    secretKey: process.env.STRIPE_SECRET_KEY || '',
-    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
-    publicKey: process.env.STRIPE_PUBLIC_KEY || '',
-  },
+  if (isProduction) {
+    const errors: string[] = [];
 
-  // Email (SendGrid)
-  email: {
-    host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
-    port: parseInt(process.env.SMTP_PORT || '587', 10),
-    secure: process.env.SMTP_SECURE === 'true',
-    user: process.env.SMTP_USER || 'apikey',
-    password: process.env.SMTP_PASSWORD || '',
-    from: process.env.EMAIL_FROM || 'noreply@yalla.com',
-    fromName: process.env.EMAIL_FROM_NAME || 'Yalla',
-  },
+    if (!env.JWT_SECRET || env.JWT_SECRET === INSECURE_JWT_SECRET) {
+      errors.push('JWT_SECRET must be set to a secure secret in production');
+    }
+    if (!env.JWT_REFRESH_SECRET || env.JWT_REFRESH_SECRET === INSECURE_JWT_REFRESH_SECRET) {
+      errors.push('JWT_REFRESH_SECRET must be set to a secure secret in production');
+    }
+    if (!env.SESSION_SECRET || env.SESSION_SECRET === INSECURE_SESSION_SECRET) {
+      errors.push('SESSION_SECRET must be set to a secure secret in production');
+    }
 
-  // SMS (Twilio)
-  sms: {
-    accountSid: process.env.TWILIO_ACCOUNT_SID || '',
-    authToken: process.env.TWILIO_AUTH_TOKEN || '',
-    phoneNumber: process.env.TWILIO_PHONE_NUMBER || '',
-  },
+    if (errors.length > 0) {
+      throw new Error(`Production configuration validation failed:\n- ${errors.join('\n- ')}`);
+    }
+  }
 
-  // Redis
-  redis: {
-    url: process.env.REDIS_URL || 'redis://localhost:6379',
-    password: process.env.REDIS_PASSWORD || '',
-  },
+  return {
+    // Server
+    env: nodeEnv,
+    port: parseInt(env.PORT || '3000', 10),
+    apiVersion: env.API_VERSION || 'v1',
 
-  // CORS
-  cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-    credentials: process.env.CORS_CREDENTIALS === 'true',
-  },
+    // Database
+    database: {
+      url: env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/yalla',
+      host: env.DB_HOST || 'localhost',
+      port: parseInt(env.DB_PORT || '5432', 10),
+      name: env.DB_NAME || 'yalla',
+      user: env.DB_USER || 'postgres',
+      password: env.DB_PASSWORD || 'password',
+    },
 
-  // Rate Limiting
-  rateLimit: {
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
-    maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
-  },
+    // JWT
+    jwt: {
+      secret: jwtSecret,
+      expiresIn: env.JWT_EXPIRES_IN || '7d',
+      refreshSecret: jwtRefreshSecret,
+      refreshExpiresIn: env.JWT_REFRESH_EXPIRES_IN || '30d',
+    },
 
-  // Logging
-  logging: {
-    level: process.env.LOG_LEVEL || 'debug',
-    file: process.env.LOG_FILE || 'logs/app.log',
-  },
+    // Stripe
+    stripe: {
+      secretKey: env.STRIPE_SECRET_KEY || '',
+      webhookSecret: env.STRIPE_WEBHOOK_SECRET || '',
+      publicKey: env.STRIPE_PUBLIC_KEY || '',
+    },
 
-  // File Upload
-  upload: {
-    dir: process.env.UPLOAD_DIR || 'uploads',
-    maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '5242880', 10),
-  },
+    // Email (SendGrid)
+    email: {
+      host: env.SMTP_HOST || 'smtp.sendgrid.net',
+      port: parseInt(env.SMTP_PORT || '587', 10),
+      secure: env.SMTP_SECURE === 'true',
+      user: env.SMTP_USER || 'apikey',
+      password: env.SMTP_PASSWORD || '',
+      from: env.EMAIL_FROM || 'noreply@yalla.com',
+      fromName: env.EMAIL_FROM_NAME || 'Yalla',
+    },
 
-  // Security
-  security: {
-    bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || '12', 10),
-    sessionSecret: process.env.SESSION_SECRET || 'your-session-secret-change-in-production',
-  },
+    // SMS (Twilio)
+    sms: {
+      accountSid: env.TWILIO_ACCOUNT_SID || '',
+      authToken: env.TWILIO_AUTH_TOKEN || '',
+      phoneNumber: env.TWILIO_PHONE_NUMBER || '',
+    },
 
-  // Monitoring
-  monitoring: {
-    sentryDsn: process.env.SENTRY_DSN || '',
-    newRelicLicenseKey: process.env.NEW_RELIC_LICENSE_KEY || '',
-  },
+    // Redis
+    redis: {
+      url: env.REDIS_URL || 'redis://localhost:6379',
+      password: env.REDIS_PASSWORD || '',
+    },
 
-  // Feature Flags
-  features: {
-    enableEmailNotifications: process.env.ENABLE_EMAIL_NOTIFICATIONS === 'true',
-    enableSmsNotifications: process.env.ENABLE_SMS_NOTIFICATIONS === 'true',
-    enableAnalytics: process.env.ENABLE_ANALYTICS === 'true',
-  },
-};
+    // CORS
+    cors: {
+      origin: env.CORS_ORIGIN || 'http://localhost:5173',
+      credentials: env.CORS_CREDENTIALS === 'true',
+    },
 
+    // Rate Limiting
+    rateLimit: {
+      windowMs: parseInt(env.RATE_LIMIT_WINDOW_MS || '900000', 10),
+      maxRequests: parseInt(env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+    },
+
+    // Logging
+    logging: {
+      level: env.LOG_LEVEL || 'debug',
+      file: env.LOG_FILE || 'logs/app.log',
+    },
+
+    // File Upload
+    upload: {
+      dir: env.UPLOAD_DIR || 'uploads',
+      maxFileSize: parseInt(env.MAX_FILE_SIZE || '5242880', 10),
+    },
+
+    // Security
+    security: {
+      bcryptRounds: parseInt(env.BCRYPT_ROUNDS || '12', 10),
+      sessionSecret: sessionSecret,
+    },
+
+    // Monitoring
+    monitoring: {
+      sentryDsn: env.SENTRY_DSN || '',
+      newRelicLicenseKey: env.NEW_RELIC_LICENSE_KEY || '',
+    },
+
+    // Feature Flags
+    features: {
+      enableEmailNotifications: env.ENABLE_EMAIL_NOTIFICATIONS === 'true',
+      enableSmsNotifications: env.ENABLE_SMS_NOTIFICATIONS === 'true',
+      enableAnalytics: env.ENABLE_ANALYTICS === 'true',
+    },
+  };
+}
+
+export const config = loadConfig();
 export default config;
