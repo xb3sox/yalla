@@ -140,14 +140,14 @@ class UserModel {
         phone: user.phone,
         role: user.role,
       },
-      config.jwt.secret,
-      { expiresIn: config.jwt.expiresIn }
+      config.jwt.secret as jwt.Secret,
+      { expiresIn: config.jwt.expiresIn as any }
     );
     
     const refreshToken = jwt.sign(
       { userId: user.id },
-      config.jwt.refreshSecret,
-      { expiresIn: config.jwt.refreshExpiresIn }
+      config.jwt.refreshSecret as jwt.Secret,
+      { expiresIn: config.jwt.refreshExpiresIn as any }
     );
     
     return { accessToken, refreshToken };

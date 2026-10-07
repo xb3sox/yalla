@@ -233,7 +233,7 @@ class ExperienceModel {
   /**
    * Update experience
    */
-  async update(id: string, updates: Partial<CreateExperienceInput>): Promise<Experience> {
+  async update(id: string, updates: Partial<CreateExperienceInput & { plan_state: string; primary_host_id: string; backup_host_id: string }>): Promise<Experience> {
     const updates_list: string[] = [];
     const values: any[] = [];
     let paramCount = 1;
