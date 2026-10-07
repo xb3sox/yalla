@@ -116,7 +116,7 @@ export const corsOptions = {
  * Input sanitization middleware
  */
 export const sanitizeInput = (req: Request, res: Response, next: NextFunction) => {
-  // Sanitize string inputs
+  // Sanitize string inputs and guard against prototype pollution
   const sanitize = (obj: any): any => {
     if (typeof obj === 'string') {
       return obj.trim().replace(/[<>]/g, '');
@@ -127,6 +127,14 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
     if (obj && typeof obj === 'object') {
       const sanitized: any = {};
       for (const key in obj) {
+        if (
+          key === '__proto__' ||
+          key === 'constructor' ||
+          key === 'prototype' ||
+          !Object.prototype.hasOwnProperty.call(obj, key)
+        ) {
+          continue;
+        }
         sanitized[key] = sanitize(obj[key]);
       }
       return sanitized;
