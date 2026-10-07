@@ -15,9 +15,16 @@ export interface AuthRequest extends Request {
  */
 export const authenticate = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers.authorization;
+    let token: string | undefined = req.cookies?.access_token;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
+
+    if (!token) {
       return res.status(401).json({
         success: false,
         error: {
@@ -26,8 +33,6 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
         },
       });
     }
-    
-    const token = authHeader.substring(7);
     const decoded = userModel.verifyAccessToken(token);
     
     req.user = {
@@ -89,10 +94,16 @@ export const authorize = (...allowedRoles: string[]) => {
  */
 export const optionalAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers.authorization;
+    let token: string | undefined = req.cookies?.access_token;
     
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
+
+    if (token) {
       const decoded = userModel.verifyAccessToken(token);
       
       req.user = {

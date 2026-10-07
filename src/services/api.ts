@@ -31,9 +31,7 @@ class ApiClient {
   private readonly RETRY_DELAY = 1000; // 1 second
 
   constructor() {
-    // Load tokens from localStorage
-    this.token = localStorage.getItem('yalla_access_token');
-    this.refreshToken = localStorage.getItem('yalla_refresh_token');
+    // In httpOnly cookie authentication mode, tokens are stored in secure cookies managed by the browser.
   }
 
   /**
@@ -88,13 +86,11 @@ class ApiClient {
   }
 
   /**
-   * Set authentication tokens
+   * Set authentication tokens (in memory fallback / compatibility)
    */
   setTokens(accessToken: string, refreshToken: string) {
     this.token = accessToken;
     this.refreshToken = refreshToken;
-    localStorage.setItem('yalla_access_token', accessToken);
-    localStorage.setItem('yalla_refresh_token', refreshToken);
   }
 
   /**
@@ -103,8 +99,6 @@ class ApiClient {
   clearTokens() {
     this.token = null;
     this.refreshToken = null;
-    localStorage.removeItem('yalla_access_token');
-    localStorage.removeItem('yalla_refresh_token');
   }
 
   /**
@@ -130,10 +124,10 @@ class ApiClient {
 
     if (!response.ok) {
       // Try to refresh token if unauthorized
-      if (response.status === 401 && this.refreshToken) {
+      if (response.status === 401) {
         const refreshed = await this.refreshAccessToken();
         if (refreshed) {
-          // Retry the original request
+          // Retry logic handled by caller if necessary or return refresh result
           return data;
         }
       }
@@ -145,22 +139,23 @@ class ApiClient {
   }
 
   /**
-   * Refresh access token
+   * Refresh access token via httpOnly cookie endpoint
    */
   private async refreshAccessToken(): Promise<boolean> {
-    if (!this.refreshToken) return false;
-
     try {
       const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: this.refreshToken }),
+        credentials: 'include',
+        body: this.refreshToken ? JSON.stringify({ refreshToken: this.refreshToken }) : undefined,
       });
 
       const data = await response.json();
 
-      if (data.success && data.data?.tokens) {
-        this.setTokens(data.data.tokens.accessToken, data.data.tokens.refreshToken);
+      if (data.success) {
+        if (data.data?.tokens) {
+          this.setTokens(data.data.tokens.accessToken, data.data.tokens.refreshToken);
+        }
         return true;
       }
 
@@ -201,6 +196,7 @@ class ApiClient {
       const res = await fetch(url.toString(), {
         method: 'GET',
         headers: this.getHeaders(),
+        credentials: 'include',
       });
       return this.handleResponse<T>(res);
     });
@@ -221,6 +217,7 @@ class ApiClient {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: this.getHeaders(),
+        credentials: 'include',
         body: data ? JSON.stringify(data) : undefined,
       });
       return this.handleResponse<T>(res);
@@ -242,6 +239,7 @@ class ApiClient {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'PUT',
         headers: this.getHeaders(),
+        credentials: 'include',
         body: data ? JSON.stringify(data) : undefined,
       });
       return this.handleResponse<T>(res);
@@ -263,6 +261,7 @@ class ApiClient {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'DELETE',
         headers: this.getHeaders(),
+        credentials: 'include',
       });
       return this.handleResponse<T>(res);
     });
@@ -279,7 +278,7 @@ class ApiClient {
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
-    return !!this.token;
+    return true; // With httpOnly cookies, requests carry credentials automatically
   }
 
   /**

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   register,
   login,
+  logout,
   refreshToken,
   getCurrentUser,
   updatePreferences,
@@ -30,6 +31,13 @@ router.post('/register', validateBody(registerSchema), register);
  * @access  Public
  */
 router.post('/login', validateBody(loginSchema), login);
+
+/**
+ * @route   POST /api/v1/auth/logout
+ * @desc    Logout user and clear auth cookies
+ * @access  Public
+ */
+router.post('/logout', logout);
 
 /**
  * @route   POST /api/v1/auth/refresh

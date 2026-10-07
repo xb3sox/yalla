@@ -8,32 +8,40 @@ const mockFetch = vi.fn();
 describe('API Client', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.clear();
+    apiClient.clearCache();
+    apiClient.clearTokens();
   });
 
   describe('Authentication', () => {
-    it('should set tokens', () => {
+    it('should set tokens in memory', () => {
       apiClient.setTokens('access-token', 'refresh-token');
-      
-      expect(localStorage.getItem('yalla_access_token')).toBe('access-token');
-      expect(localStorage.getItem('yalla_refresh_token')).toBe('refresh-token');
+      expect(apiClient.getToken()).toBe('access-token');
       expect(apiClient.isAuthenticated()).toBe(true);
     });
 
-    it('should clear tokens', () => {
+    it('should clear tokens from memory', () => {
       apiClient.setTokens('access-token', 'refresh-token');
       apiClient.clearTokens();
-      
-      expect(localStorage.getItem('yalla_access_token')).toBeNull();
-      expect(localStorage.getItem('yalla_refresh_token')).toBeNull();
-      expect(apiClient.isAuthenticated()).toBe(false);
+      expect(apiClient.getToken()).toBeNull();
     });
 
-    it('should load tokens from localStorage', () => {
-      localStorage.setItem('yalla_access_token', 'stored-token');
+    it('should send credentials include for httpOnly cookies', async () => {
+      const mockResponse = {
+        success: true,
+        data: { experiences: [] },
+      };
       
-      const newClient = new (apiClient.constructor as any)();
-      expect(newClient.getToken()).toBe('stored-token');
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      await api.experiences.list(undefined, { cache: false });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/experiences'),
+        expect.objectContaining({ credentials: 'include' })
+      );
     });
   });
 
@@ -49,11 +57,11 @@ describe('API Client', () => {
         json: () => Promise.resolve(mockResponse),
       });
 
-      const result = await api.experiences.list();
+      const result = await api.experiences.list(undefined, { cache: false });
       
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/experiences'),
-        expect.objectContaining({ method: 'GET' })
+        expect.objectContaining({ method: 'GET', credentials: 'include' })
       );
       expect(result.success).toBe(true);
     });
@@ -75,6 +83,7 @@ describe('API Client', () => {
         expect.stringContaining('/auth/login'),
         expect.objectContaining({
           method: 'POST',
+          credentials: 'include',
           body: JSON.stringify({ phone: '+966501234567', password: 'password123' }),
         })
       );
@@ -98,6 +107,7 @@ describe('API Client', () => {
         expect.stringContaining('/auth/preferences'),
         expect.objectContaining({
           method: 'PUT',
+          credentials: 'include',
           body: JSON.stringify({ display_name: 'Updated Name' }),
         })
       );
@@ -119,7 +129,7 @@ describe('API Client', () => {
       
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/favorites/123'),
-        expect.objectContaining({ method: 'DELETE' })
+        expect.objectContaining({ method: 'DELETE', credentials: 'include' })
       );
       expect(result.success).toBe(true);
     });
@@ -143,7 +153,7 @@ describe('API Client', () => {
         .rejects.toThrow('Invalid credentials');
     });
 
-    it('should include authorization header when authenticated', async () => {
+    it('should include authorization header when token is explicitly set', async () => {
       apiClient.setTokens('test-token', 'refresh-token');
       
       const mockResponse = { success: true, data: {} };

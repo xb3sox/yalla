@@ -4,6 +4,29 @@ import userModel, { CreateUserInput, LoginInput } from '../models/user.model';
 import { AuthRequest } from '../middleware/auth.middleware';
 import logger from '../utils/logger';
 
+// Helper cookie options
+const isProduction = process.env.NODE_ENV === 'production';
+
+const accessCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: 'lax' as const,
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
+
+const refreshCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: 'lax' as const,
+  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+};
+
+const clearCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: 'lax' as const,
+};
+
 // Validation schemas
 export const registerSchema = z.object({
   body: z.object({
@@ -35,8 +58,8 @@ export const loginSchema = z.object({
 
 export const refreshSchema = z.object({
   body: z.object({
-    refreshToken: z.string().min(1, 'Refresh token is required'),
-  }),
+    refreshToken: z.string().optional(),
+  }).optional(),
 });
 
 export const updatePreferencesSchema = z.object({
@@ -74,10 +97,14 @@ export const register = async (req: Request, res: Response) => {
     
     // Generate tokens
     const tokens = userModel.generateTokens(user);
+
+    // Set httpOnly secure cookies
+    res.cookie('access_token', tokens.accessToken, accessCookieOptions);
+    res.cookie('refresh_token', tokens.refreshToken, refreshCookieOptions);
     
     logger.info('User registered', { userId: user.id, phone: user.phone });
     
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: {
         user: {
@@ -92,7 +119,7 @@ export const register = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     logger.error('Registration failed', { error: error.message });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'REGISTRATION_FAILED',
@@ -111,9 +138,13 @@ export const login = async (req: Request, res: Response) => {
     
     const { user, tokens } = await userModel.login(input);
     
+    // Set httpOnly secure cookies
+    res.cookie('access_token', tokens.accessToken, accessCookieOptions);
+    res.cookie('refresh_token', tokens.refreshToken, refreshCookieOptions);
+
     logger.info('User logged in', { userId: user.id });
     
-    res.json({
+    return res.json({
       success: true,
       data: {
         user: {
@@ -138,7 +169,7 @@ export const login = async (req: Request, res: Response) => {
     }
     
     logger.error('Login failed', { error: error.message });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'LOGIN_FAILED',
@@ -153,20 +184,58 @@ export const login = async (req: Request, res: Response) => {
  */
 export const refreshToken = async (req: Request, res: Response) => {
   try {
-    const { refreshToken } = req.body;
-    
-    const tokens = await userModel.refreshAccessToken(refreshToken);
-    
-    res.json({
+    const token = req.cookies?.refresh_token || req.body?.refreshToken;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'INVALID_REFRESH_TOKEN',
+          message: 'Refresh token missing',
+        },
+      });
+    }
+
+    const tokens = await userModel.refreshAccessToken(token);
+
+    // Set updated httpOnly secure cookies
+    res.cookie('access_token', tokens.accessToken, accessCookieOptions);
+    res.cookie('refresh_token', tokens.refreshToken, refreshCookieOptions);
+
+    return res.json({
       success: true,
       data: { tokens },
     });
   } catch (error: any) {
-    res.status(401).json({
+    return res.status(401).json({
       success: false,
       error: {
         code: 'INVALID_REFRESH_TOKEN',
         message: 'Invalid or expired refresh token',
+      },
+    });
+  }
+};
+
+/**
+ * Logout user
+ */
+export const logout = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie('access_token', clearCookieOptions);
+    res.clearCookie('refresh_token', clearCookieOptions);
+
+    return res.json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  } catch (error: any) {
+    logger.error('Logout failed', { error: error.message });
+    return res.status(500).json({
+      success: false,
+      error: {
+        code: 'LOGOUT_FAILED',
+        message: 'Failed to logout',
       },
     });
   }
@@ -199,7 +268,7 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
       });
     }
     
-    res.json({
+    return res.json({
       success: true,
       data: {
         user: {
@@ -219,7 +288,7 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
     });
   } catch (error: any) {
     logger.error('Get current user failed', { error: error.message });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'GET_USER_FAILED',
@@ -249,7 +318,7 @@ export const updatePreferences = async (req: AuthRequest, res: Response) => {
     
     logger.info('User preferences updated', { userId: user.id });
     
-    res.json({
+    return res.json({
       success: true,
       data: {
         user: {
@@ -268,7 +337,7 @@ export const updatePreferences = async (req: AuthRequest, res: Response) => {
     });
   } catch (error: any) {
     logger.error('Update preferences failed', { error: error.message });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'UPDATE_PREFERENCES_FAILED',
@@ -297,13 +366,13 @@ export const exportData = async (req: AuthRequest, res: Response) => {
     
     logger.info('User data exported', { userId: req.user.userId });
     
-    res.json({
+    return res.json({
       success: true,
       data,
     });
   } catch (error: any) {
     logger.error('Export data failed', { error: error.message });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'EXPORT_FAILED',
@@ -331,14 +400,17 @@ export const deleteAccount = async (req: AuthRequest, res: Response) => {
     await userModel.delete(req.user.userId);
     
     logger.info('User account deleted', { userId: req.user.userId });
+
+    res.clearCookie('access_token', clearCookieOptions);
+    res.clearCookie('refresh_token', clearCookieOptions);
     
-    res.json({
+    return res.json({
       success: true,
       message: 'Account deleted successfully',
     });
   } catch (error: any) {
     logger.error('Delete account failed', { error: error.message });
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: {
         code: 'DELETE_FAILED',
