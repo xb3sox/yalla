@@ -90,7 +90,6 @@ const migrations = [
       payment_state VARCHAR(30) DEFAULT 'initiated',
       payment_id VARCHAR(255),
       idempotency_key VARCHAR(255) UNIQUE NOT NULL,
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(participant_id, experience_id, state)
     );
