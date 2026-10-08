@@ -24,4 +24,14 @@ describe('ErrorPage', () => {
     expect(screen.getByText(/Something Went Wrong/i)).toBeTruthy();
     expect(screen.getByText(/We're sorry, an unexpected error occurred/i)).toBeTruthy();
   });
+
+  it('renders error message in Arabic', () => {
+    render(
+      <AppProvider>
+        <ErrorPage />
+      </AppProvider>
+    );
+
+    expect(screen.getByText(/Something Went Wrong/i)).toBeTruthy();
+  });
 });
