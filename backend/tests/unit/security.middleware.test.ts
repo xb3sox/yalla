@@ -14,7 +14,7 @@ describe('Security Middleware', () => {
         params: {},
       };
       res = {};
-      next = jest.fn();
+      next = (typeof jest !== 'undefined' ? jest.fn() : (globalThis as any).vi.fn()) as unknown as NextFunction;
     });
 
     it('should sanitize HTML tags from string values in body, query, and params', () => {
@@ -50,19 +50,23 @@ describe('Security Middleware', () => {
     let res: Partial<Response>;
 
     beforeEach(() => {
+      const fn = typeof jest !== 'undefined' ? jest.fn : (globalThis as any).vi.fn;
       req = {};
       res = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn().mockReturnThis(),
+        status: fn().mockReturnThis(),
+        json: fn().mockReturnThis(),
       };
     });
 
     it('should return 503 with generic health status and without leaking raw database error messages when DB connection fails', async () => {
-      jest.mock('../../src/config/database', () => ({
-        default: {
-          query: jest.fn().mockRejectedValue(new Error('FATAL: password authentication failed for user "postgres"')),
-        },
-      }));
+      const mockQuery = typeof jest !== 'undefined' ? jest.fn() : (globalThis as any).vi.fn();
+      mockQuery.mockRejectedValue(new Error('FATAL: password authentication failed for user "postgres"'));
+
+      if (typeof jest !== 'undefined') {
+        jest.mock('../../src/config/database', () => ({
+          default: { query: mockQuery },
+        }));
+      }
 
       await healthCheck(req as Request, res as Response);
 
@@ -78,7 +82,8 @@ describe('Security Middleware', () => {
         },
       });
 
-      const responsePayload = (res.json as jest.Mock).mock.calls[0][0];
+      const fnMock = res.json as any;
+      const responsePayload = fnMock.mock ? fnMock.mock.calls[0][0] : fnMock.calls[0][0];
       expect(JSON.stringify(responsePayload)).not.toContain('FATAL: password authentication failed');
     });
   });
