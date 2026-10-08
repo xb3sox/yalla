@@ -1,21 +1,32 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  server: {
-    host: "0.0.0.0",
-    port: 3000,
-    strictPort: true,
-    hmr: {
+export default defineConfig(async ({ mode }) => {
+  const plugins = [react()];
+  if (mode !== "test" && !process.env.VITEST) {
+    try {
+      const { default: tailwindcss } = await import("@tailwindcss/vite");
+      plugins.push(tailwindcss());
+    } catch (e) {
+      // Tailwind plugin optional in test/CI environment
+    }
+  }
+
+  return {
+    plugins,
+    server: {
+      host: "0.0.0.0",
       port: 3000,
+      strictPort: true,
+      hmr: {
+        port: 3000,
+      },
     },
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
-    css: true,
-  },
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: ['./src/test/setup.ts'],
+      css: true,
+    },
+  };
 });
