@@ -1,5 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
+import pool from '../../src/config/database';
 import { sanitizeInput, healthCheck } from '../../src/middleware/security.middleware';
+
+jest.mock('../../src/config/database', () => ({
+  __esModule: true,
+  default: {
+    query: jest.fn(),
+  },
+}));
 
 describe('Security Middleware', () => {
   describe('sanitizeInput', () => {
@@ -58,15 +66,24 @@ describe('Security Middleware', () => {
       };
     });
 
-    it('should return 503 with generic health status and without leaking raw database error messages when DB connection fails', async () => {
-      const mockQuery = typeof jest !== 'undefined' ? jest.fn() : (globalThis as any).vi.fn();
-      mockQuery.mockRejectedValue(new Error('FATAL: password authentication failed for user "postgres"'));
+    it('should return 200 when database connection is healthy', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ '?column?': 1 }] });
 
-      if (typeof jest !== 'undefined') {
-        jest.mock('../../src/config/database', () => ({
-          default: { query: mockQuery },
-        }));
-      }
+      await healthCheck(req as Request, res as Response);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        success: true,
+        data: expect.objectContaining({
+          message: 'OK',
+        }),
+      });
+    });
+
+    it('should return 503 with generic error message and without leaking raw database error messages when DB connection fails', async () => {
+      (pool.query as jest.Mock).mockRejectedValueOnce(
+        new Error('FATAL: password authentication failed for user "postgres"')
+      );
 
       await healthCheck(req as Request, res as Response);
 
@@ -77,7 +94,7 @@ describe('Security Middleware', () => {
           code: 'SERVICE_UNAVAILABLE',
           message: 'Service unavailable',
           details: expect.objectContaining({
-            status: 'unhealthy',
+            message: 'Service unavailable',
           }),
         },
       });

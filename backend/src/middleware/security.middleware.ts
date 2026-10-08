@@ -113,7 +113,7 @@ export const corsOptions = {
 };
 
 /**
- * Input sanitization middleware with prototype pollution prevention
+ * Input sanitization middleware with prototype pollution protection
  */
 export const sanitizeInput = (req: Request, res: Response, next: NextFunction) => {
   // Sanitize string inputs and guard against prototype pollution
@@ -127,7 +127,6 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
     if (obj && typeof obj === 'object') {
       const sanitized: any = {};
       for (const key of Object.keys(obj)) {
-        // Prevent prototype pollution by ignoring unsafe keys and inherited properties
         if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
           continue;
         }
@@ -190,7 +189,7 @@ export const apiVersion = (version: string) => {
 export const healthCheck = async (req: Request, res: Response) => {
   const healthcheck = {
     uptime: process.uptime(),
-    status: 'healthy',
+    message: 'OK',
     timestamp: Date.now(),
     version: process.env.npm_package_version || '1.0.0',
     environment: process.env.NODE_ENV || 'development',
@@ -200,14 +199,15 @@ export const healthCheck = async (req: Request, res: Response) => {
     // Check database connection
     const pool = await import('../config/database').then(m => m.default);
     await pool.query('SELECT 1');
+    healthcheck.message = 'OK';
     
     return res.status(200).json({
       success: true,
       data: healthcheck,
     });
   } catch (error: any) {
-    // Fail securely without leaking error trace / DB connection details
-    healthcheck.status = 'unhealthy';
+    // Fail securely without leaking internal database trace/connection details
+    healthcheck.message = 'Service unavailable';
     
     return res.status(503).json({
       success: false,

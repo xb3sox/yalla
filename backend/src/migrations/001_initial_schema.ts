@@ -81,6 +81,7 @@ const migrations = [
       participant_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       experience_id UUID NOT NULL REFERENCES experiences(id) ON DELETE CASCADE,
       state VARCHAR(30) NOT NULL DEFAULT 'initiated',
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       confirmed_at TIMESTAMP WITH TIME ZONE,
       reconfirmed_at TIMESTAMP WITH TIME ZONE,
       checked_in_at TIMESTAMP WITH TIME ZONE,
