@@ -1,4 +1,4 @@
-import { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes, useEffect, useRef } from 'react';
+import { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes, useEffect, useRef, memo } from 'react';
 import { useApp } from '../data/store';
 import { t, TranslationKey } from '../i18n';
 import { CheckCircle, Clock, XCircle, Info, Loader2, AlertTriangle, ChevronRight } from 'lucide-react';
@@ -110,7 +110,13 @@ interface ExperienceCardProps {
   onPress: () => void;
 }
 
-export function ExperienceCard({ experience, onPress }: ExperienceCardProps) {
+/**
+ * Performance optimization: ExperienceCard is rendered in lists across Explore, Favorites,
+ * and Recommendations views. Memoizing it with React.memo prevents unnecessary re-renders
+ * when parent component state (e.g., search filter typing, sorting) changes without modifying card props.
+ * Expected Impact: Reduces DOM re-render count for experience lists by preventing re-renders of unchanged list items.
+ */
+export const ExperienceCard = memo(function ExperienceCard({ experience, onPress }: ExperienceCardProps) {
   const { state } = useApp();
   const lang = state.language;
   const spotsLeft = experience.capacity - experience.booked;
