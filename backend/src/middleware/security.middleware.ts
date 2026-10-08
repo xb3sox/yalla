@@ -113,10 +113,10 @@ export const corsOptions = {
 };
 
 /**
- * Input sanitization middleware
+ * Input sanitization middleware with prototype pollution prevention
  */
 export const sanitizeInput = (req: Request, res: Response, next: NextFunction) => {
-  // Sanitize string inputs
+  // Sanitize string inputs and guard against prototype pollution
   const sanitize = (obj: any): any => {
     if (typeof obj === 'string') {
       return obj.trim().replace(/[<>]/g, '');
@@ -126,8 +126,14 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
     }
     if (obj && typeof obj === 'object') {
       const sanitized: any = {};
-      for (const key in obj) {
-        sanitized[key] = sanitize(obj[key]);
+      for (const key of Object.keys(obj)) {
+        // Prevent prototype pollution by ignoring unsafe keys and inherited properties
+        if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+          continue;
+        }
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          sanitized[key] = sanitize(obj[key]);
+        }
       }
       return sanitized;
     }
@@ -184,7 +190,7 @@ export const apiVersion = (version: string) => {
 export const healthCheck = async (req: Request, res: Response) => {
   const healthcheck = {
     uptime: process.uptime(),
-    message: 'OK',
+    status: 'healthy',
     timestamp: Date.now(),
     version: process.env.npm_package_version || '1.0.0',
     environment: process.env.NODE_ENV || 'development',
@@ -194,14 +200,14 @@ export const healthCheck = async (req: Request, res: Response) => {
     // Check database connection
     const pool = await import('../config/database').then(m => m.default);
     await pool.query('SELECT 1');
-    healthcheck.message = 'OK';
     
     return res.status(200).json({
       success: true,
       data: healthcheck,
     });
   } catch (error: any) {
-    healthcheck.message = error.message;
+    // Fail securely without leaking error trace / DB connection details
+    healthcheck.status = 'unhealthy';
     
     return res.status(503).json({
       success: false,
