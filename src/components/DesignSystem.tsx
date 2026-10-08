@@ -206,7 +206,7 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, onPress
       </div>
     </button>
   );
-}
+});
 
 /* ═══════════════════════════════════════════
    STATUS PANEL
