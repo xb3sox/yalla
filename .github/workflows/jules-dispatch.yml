@@ -23,7 +23,7 @@ jobs:
         run: |
           # Query open PRs with branch and author
           PRS_JSON=$(gh pr list --state open --json headRefName,author)
-          ACTIVE_PRS=$(echo "$PRS_JSON" | jq '[.[] | select((.headRefName | startswith("jules/")) and (.author.login | test("^(google-jules\\[bot\\]|jules\\[bot\\]|google-labs-jules\\[bot\\])$")))] | length')
+          ACTIVE_PRS=$(echo "$PRS_JSON" | jq '[.[] | select((.headRefName | test("^(jules/|jules-)")) or (.author.login | test("^(google-jules\\[bot\\]|jules\\[bot\\]|google-labs-jules\\[bot\\])$")))] | length')
           echo "Active eligible Jules PR count: $ACTIVE_PRS"
           echo "active_prs=$ACTIVE_PRS" >> $GITHUB_OUTPUT
 

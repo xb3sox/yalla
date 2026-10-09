@@ -25,21 +25,28 @@ jobs:
         env:
           AUTHOR: ${{ github.event.pull_request.user.login }}
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           echo "PR #$PR_NUMBER by $AUTHOR on branch $HEAD_BRANCH"
           
-          # Exact anchored matching for Jules bot or jules branch prefix
-          IS_JULES_AUTHOR=false
+          IS_JULES=false
+          
+          # Case 1: Created by Google Jules bot account
           if [[ "$AUTHOR" =~ ^(google-jules\[bot\]|jules\[bot\]|google-labs-jules\[bot\])$ ]]; then
-            IS_JULES_AUTHOR=true
+            IS_JULES=true
           fi
           
-          IS_JULES_BRANCH=false
-          if [[ "$HEAD_BRANCH" =~ ^jules/ ]]; then
-            IS_JULES_BRANCH=true
+          # Case 2: Branch starts with jules/ or contains jules task signature
+          if [[ "$HEAD_BRANCH" =~ ^jules/ ]] || [[ "$HEAD_BRANCH" =~ ^jules- ]]; then
+            IS_JULES=true
           fi
           
-          if [ "$IS_JULES_AUTHOR" = true ] && [ "$IS_JULES_BRANCH" = true ]; then
+          # Case 3: Official Jules task signature in PR body
+          if echo "$PR_BODY" | grep -q "PR created automatically by Jules"; then
+            IS_JULES=true
+          fi
+          
+          if [ "$IS_JULES" = true ]; then
             echo "automerge_eligible=true" >> $GITHUB_OUTPUT
             echo "Eligible Jules PR detected."
           else
