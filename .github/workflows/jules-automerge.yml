@@ -1,0 +1,84 @@
+name: Jules PR Auto-Merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    name: Verify & Queue Auto-Merge
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Inspect PR Details & Author
+        id: pr-check
+        env:
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          echo "PR #${{ github.event.pull_request.number }} by $AUTHOR on branch $HEAD_BRANCH"
+          
+          IS_JULES_AUTHOR=false
+          if [[ "$AUTHOR" =~ (google-jules\[bot\]|jules\[bot\]|google-jules|jules) ]]; then
+            IS_JULES_AUTHOR=true
+          fi
+          
+          IS_JULES_BRANCH=false
+          if [[ "$HEAD_BRANCH" =~ ^jules/ ]]; then
+            IS_JULES_BRANCH=true
+          fi
+          
+          if [ "$IS_JULES_AUTHOR" = true ] && [ "$IS_JULES_BRANCH" = true ]; then
+            echo "is_jules=true" >> $GITHUB_OUTPUT
+            echo "Eligible Jules PR detected."
+          else
+            echo "is_jules=false" >> $GITHUB_OUTPUT
+            echo "Not an eligible Jules PR. Skipping."
+          fi
+
+      - name: File Safety Guardrail
+        if: steps.pr-check.outputs.is_jules == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          CHANGED_FILES=$(gh pr diff "$PR_NUMBER" --name-only)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          
+          BLOCKED=false
+          BLOCKED_FILES=""
+          
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            if [[ "$file" =~ ^\.github/workflows/ ]] || \
+               [[ "$file" =~ ^\.env ]]; then
+              BLOCKED=true
+              BLOCKED_FILES="$BLOCKED_FILES\n- $file"
+            fi
+          done <<< "$CHANGED_FILES"
+          
+          if [ "$BLOCKED" = true ]; then
+            echo -e "Sensitive files modified:$BLOCKED_FILES"
+            gh pr comment "$PR_NUMBER" --body "⚠️ **Auto-merge halted:** Jules PR modifies sensitive workflow or environment configuration files:$BLOCKED_FILES. Manual review required."
+            exit 1
+          fi
+          echo "Safety scan passed. No sensitive files touched."
+
+      - name: Approve and Enable Native Auto-Merge
+        if: steps.pr-check.outputs.is_jules == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr review "$PR_NUMBER" --approve --body "✅ **Automated Review:** Safety checks passed. Queued for auto-merge upon successful CI completion."
+          gh pr merge "$PR_NUMBER" --auto --squash --delete-branch
+          echo "Native auto-merge enabled for PR #$PR_NUMBER"

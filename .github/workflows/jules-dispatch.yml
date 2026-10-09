@@ -1,0 +1,50 @@
+name: Jules Autonomous Queue Dispatcher
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: read
+
+jobs:
+  dispatch:
+    name: Check & Dispatch Next Jules Task
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Active Jules PRs
+        id: check-prs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Look for open PRs on jules/* branches
+          ACTIVE_PRS=$(gh pr list --state open --json headRefName --jq '[.[] | select(.headRefName | startswith("jules/"))] | length')
+          echo "Active Jules PR count: $ACTIVE_PRS"
+          echo "active_prs=$ACTIVE_PRS" >> $GITHUB_OUTPUT
+
+      - name: Assign Next Backlog Issue
+        if: steps.check-prs.outputs.active_prs == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if any issue is already labeled jules and open
+          IN_PROGRESS=$(gh issue list --state open --label "jules" --json number --jq 'length')
+          if [ "$IN_PROGRESS" -gt 0 ]; then
+            echo "An issue is already labeled jules and in progress ($IN_PROGRESS found). Waiting."
+            exit 0
+          fi
+
+          # Find oldest open issue labeled 'backlog'
+          NEXT_ISSUE=$(gh issue list --state open --label "backlog" --limit 1 --json number --jq '.[0].number')
+          
+          if [ -n "$NEXT_ISSUE" ] && [ "$NEXT_ISSUE" != "null" ]; then
+            echo "Dispatching issue #$NEXT_ISSUE to Jules..."
+            gh issue edit "$NEXT_ISSUE" --add-label "jules" --remove-label "backlog"
+            gh issue comment "$NEXT_ISSUE" --body "🤖 **Autonomous Dispatch:** Assigned to Google Jules. Jules will build, test, and open a PR."
+          else
+            echo "No queued backlog issues found."
+          fi

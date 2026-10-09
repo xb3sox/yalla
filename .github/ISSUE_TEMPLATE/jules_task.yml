@@ -1,0 +1,37 @@
+name: Jules Task
+description: Create a task for the Google Jules autonomous coding agent
+title: "[Jules] "
+labels: ["jules"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This task will be automatically picked up by Google Jules.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem & Context
+      description: What needs to be built or fixed?
+      placeholder: Describe the context and objective clearly...
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Specific conditions required for this task to be complete.
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: true
+  - type: textarea
+    id: testing_requirements
+    attributes:
+      label: Testing Requirements
+      description: What tests must be added or run?
+      value: |
+        - [ ] Add unit tests covering the new functionality
+        - [ ] Verify test suite passes cleanly
+    validations:
+      required: true
