@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
+concurrency:
+  group: jules-automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   automerge:
     name: Verify & Queue Auto-Merge
@@ -14,6 +18,7 @@ jobs:
       pull-requests: write
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
 
     steps:
@@ -31,8 +36,8 @@ jobs:
           
           IS_JULES=false
           
-          # Case 1: Created by Google Jules bot account
-          if [[ "$AUTHOR" =~ ^(google-jules\[bot\]|jules\[bot\]|google-labs-jules\[bot\])$ ]]; then
+          # Case 1: Created by Google Jules bot account or automation bot
+          if [[ "$AUTHOR" =~ ^(google-jules\[bot\]|jules\[bot\]|google-labs-jules\[bot\]|github-actions\[bot\])$ ]]; then
             IS_JULES=true
           fi
           
@@ -72,16 +77,19 @@ jobs:
                [[ "$file" =~ ^\.jules/ ]] || \
                [[ "$file" =~ (^|/)package(-lock)?\.json$ ]] || \
                [[ "$file" =~ (^|/)pnpm-lock\.yaml$ ]] || \
+               [[ "$file" =~ (^|/)yarn\.lock$ ]] || \
+               [[ "$file" =~ (^|/)bun\.lockb$ ]] || \
                [[ "$file" =~ (^|/)tsconfig(\..*)?\.json$ ]] || \
                [[ "$file" =~ (^|/)vite\.config\.[jt]s$ ]]; then
               BLOCKED=true
-              BLOCKED_FILES="$BLOCKED_FILES\n- $file"
+              BLOCKED_FILES="${BLOCKED_FILES}"$'\n'"- ${file}"
             fi
           done <<< "$CHANGED_FILES"
           
           if [ "$BLOCKED" = true ]; then
-            echo -e "Sensitive files modified:$BLOCKED_FILES"
-            gh pr comment "$PR_NUMBER" --body "⚠️ **Auto-merge halted:** Jules PR modifies sensitive workflow, rule, or build configuration files:$BLOCKED_FILES. Manual review required."
+            echo "Sensitive files modified:${BLOCKED_FILES}"
+            COMMENT_BODY="⚠️ **Auto-merge halted:** Jules PR modifies sensitive workflow, rule, or build configuration files:${BLOCKED_FILES}"$'\n\n'"Manual review required."
+            gh pr comment "$PR_NUMBER" --body "$COMMENT_BODY"
             exit 1
           fi
           echo "Safety scan passed. No sensitive files touched."
@@ -89,7 +97,10 @@ jobs:
       - name: Approve and Enable Native Auto-Merge
         if: steps.pr-check.outputs.automerge_eligible == 'true'
         run: |
-          gh pr review "$PR_NUMBER" --approve --body "✅ **Automated Review:** Safety checks passed. Queued for auto-merge upon successful CI completion."
+          if ! gh pr review "$PR_NUMBER" --approve --body "✅ **Automated Review:** Safety checks passed. Queued for auto-merge upon successful CI completion." 2>&1; then
+            echo "::notice ::Approval review could not be recorded (self-authored PR or repo setting disabled Actions review approvals)."
+          fi
+
           if ! gh pr merge "$PR_NUMBER" --auto --squash --delete-branch; then
             echo "::warning ::'Allow auto-merge' is not toggled in GitHub Repository Settings. Please enable it in Settings > General > Pull Requests."
           else

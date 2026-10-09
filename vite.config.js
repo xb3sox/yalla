@@ -29,6 +29,11 @@ export default defineConfig(async ({ mode }) => {
       include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}', 'tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
       exclude: ['backend/**', 'node_modules/**', 'dist/**'],
       css: true,
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'lcov'],
+        reportsDirectory: './coverage',
+      },
     },
   };
 });
