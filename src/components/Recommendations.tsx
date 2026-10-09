@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useApp } from '../data/store';
 import { t } from '../i18n';
 import { getRecommendedExperiences, getRecommendationReasons } from '../application/useCases/recommendationUseCase';
@@ -13,18 +14,20 @@ export function Recommendations({ onSelectExperience, limit = 3 }: Recommendatio
   const { state } = useApp();
   const lang = state.language;
 
-  if (!state.user) return null;
+  // Memoize recommendation computation to avoid redundant recalculations on unrelated component re-renders
+  const recommendations = useMemo(() => {
+    if (!state.user) return [];
+    return getRecommendedExperiences(
+      state.experiences,
+      state.user,
+      state.reservations,
+      state.feedbacks,
+      state.favorites,
+      limit
+    );
+  }, [state.experiences, state.user, state.reservations, state.feedbacks, state.favorites, limit]);
 
-  const recommendations = getRecommendedExperiences(
-    state.experiences,
-    state.user,
-    state.reservations,
-    state.feedbacks,
-    state.favorites,
-    limit
-  );
-
-  if (recommendations.length === 0) return null;
+  if (!state.user || recommendations.length === 0) return null;
 
   return (
     <div className="mb-8">

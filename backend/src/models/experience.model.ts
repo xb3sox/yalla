@@ -82,6 +82,11 @@ export interface CreateExperienceInput {
   image_url?: string;
   capacity: number;
   min_attendance?: number;
+  plan_state?: string;
+  primary_host_id?: string;
+  backup_host_id?: string;
+  primary_venue_id?: string;
+  fallback_venue_id?: string;
 }
 
 class ExperienceModel {
@@ -233,7 +238,7 @@ class ExperienceModel {
   /**
    * Update experience
    */
-  async update(id: string, updates: Partial<CreateExperienceInput>): Promise<Experience> {
+  async update(id: string, updates: Partial<CreateExperienceInput> | Record<string, any>): Promise<Experience> {
     const updates_list: string[] = [];
     const values: any[] = [];
     let paramCount = 1;
