@@ -113,10 +113,10 @@ export const corsOptions = {
 };
 
 /**
- * Input sanitization middleware
+ * Input sanitization middleware with prototype pollution protection
  */
 export const sanitizeInput = (req: Request, res: Response, next: NextFunction) => {
-  // Sanitize string inputs
+  // Sanitize string inputs and guard against prototype pollution
   const sanitize = (obj: any): any => {
     if (typeof obj === 'string') {
       return obj.trim().replace(/[<>]/g, '');
@@ -126,8 +126,13 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
     }
     if (obj && typeof obj === 'object') {
       const sanitized: any = {};
-      for (const key in obj) {
-        sanitized[key] = sanitize(obj[key]);
+      for (const key of Object.keys(obj)) {
+        if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+          continue;
+        }
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          sanitized[key] = sanitize(obj[key]);
+        }
       }
       return sanitized;
     }
@@ -201,7 +206,8 @@ export const healthCheck = async (req: Request, res: Response) => {
       data: healthcheck,
     });
   } catch (error: any) {
-    healthcheck.message = error.message;
+    // Fail securely without leaking internal database trace/connection details
+    healthcheck.message = 'Service unavailable';
     
     return res.status(503).json({
       success: false,
