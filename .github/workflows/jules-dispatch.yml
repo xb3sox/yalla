@@ -6,13 +6,18 @@ on:
     - cron: '*/30 * * * *'
   workflow_dispatch:
 
+concurrency:
+  group: jules-dispatch
+  cancel-in-progress: false
+
+permissions:
+  issues: write
+  pull-requests: read
+
 jobs:
   dispatch:
     name: Check & Dispatch Next Jules Task
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: read
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_REPO: ${{ github.repository }}
@@ -23,7 +28,7 @@ jobs:
         run: |
           # Query open PRs with branch and author
           PRS_JSON=$(gh pr list --state open --json headRefName,author)
-          ACTIVE_PRS=$(echo "$PRS_JSON" | jq '[.[] | select((.headRefName | test("^(jules/|jules-)")) or (.author.login | test("^(google-jules\\[bot\\]|jules\\[bot\\]|google-labs-jules\\[bot\\])$")))] | length')
+          ACTIVE_PRS=$(echo "$PRS_JSON" | jq '[.[] | select((.headRefName | test("^(jules/|jules-)")) or ((.author.login // "") | test("^(google-jules\\[bot\\]|jules\\[bot\\]|google-labs-jules\\[bot\\]|github-actions\\[bot\\])$")))] | length')
           echo "Active eligible Jules PR count: $ACTIVE_PRS"
           echo "active_prs=$ACTIVE_PRS" >> $GITHUB_OUTPUT
 
@@ -38,7 +43,7 @@ jobs:
           fi
 
           # Find oldest open issue labeled 'backlog' (sort:created-asc)
-          NEXT_ISSUE=$(gh issue list --state open --label "backlog" --search "sort:created-asc" --limit 1 --json number --jq '.[0].number')
+          NEXT_ISSUE=$(gh issue list --state open --label "backlog" --search "sort:created-asc" --limit 1 --json number --jq '.[0]?.number // empty')
           
           if [ -n "$NEXT_ISSUE" ] && [ "$NEXT_ISSUE" != "null" ]; then
             echo "Dispatching issue #$NEXT_ISSUE to Jules..."
