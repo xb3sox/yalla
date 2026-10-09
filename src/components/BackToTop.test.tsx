@@ -119,12 +119,22 @@ describe('BackToTop Component', () => {
     expect(button.classList.contains('transition-all')).toBe(true);
   });
 
-  it('should render arrow icon', () => {
+  it('should render arrow icon with aria-hidden', () => {
     Object.defineProperty(window, 'scrollY', { value: 600, writable: true });
     renderWithProvider(<BackToTop />);
     fireEvent.scroll(window);
     
     const svg = document.querySelector('svg');
     expect(svg).toBeTruthy();
+    expect(svg?.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('should have focus visible styling for keyboard navigation', () => {
+    Object.defineProperty(window, 'scrollY', { value: 600, writable: true });
+    renderWithProvider(<BackToTop />);
+    fireEvent.scroll(window);
+
+    const button = screen.getByLabelText('Back to top');
+    expect(button.classList.contains('focus-visible:outline-brand-500')).toBe(true);
   });
 });
