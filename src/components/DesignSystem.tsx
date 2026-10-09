@@ -1,4 +1,4 @@
-import { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes, useEffect, useRef } from 'react';
+import { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes, useEffect, useRef, memo } from 'react';
 import { useApp } from '../data/store';
 import { t, TranslationKey } from '../i18n';
 import { CheckCircle, Clock, XCircle, Info, Loader2, AlertTriangle, ChevronRight } from 'lucide-react';
@@ -110,16 +110,24 @@ interface ExperienceCardProps {
   onPress: () => void;
 }
 
-export function ExperienceCard({ experience, onPress }: ExperienceCardProps) {
+export const ExperienceCard = memo(function ExperienceCard({ experience, onPress }: ExperienceCardProps) {
   const { state } = useApp();
   const lang = state.language;
   const spotsLeft = experience.capacity - experience.booked;
   const isFull = spotsLeft <= 0;
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onPress}
-      className="group w-full text-start rounded-2xl overflow-hidden bg-surface-raised shadow-xs hover:shadow-sm transition-shadow duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onPress();
+        }
+      }}
+      className="group w-full text-start rounded-2xl overflow-hidden bg-surface-raised shadow-xs hover:shadow-sm transition-shadow duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 cursor-pointer"
       aria-label={lang === 'ar' ? experience.titleAr : experience.title}
     >
       {/* Visual */}
@@ -198,9 +206,9 @@ export function ExperienceCard({ experience, onPress }: ExperienceCardProps) {
           </span>
         </div>
       </div>
-    </button>
+    </div>
   );
-}
+});
 
 /* ═══════════════════════════════════════════
    STATUS PANEL

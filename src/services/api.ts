@@ -123,18 +123,17 @@ class ApiClient {
   }
 
   /**
-   * Handle API response
+   * Handle API response with transparent retry on 401
    */
-  private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
+  private async handleResponse<T>(response: Response, retryFn?: () => Promise<ApiResponse<T>>): Promise<ApiResponse<T>> {
     const data = await response.json();
 
     if (!response.ok) {
-      // Try to refresh token if unauthorized
-      if (response.status === 401 && this.refreshToken) {
+      // Try to refresh token if unauthorized and retry callback is available
+      if (response.status === 401 && retryFn) {
         const refreshed = await this.refreshAccessToken();
         if (refreshed) {
-          // Retry the original request
-          return data;
+          return await retryFn();
         }
       }
 
@@ -148,19 +147,20 @@ class ApiClient {
    * Refresh access token
    */
   private async refreshAccessToken(): Promise<boolean> {
-    if (!this.refreshToken) return false;
-
     try {
       const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: this.refreshToken }),
+        credentials: 'include',
+        body: this.refreshToken ? JSON.stringify({ refreshToken: this.refreshToken }) : undefined,
       });
 
       const data = await response.json();
 
-      if (data.success && data.data?.tokens) {
-        this.setTokens(data.data.tokens.accessToken, data.data.tokens.refreshToken);
+      if (data.success) {
+        if (data.data?.tokens) {
+          this.setTokens(data.data.tokens.accessToken, data.data.tokens.refreshToken);
+        }
         return true;
       }
 
@@ -198,11 +198,15 @@ class ApiClient {
 
     // Make request with retry logic
     const response = await this.retryRequest(async () => {
-      const res = await fetch(url.toString(), {
-        method: 'GET',
-        headers: this.getHeaders(),
-      });
-      return this.handleResponse<T>(res);
+      const execute = async () => {
+        const res = await fetch(url.toString(), {
+          method: 'GET',
+          headers: this.getHeaders(),
+          credentials: 'include',
+        });
+        return this.handleResponse<T>(res, execute);
+      };
+      return execute();
     });
 
     // Cache the response
@@ -218,12 +222,16 @@ class ApiClient {
    */
   async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
     const response = await this.retryRequest(async () => {
-      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: data ? JSON.stringify(data) : undefined,
-      });
-      return this.handleResponse<T>(res);
+      const execute = async () => {
+        const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+          method: 'POST',
+          headers: this.getHeaders(),
+          credentials: 'include',
+          body: data ? JSON.stringify(data) : undefined,
+        });
+        return this.handleResponse<T>(res, execute);
+      };
+      return execute();
     });
 
     // Clear related cache after successful POST
@@ -239,12 +247,16 @@ class ApiClient {
    */
   async put<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
     const response = await this.retryRequest(async () => {
-      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'PUT',
-        headers: this.getHeaders(),
-        body: data ? JSON.stringify(data) : undefined,
-      });
-      return this.handleResponse<T>(res);
+      const execute = async () => {
+        const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+          method: 'PUT',
+          headers: this.getHeaders(),
+          credentials: 'include',
+          body: data ? JSON.stringify(data) : undefined,
+        });
+        return this.handleResponse<T>(res, execute);
+      };
+      return execute();
     });
 
     // Clear related cache after successful PUT
@@ -260,11 +272,15 @@ class ApiClient {
    */
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
     const response = await this.retryRequest(async () => {
-      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'DELETE',
-        headers: this.getHeaders(),
-      });
-      return this.handleResponse<T>(res);
+      const execute = async () => {
+        const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+          method: 'DELETE',
+          headers: this.getHeaders(),
+          credentials: 'include',
+        });
+        return this.handleResponse<T>(res, execute);
+      };
+      return execute();
     });
 
     // Clear related cache after successful DELETE

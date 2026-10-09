@@ -4,6 +4,28 @@ import userModel, { CreateUserInput, LoginInput } from '../models/user.model';
 import { AuthRequest } from '../middleware/auth.middleware';
 import logger from '../utils/logger';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+export const accessCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: 'lax' as const,
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
+
+export const refreshCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: 'lax' as const,
+  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+};
+
+export const clearCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: 'lax' as const,
+};
+
 // Validation schemas
 export const registerSchema = z.object({
   body: z.object({
@@ -35,7 +57,7 @@ export const loginSchema = z.object({
 
 export const refreshSchema = z.object({
   body: z.object({
-    refreshToken: z.string().min(1, 'Refresh token is required'),
+    refreshToken: z.string().min(1, 'Refresh token is required').optional(),
   }),
 });
 
@@ -77,6 +99,10 @@ export const register = async (req: Request, res: Response) => {
     
     logger.info('User registered', { userId: user.id, phone: user.phone });
     
+    // Set httpOnly secure cookies
+    res.cookie('access_token', tokens.accessToken, accessCookieOptions);
+    res.cookie('refresh_token', tokens.refreshToken, refreshCookieOptions);
+
     res.status(201).json({
       success: true,
       data: {
@@ -113,6 +139,10 @@ export const login = async (req: Request, res: Response) => {
     
     logger.info('User logged in', { userId: user.id });
     
+    // Set httpOnly secure cookies
+    res.cookie('access_token', tokens.accessToken, accessCookieOptions);
+    res.cookie('refresh_token', tokens.refreshToken, refreshCookieOptions);
+
     res.json({
       success: true,
       data: {
@@ -153,9 +183,23 @@ export const login = async (req: Request, res: Response) => {
  */
 export const refreshToken = async (req: Request, res: Response) => {
   try {
-    const { refreshToken } = req.body;
+    const token = req.cookies?.refresh_token || req.body?.refreshToken;
     
-    const tokens = await userModel.refreshAccessToken(refreshToken);
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'INVALID_REFRESH_TOKEN',
+          message: 'Refresh token is required',
+        },
+      });
+    }
+
+    const tokens = await userModel.refreshAccessToken(token);
+
+    // Set updated httpOnly secure cookies
+    res.cookie('access_token', tokens.accessToken, accessCookieOptions);
+    res.cookie('refresh_token', tokens.refreshToken, refreshCookieOptions);
     
     res.json({
       success: true,
@@ -167,6 +211,30 @@ export const refreshToken = async (req: Request, res: Response) => {
       error: {
         code: 'INVALID_REFRESH_TOKEN',
         message: 'Invalid or expired refresh token',
+      },
+    });
+  }
+};
+
+/**
+ * Logout user - clear auth cookies
+ */
+export const logout = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie('access_token', clearCookieOptions);
+    res.clearCookie('refresh_token', clearCookieOptions);
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  } catch (error: any) {
+    logger.error('Logout failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'LOGOUT_FAILED',
+        message: 'Failed to logout',
       },
     });
   }
@@ -332,6 +400,9 @@ export const deleteAccount = async (req: AuthRequest, res: Response) => {
     
     logger.info('User account deleted', { userId: req.user.userId });
     
+    res.clearCookie('access_token', clearCookieOptions);
+    res.clearCookie('refresh_token', clearCookieOptions);
+
     res.json({
       success: true,
       message: 'Account deleted successfully',
