@@ -4,15 +4,17 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   automerge:
     name: Verify & Queue Auto-Merge
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
 
     steps:
       - name: Checkout repository
@@ -24,10 +26,11 @@ jobs:
           AUTHOR: ${{ github.event.pull_request.user.login }}
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
-          echo "PR #${{ github.event.pull_request.number }} by $AUTHOR on branch $HEAD_BRANCH"
+          echo "PR #$PR_NUMBER by $AUTHOR on branch $HEAD_BRANCH"
           
+          # Exact anchored matching for Jules bot or jules branch prefix
           IS_JULES_AUTHOR=false
-          if [[ "$AUTHOR" =~ (google-jules\[bot\]|jules\[bot\]|google-jules|jules) ]]; then
+          if [[ "$AUTHOR" =~ ^(google-jules\[bot\]|jules\[bot\]|google-labs-jules\[bot\])$ ]]; then
             IS_JULES_AUTHOR=true
           fi
           
@@ -37,21 +40,18 @@ jobs:
           fi
           
           if [ "$IS_JULES_AUTHOR" = true ] && [ "$IS_JULES_BRANCH" = true ]; then
-            echo "is_jules=true" >> $GITHUB_OUTPUT
+            echo "automerge_eligible=true" >> $GITHUB_OUTPUT
             echo "Eligible Jules PR detected."
           else
-            echo "is_jules=false" >> $GITHUB_OUTPUT
-            echo "Not an eligible Jules PR. Skipping."
+            echo "automerge_eligible=false" >> $GITHUB_OUTPUT
+            echo "Not an eligible Jules PR (author: $AUTHOR, branch: $HEAD_BRANCH). Skipping."
           fi
 
-      - name: File Safety Guardrail
-        if: steps.pr-check.outputs.is_jules == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+      - name: Comprehensive File Safety Guardrail
+        if: steps.pr-check.outputs.automerge_eligible == 'true'
         run: |
           CHANGED_FILES=$(gh pr diff "$PR_NUMBER" --name-only)
-          echo "Changed files:"
+          echo "Changed files in PR #$PR_NUMBER:"
           echo "$CHANGED_FILES"
           
           BLOCKED=false
@@ -59,8 +59,14 @@ jobs:
           
           while IFS= read -r file; do
             [ -z "$file" ] && continue
-            if [[ "$file" =~ ^\.github/workflows/ ]] || \
-               [[ "$file" =~ ^\.env ]]; then
+            if [[ "$file" =~ ^\.github/ ]] || \
+               [[ "$file" =~ (^|/)\.env ]] || \
+               [[ "$file" =~ ^AGENTS\.md$ ]] || \
+               [[ "$file" =~ ^\.jules/ ]] || \
+               [[ "$file" =~ (^|/)package(-lock)?\.json$ ]] || \
+               [[ "$file" =~ (^|/)pnpm-lock\.yaml$ ]] || \
+               [[ "$file" =~ (^|/)tsconfig(\..*)?\.json$ ]] || \
+               [[ "$file" =~ (^|/)vite\.config\.[jt]s$ ]]; then
               BLOCKED=true
               BLOCKED_FILES="$BLOCKED_FILES\n- $file"
             fi
@@ -68,16 +74,13 @@ jobs:
           
           if [ "$BLOCKED" = true ]; then
             echo -e "Sensitive files modified:$BLOCKED_FILES"
-            gh pr comment "$PR_NUMBER" --body "⚠️ **Auto-merge halted:** Jules PR modifies sensitive workflow or environment configuration files:$BLOCKED_FILES. Manual review required."
+            gh pr comment "$PR_NUMBER" --body "⚠️ **Auto-merge halted:** Jules PR modifies sensitive workflow, rule, or build configuration files:$BLOCKED_FILES. Manual review required."
             exit 1
           fi
           echo "Safety scan passed. No sensitive files touched."
 
       - name: Approve and Enable Native Auto-Merge
-        if: steps.pr-check.outputs.is_jules == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+        if: steps.pr-check.outputs.automerge_eligible == 'true'
         run: |
           gh pr review "$PR_NUMBER" --approve --body "✅ **Automated Review:** Safety checks passed. Queued for auto-merge upon successful CI completion."
           gh pr merge "$PR_NUMBER" --auto --squash --delete-branch

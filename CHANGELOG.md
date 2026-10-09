@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- Google Jules autonomous agent integration: `AGENTS.md`, `.jules/workflow.md`, and issue template.
+- Native GitHub PR auto-merge with sensitive file guardrail (`.github/workflows/jules-automerge.yml`).
+- Autonomous queue dispatcher workflow (`.github/workflows/jules-dispatch.yml`).
+
+### Changed
+- Hardened CI pipeline (`.github/workflows/ci-cd.yml`): strict backend tests, removed coverage error swallows, and active ESLint validation.
+
+---
+
 ## [1.0.0] - 2026-01-XX
 
 ### Added

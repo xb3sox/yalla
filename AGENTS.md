@@ -22,8 +22,9 @@ This repository contains **Yalla**, a curated experience platform with a React/V
 ### Backend
 - Directory: `cd backend`
 - Install: `npm ci`
+- Lint: `npm run lint`
 - Typecheck: `npm run typecheck`
-- Test: `npm test`
+- Test: `npm test -- tests/unit/`
 - Build: `npm run build`
 
 ---
@@ -37,7 +38,8 @@ This repository contains **Yalla**, a curated experience platform with a React/V
    - Refer to [`.jules/sentinel.md`](.jules/sentinel.md): Prevent prototype pollution in sanitizers and eliminate internal error leakage in public responses.
    - Refer to [`.jules/bolt.md`](.jules/bolt.md): Precompute set lookups and avoid nested iteration loops.
 3. **Pull Request Protocol:**
-   - Always branch off `main` using prefix: `jules/<feature-or-fix-name>`.
+   - Always branch off `main` using prefix: `jules/<issue-id>-<short-description>`.
+   - In PR description, MUST link and close the target issue using: `Closes #<issue-id>`.
    - Provide a concise PR description with:
      - Summary of changes
      - Motivation/Problem solved

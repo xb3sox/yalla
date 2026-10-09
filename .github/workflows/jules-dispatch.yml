@@ -6,45 +6,44 @@ on:
     - cron: '*/30 * * * *'
   workflow_dispatch:
 
-permissions:
-  issues: write
-  pull-requests: read
-
 jobs:
   dispatch:
     name: Check & Dispatch Next Jules Task
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: read
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
 
     steps:
       - name: Check Active Jules PRs
         id: check-prs
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Look for open PRs on jules/* branches
-          ACTIVE_PRS=$(gh pr list --state open --json headRefName --jq '[.[] | select(.headRefName | startswith("jules/"))] | length')
-          echo "Active Jules PR count: $ACTIVE_PRS"
+          # Query open PRs with branch and author
+          PRS_JSON=$(gh pr list --state open --json headRefName,author)
+          ACTIVE_PRS=$(echo "$PRS_JSON" | jq '[.[] | select((.headRefName | startswith("jules/")) and (.author.login | test("^(google-jules\\[bot\\]|jules\\[bot\\]|google-labs-jules\\[bot\\])$")))] | length')
+          echo "Active eligible Jules PR count: $ACTIVE_PRS"
           echo "active_prs=$ACTIVE_PRS" >> $GITHUB_OUTPUT
 
       - name: Assign Next Backlog Issue
         if: steps.check-prs.outputs.active_prs == '0'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Check if any issue is already labeled jules and open
+          # Check if an issue is currently labeled jules and open
           IN_PROGRESS=$(gh issue list --state open --label "jules" --json number --jq 'length')
           if [ "$IN_PROGRESS" -gt 0 ]; then
-            echo "An issue is already labeled jules and in progress ($IN_PROGRESS found). Waiting."
+            echo "An issue is already labeled jules and actively being worked on ($IN_PROGRESS found). Waiting."
             exit 0
           fi
 
-          # Find oldest open issue labeled 'backlog'
-          NEXT_ISSUE=$(gh issue list --state open --label "backlog" --limit 1 --json number --jq '.[0].number')
+          # Find oldest open issue labeled 'backlog' (sort:created-asc)
+          NEXT_ISSUE=$(gh issue list --state open --label "backlog" --search "sort:created-asc" --limit 1 --json number --jq '.[0].number')
           
           if [ -n "$NEXT_ISSUE" ] && [ "$NEXT_ISSUE" != "null" ]; then
             echo "Dispatching issue #$NEXT_ISSUE to Jules..."
             gh issue edit "$NEXT_ISSUE" --add-label "jules" --remove-label "backlog"
-            gh issue comment "$NEXT_ISSUE" --body "🤖 **Autonomous Dispatch:** Assigned to Google Jules. Jules will build, test, and open a PR."
+            gh issue comment "$NEXT_ISSUE" --body "🤖 **Autonomous Dispatch:** Assigned to Google Jules. Please implement, verify with tests, and include 'Closes #$NEXT_ISSUE' in the PR description."
           else
             echo "No queued backlog issues found."
           fi

@@ -32,7 +32,7 @@ jobs:
         run: npm test -- --run
 
       - name: Run frontend tests with coverage
-        run: npm run test:coverage -- --run || echo "Coverage completed"
+        run: npm run test:coverage -- --run
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
@@ -164,8 +164,8 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Run ESLint on frontend
-        run: npm run lint || echo "Linting completed with warnings"
+      - name: Run frontend typecheck for code quality
+        run: npm run typecheck
 
       - name: Install backend dependencies
         working-directory: ./backend
@@ -173,7 +173,7 @@ jobs:
 
       - name: Run ESLint on backend
         working-directory: ./backend
-        run: npm run lint || echo "Linting completed with warnings"
+        run: npm run lint
 
   # Security Scan
   security:
