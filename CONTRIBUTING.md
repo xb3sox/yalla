@@ -76,6 +76,7 @@ docs/update-readme
 refactor/extract-common-logic
 test/add-unit-tests
 chore/update-dependencies
+jules/<issue-id>-<short-description>  # Autonomous agent branches
 ```
 
 ### Commit Messages

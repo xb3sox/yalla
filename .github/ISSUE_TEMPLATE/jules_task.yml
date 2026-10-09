@@ -1,12 +1,12 @@
 name: Jules Task
-description: Create a task for the Google Jules autonomous coding agent
+description: Create a task for the Google Jules autonomous coding agent queue
 title: "[Jules] "
-labels: ["jules"]
+labels: ["backlog"]
 body:
   - type: markdown
     attributes:
       value: |
-        This task will be automatically picked up by Google Jules.
+        This task will be queued under `backlog` and picked up autonomously by the Google Jules queue.
   - type: textarea
     id: problem
     attributes:
