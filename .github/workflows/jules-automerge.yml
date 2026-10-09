@@ -90,5 +90,8 @@ jobs:
         if: steps.pr-check.outputs.automerge_eligible == 'true'
         run: |
           gh pr review "$PR_NUMBER" --approve --body "✅ **Automated Review:** Safety checks passed. Queued for auto-merge upon successful CI completion."
-          gh pr merge "$PR_NUMBER" --auto --squash --delete-branch
-          echo "Native auto-merge enabled for PR #$PR_NUMBER"
+          if ! gh pr merge "$PR_NUMBER" --auto --squash --delete-branch; then
+            echo "::warning ::'Allow auto-merge' is not toggled in GitHub Repository Settings. Please enable it in Settings > General > Pull Requests."
+          else
+            echo "Native auto-merge enabled for PR #$PR_NUMBER"
+          fi
