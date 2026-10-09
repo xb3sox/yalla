@@ -80,7 +80,12 @@ export interface CreateExperienceInput {
   cancellation_summary?: string;
   cancellation_summary_ar?: string;
   image_url?: string;
+  plan_state?: string;
   capacity: number;
+  primary_host_id?: string;
+  backup_host_id?: string;
+  primary_venue_id?: string;
+  fallback_venue_id?: string;
   min_attendance?: number;
 }
 
