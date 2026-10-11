@@ -53,7 +53,7 @@ describe('DashboardPage', () => {
     expect(screen.getByText('Loading...')).toBeTruthy();
   });
 
-  it.skip('shows error state when API fails', async () => {
+  it('shows error state when API fails', async () => {
     (api.reservations.list as any).mockRejectedValue(new Error('Network error'));
     render(<AppProvider><DashboardPage /></AppProvider>);
     await waitFor(() => {

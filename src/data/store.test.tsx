@@ -45,8 +45,7 @@ const createStore = () => {
         const reservation = state.reservations.find(r => r.id === action.payload);
         
         if (reservation && reservation.state === 'reconfirmation_required') {
-          const isExpired = reservation.expiryAt && new Date(reservation.expiryAt) <= new Date();
-          if (!isExpired) {
+          if (!reservation.expiryAt || new Date(reservation.expiryAt) > new Date()) {
             state = {
               ...state,
               reservations: state.reservations.map(r =>
@@ -205,10 +204,7 @@ describe('Store Integration Tests', () => {
     });
 
     it('should reconfirm a reservation', () => {
-      const reconfirmId = 'res-2';
-      const curState = store.getState();
-      const targetRes = curState.reservations.find(r => r.id === reconfirmId);
-      if (targetRes) targetRes.expiryAt = new Date(Date.now() + 86400000).toISOString();
+      const reconfirmId = 'res-2'; // Has state 'reconfirmation_required'
       
       store.dispatch({ type: 'RECONFIRM_RESERVATION', payload: reconfirmId });
 
@@ -234,8 +230,8 @@ describe('Store Integration Tests', () => {
       store.dispatch({ type: 'RECONFIRM_RESERVATION', payload: 'res-expired' });
 
       const state = store.getState();
-      const reservation = state.reservations.find(r => r.id === 'res-expired') || state.reservations[0];
-      expect(reservation).toBeDefined(); // Should not change
+      const reservation = state.reservations.find(r => r.id === 'res-expired');
+      expect(reservation?.state).toBe('reconfirmation_required'); // Should not change
     });
 
     it('should cancel a reservation', () => {

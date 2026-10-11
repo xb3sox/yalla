@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ToastProvider, useToast } from './Toast';
 
 // Test component that uses the toast hook
@@ -22,6 +22,14 @@ const TestComponent = () => {
 };
 
 describe('Toast Component', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('should render toast provider', () => {
     render(
       <ToastProvider>
@@ -32,7 +40,7 @@ describe('Toast Component', () => {
     expect(screen.getByText('Show Success')).toBeTruthy();
   });
 
-  it('should show success toast when triggered', () => {
+  it('should show success toast when triggered', async () => {
     render(
       <ToastProvider>
         <TestComponent />
@@ -40,10 +48,13 @@ describe('Toast Component', () => {
     );
 
     fireEvent.click(screen.getByText('Show Success'));
-    expect(screen.getByText('Success message')).toBeTruthy();
+
+    await waitFor(() => {
+      expect(screen.getByText('Success message')).toBeTruthy();
+    });
   });
 
-  it('should show error toast when triggered', () => {
+  it('should show error toast when triggered', async () => {
     render(
       <ToastProvider>
         <TestComponent />
@@ -51,10 +62,13 @@ describe('Toast Component', () => {
     );
 
     fireEvent.click(screen.getByText('Show Error'));
-    expect(screen.getByText('Error message')).toBeTruthy();
+
+    await waitFor(() => {
+      expect(screen.getByText('Error message')).toBeTruthy();
+    });
   });
 
-  it('should show info toast when triggered', () => {
+  it('should show info toast when triggered', async () => {
     render(
       <ToastProvider>
         <TestComponent />
@@ -62,11 +76,13 @@ describe('Toast Component', () => {
     );
 
     fireEvent.click(screen.getByText('Show Info'));
-    expect(screen.getByText('Info message')).toBeTruthy();
+
+    await waitFor(() => {
+      expect(screen.getByText('Info message')).toBeTruthy();
+    });
   });
 
-  it('should auto-dismiss toast after duration', () => {
-    vi.useFakeTimers();
+  it('should auto-dismiss toast after duration', async () => {
     render(
       <ToastProvider>
         <TestComponent />
@@ -74,17 +90,20 @@ describe('Toast Component', () => {
     );
 
     fireEvent.click(screen.getByText('Show Success'));
-    expect(screen.getByText('Success message')).toBeTruthy();
 
-    act(() => {
-      vi.advanceTimersByTime(3500);
+    await waitFor(() => {
+      expect(screen.getByText('Success message')).toBeTruthy();
     });
 
-    expect(screen.queryByText('Success message')).toBeNull();
-    vi.useRealTimers();
+    // Fast-forward time
+    vi.advanceTimersByTime(3000);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Success message')).toBeNull();
+    });
   });
 
-  it('should dismiss toast when close button is clicked', () => {
+  it('should dismiss toast when close button is clicked', async () => {
     render(
       <ToastProvider>
         <TestComponent />
@@ -92,15 +111,21 @@ describe('Toast Component', () => {
     );
 
     fireEvent.click(screen.getByText('Show Success'));
-    expect(screen.getByText('Success message')).toBeTruthy();
 
+    await waitFor(() => {
+      expect(screen.getByText('Success message')).toBeTruthy();
+    });
+
+    // Find and click close button
     const closeButton = screen.getByLabelText('Dismiss');
     fireEvent.click(closeButton);
 
-    expect(screen.queryByText('Success message')).toBeNull();
+    await waitFor(() => {
+      expect(screen.queryByText('Success message')).toBeNull();
+    });
   });
 
-  it('should show multiple toasts', () => {
+  it('should show multiple toasts', async () => {
     render(
       <ToastProvider>
         <TestComponent />
@@ -111,12 +136,14 @@ describe('Toast Component', () => {
     fireEvent.click(screen.getByText('Show Error'));
     fireEvent.click(screen.getByText('Show Info'));
 
-    expect(screen.getByText('Success message')).toBeTruthy();
-    expect(screen.getByText('Error message')).toBeTruthy();
-    expect(screen.getByText('Info message')).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText('Success message')).toBeTruthy();
+      expect(screen.getByText('Error message')).toBeTruthy();
+      expect(screen.getByText('Info message')).toBeTruthy();
+    });
   });
 
-  it('should have correct role for accessibility', () => {
+  it('should have correct role for accessibility', async () => {
     render(
       <ToastProvider>
         <TestComponent />
@@ -124,11 +151,14 @@ describe('Toast Component', () => {
     );
 
     fireEvent.click(screen.getByText('Show Success'));
-    const toast = screen.getByRole('alert');
-    expect(toast).toBeTruthy();
+
+    await waitFor(() => {
+      const toast = screen.getByRole('alert');
+      expect(toast).toBeTruthy();
+    });
   });
 
-  it('should have aria-live attribute for screen readers', () => {
+  it('should have aria-live attribute for screen readers', async () => {
     render(
       <ToastProvider>
         <TestComponent />
@@ -136,7 +166,10 @@ describe('Toast Component', () => {
     );
 
     fireEvent.click(screen.getByText('Show Success'));
-    const toast = screen.getByRole('alert');
-    expect(toast.getAttribute('aria-live')).toBe('polite');
+
+    await waitFor(() => {
+      const toast = screen.getByRole('alert');
+      expect(toast.getAttribute('aria-live')).toBe('polite');
+    });
   });
 });

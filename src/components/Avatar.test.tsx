@@ -106,7 +106,7 @@ describe('Avatar Component', () => {
     expect(avatar).toBeTruthy();
   });
 
-  it.skip('should handle name with special characters', () => {
+  it('should handle name with special characters', () => {
     renderWithProvider(<Avatar name="John-Doe" />);
     expect(screen.getByText('JD')).toBeTruthy();
   });

@@ -24,22 +24,22 @@ export function isValidSaudiPhone(phone: string): boolean {
  * Validate date format (YYYY-MM-DD)
  */
 export function isValidDate(date: string): boolean {
-  const dateRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
-  const match = date.match(dateRegex);
-  if (!match) return false;
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(date)) return false;
   
-  const year = parseInt(match[1], 10);
-  const month = parseInt(match[2], 10);
-  const day = parseInt(match[3], 10);
+  const [yearStr, monthStr, dayStr] = date.split('-');
+  const year = parseInt(yearStr, 10);
+  const month = parseInt(monthStr, 10);
+  const day = parseInt(dayStr, 10);
 
   if (month < 1 || month > 12) return false;
   if (day < 1 || day > 31) return false;
 
-  const parsedDate = new Date(Date.UTC(year, month - 1, day));
+  const parsedDate = new Date(year, month - 1, day);
   return (
-    parsedDate.getUTCFullYear() === year &&
-    parsedDate.getUTCMonth() === month - 1 &&
-    parsedDate.getUTCDate() === day
+    parsedDate.getFullYear() === year &&
+    parsedDate.getMonth() === month - 1 &&
+    parsedDate.getDate() === day
   );
 }
 
