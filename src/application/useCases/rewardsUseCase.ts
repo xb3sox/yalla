@@ -197,7 +197,8 @@ export function getNextTierProgress(lifetimePoints: number): {
     { name: 'Platinum', points: 1000 },
   ];
 
-  const currentIndex = tiers.findIndex(t => lifetimePoints < t.points) - 1;
+  const firstNextIndex = tiers.findIndex(t => lifetimePoints < t.points);
+  const currentIndex = firstNextIndex === -1 ? tiers.length - 1 : firstNextIndex - 1;
   const currentTier = currentIndex >= 0 ? tiers[currentIndex] : tiers[0];
   const nextTier = currentIndex + 1 < tiers.length ? tiers[currentIndex + 1] : null;
 

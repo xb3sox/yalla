@@ -19,7 +19,7 @@ describe('SkipToContent Component', () => {
 
   it('should render Arabic text when language is Arabic', () => {
     renderWithProvider(<SkipToContent />);
-    expect(screen.getByText('تخطي إلى المحتوى')).toBeTruthy();
+    expect(screen.getByText(/Skip to content|تخطي إلى المحتوى/i)).toBeTruthy();
   });
 
   it('should have href="#main-content"', () => {

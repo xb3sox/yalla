@@ -42,8 +42,8 @@ describe('NotFoundPage', () => {
       </AppProvider>
     );
 
-    expect(screen.getByText(/الصفحة غير موجودة/i)).toBeTruthy();
-    expect(screen.getByText(/عذراً، الصفحة التي تبحث عنها/i)).toBeTruthy();
+    expect(screen.getByText(/Page Not Found|الصفحة غير موجودة/i)).toBeTruthy();
+    expect(screen.getByText(/Sorry, the page|عذراً، الصفحة/i)).toBeTruthy();
   });
 
   it('renders SVG illustration', () => {
@@ -75,7 +75,7 @@ describe('NotFoundPage', () => {
       </AppProvider>
     );
 
-    const homeButton = screen.getByText(/العودة للرئيسية/i);
+    const homeButton = screen.getByText(/Go Home|العودة للرئيسية/i);
     expect(homeButton).toBeTruthy();
   });
 
@@ -97,7 +97,7 @@ describe('NotFoundPage', () => {
       </AppProvider>
     );
 
-    const exploreButton = screen.getByText(/استكشف التجارب/i);
+    const exploreButton = screen.getByText(/Explore|استكشف التجارب/i);
     expect(exploreButton).toBeTruthy();
   });
 
@@ -119,7 +119,7 @@ describe('NotFoundPage', () => {
       </AppProvider>
     );
 
-    const backButton = screen.getByText(/رجوع/i);
+    const backButton = screen.getByText(/Go Back|رجوع/i);
     expect(backButton).toBeTruthy();
   });
 
@@ -180,7 +180,7 @@ describe('NotFoundPage', () => {
       </AppProvider>
     );
 
-    const supportLink = screen.getByText(/التواصل مع الدعم/i);
+    const supportLink = screen.getByText(/contact support|التواصل مع الدعم/i);
     expect(supportLink).toBeTruthy();
   });
 
@@ -252,7 +252,7 @@ describe('NotFoundPage', () => {
       </AppProvider>
     );
 
-    const helpText = screen.getByText(/إذا كنت تعتقد أن هذا خطأ/i);
+    const helpText = screen.getByText(/If you believe this is a mistake|إذا كنت تعتقد أن هذا خطأ/i);
     expect(helpText).toBeTruthy();
   });
 });

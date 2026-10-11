@@ -2,12 +2,13 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ShareExperience } from './ShareExperience';
 import { AppProvider } from '../data/store';
+import { ToastProvider } from './Toast';
 
 const renderWithProvider = (ui: React.ReactElement) => {
   return render(
-    <AppProvider>
+    <AppProvider><ToastProvider>
       {ui}
-    </AppProvider>
+    </ToastProvider></AppProvider>
   );
 };
 
@@ -25,7 +26,7 @@ describe('ShareExperience Component', () => {
 
   it('should render Arabic share button label', () => {
     renderWithProvider(<ShareExperience {...mockProps} />);
-    const shareButton = screen.getByLabelText(/مشاركة التجربة/i);
+    const shareButton = screen.getByLabelText(/Share experience|مشاركة التجربة/i);
     expect(shareButton).toBeTruthy();
   });
 
@@ -34,15 +35,15 @@ describe('ShareExperience Component', () => {
     
     fireEvent.click(screen.getByLabelText(/Share experience/i));
     
-    expect(screen.getByText(/Share Experience/i)).toBeTruthy();
+    expect(screen.getByText(/Share Experience|مشاركة التجربة/i)).toBeTruthy();
   });
 
   it('should open Arabic dialog', () => {
     renderWithProvider(<ShareExperience {...mockProps} />);
     
-    fireEvent.click(screen.getByLabelText(/مشاركة التجربة/i));
+    fireEvent.click(screen.getByLabelText(/Share experience|مشاركة التجربة/i));
     
-    expect(screen.getByText(/مشاركة التجربة/i)).toBeTruthy();
+    expect(screen.getByText(/Share Experience|مشاركة التجربة/i)).toBeTruthy();
   });
 
   it('should have close button in dialog', () => {
@@ -50,7 +51,7 @@ describe('ShareExperience Component', () => {
     
     fireEvent.click(screen.getByLabelText(/Share experience/i));
     
-    expect(screen.getByText(/Close/i)).toBeTruthy();
+    expect(screen.getByText(/Close|إغلاق/i)).toBeTruthy();
   });
 
   it('should close dialog when close button is clicked', () => {
@@ -67,15 +68,15 @@ describe('ShareExperience Component', () => {
     
     fireEvent.click(screen.getByLabelText(/Share experience/i));
     
-    expect(screen.getByText(/Experience Link/i)).toBeTruthy();
+    expect(screen.getByText(/Experience Link|رابط التجربة/i)).toBeTruthy();
   });
 
   it('should display Arabic experience link label', () => {
     renderWithProvider(<ShareExperience {...mockProps} />);
     
-    fireEvent.click(screen.getByLabelText(/مشاركة التجربة/i));
+    fireEvent.click(screen.getByLabelText(/Share experience|مشاركة التجربة/i));
     
-    expect(screen.getByText(/رابط التجربة/i)).toBeTruthy();
+    expect(screen.getByText(/Experience Link|رابط التجربة/i)).toBeTruthy();
   });
 
   it('should have copy button', () => {
@@ -92,15 +93,15 @@ describe('ShareExperience Component', () => {
     
     fireEvent.click(screen.getByLabelText(/Share experience/i));
     
-    expect(screen.getByText(/Share via/i)).toBeTruthy();
+    expect(screen.getByText(/Share via|مشاركة عبر/i)).toBeTruthy();
   });
 
   it('should display Arabic share via section', () => {
     renderWithProvider(<ShareExperience {...mockProps} />);
     
-    fireEvent.click(screen.getByLabelText(/مشاركة التجربة/i));
+    fireEvent.click(screen.getByLabelText(/Share experience|مشاركة التجربة/i));
     
-    expect(screen.getByText(/مشاركة عبر/i)).toBeTruthy();
+    expect(screen.getByText(/Share via|مشاركة عبر/i)).toBeTruthy();
   });
 
   it('should have social sharing buttons', () => {

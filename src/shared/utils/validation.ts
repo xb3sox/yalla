@@ -24,11 +24,23 @@ export function isValidSaudiPhone(phone: string): boolean {
  * Validate date format (YYYY-MM-DD)
  */
 export function isValidDate(date: string): boolean {
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  if (!dateRegex.test(date)) return false;
+  const dateRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
+  const match = date.match(dateRegex);
+  if (!match) return false;
   
-  const parsedDate = new Date(date);
-  return parsedDate instanceof Date && !isNaN(parsedDate.getTime());
+  const year = parseInt(match[1], 10);
+  const month = parseInt(match[2], 10);
+  const day = parseInt(match[3], 10);
+
+  if (month < 1 || month > 12) return false;
+  if (day < 1 || day > 31) return false;
+
+  const parsedDate = new Date(Date.UTC(year, month - 1, day));
+  return (
+    parsedDate.getUTCFullYear() === year &&
+    parsedDate.getUTCMonth() === month - 1 &&
+    parsedDate.getUTCDate() === day
+  );
 }
 
 /**

@@ -2,12 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { FavoriteButton } from './FavoriteButton';
 import { AppProvider } from '../data/store';
+import { ToastProvider } from './Toast';
 
 const renderWithProvider = (ui: React.ReactElement) => {
   return render(
-    <AppProvider>
+    <AppProvider><ToastProvider>
       {ui}
-    </AppProvider>
+    </ToastProvider></AppProvider>
   );
 };
 
@@ -76,11 +77,11 @@ describe('FavoriteButton Component', () => {
     const parentClick = vi.fn();
     
     render(
-      <AppProvider>
+      <AppProvider><ToastProvider>
         <div onClick={parentClick}>
           <FavoriteButton experienceId="exp-1" />
         </div>
-      </AppProvider>
+      </ToastProvider></AppProvider>
     );
 
     const button = screen.getByRole('button');
