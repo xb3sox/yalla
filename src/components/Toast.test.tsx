@@ -48,7 +48,7 @@ describe('Toast Component', () => {
     );
 
     fireEvent.click(screen.getByText('Show Success'));
-    
+
     await waitFor(() => {
       expect(screen.getByText('Success message')).toBeTruthy();
     });
@@ -62,7 +62,7 @@ describe('Toast Component', () => {
     );
 
     fireEvent.click(screen.getByText('Show Error'));
-    
+
     await waitFor(() => {
       expect(screen.getByText('Error message')).toBeTruthy();
     });
@@ -76,7 +76,7 @@ describe('Toast Component', () => {
     );
 
     fireEvent.click(screen.getByText('Show Info'));
-    
+
     await waitFor(() => {
       expect(screen.getByText('Info message')).toBeTruthy();
     });
@@ -90,14 +90,14 @@ describe('Toast Component', () => {
     );
 
     fireEvent.click(screen.getByText('Show Success'));
-    
+
     await waitFor(() => {
       expect(screen.getByText('Success message')).toBeTruthy();
     });
 
     // Fast-forward time
     vi.advanceTimersByTime(3000);
-    
+
     await waitFor(() => {
       expect(screen.queryByText('Success message')).toBeNull();
     });
@@ -111,7 +111,7 @@ describe('Toast Component', () => {
     );
 
     fireEvent.click(screen.getByText('Show Success'));
-    
+
     await waitFor(() => {
       expect(screen.getByText('Success message')).toBeTruthy();
     });
@@ -119,7 +119,7 @@ describe('Toast Component', () => {
     // Find and click close button
     const closeButton = screen.getByLabelText('Dismiss');
     fireEvent.click(closeButton);
-    
+
     await waitFor(() => {
       expect(screen.queryByText('Success message')).toBeNull();
     });
@@ -135,7 +135,7 @@ describe('Toast Component', () => {
     fireEvent.click(screen.getByText('Show Success'));
     fireEvent.click(screen.getByText('Show Error'));
     fireEvent.click(screen.getByText('Show Info'));
-    
+
     await waitFor(() => {
       expect(screen.getByText('Success message')).toBeTruthy();
       expect(screen.getByText('Error message')).toBeTruthy();
@@ -151,7 +151,7 @@ describe('Toast Component', () => {
     );
 
     fireEvent.click(screen.getByText('Show Success'));
-    
+
     await waitFor(() => {
       const toast = screen.getByRole('alert');
       expect(toast).toBeTruthy();
@@ -166,7 +166,7 @@ describe('Toast Component', () => {
     );
 
     fireEvent.click(screen.getByText('Show Success'));
-    
+
     await waitFor(() => {
       const toast = screen.getByRole('alert');
       expect(toast.getAttribute('aria-live')).toBe('polite');
