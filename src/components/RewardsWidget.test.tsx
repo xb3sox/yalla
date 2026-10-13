@@ -1,15 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { RewardsWidget } from './RewardsWidget';
-import { AppProvider } from '../data/store';
+import { renderWithProviders } from '../test/utils';
 
-const renderWithProvider = (ui: React.ReactElement) => {
-  return render(
-    <AppProvider>
-      {ui}
-    </AppProvider>
-  );
-};
+const renderWithProvider = renderWithProviders;
 
 describe('RewardsWidget Component', () => {
   it('should render rewards widget', () => {
@@ -18,7 +12,7 @@ describe('RewardsWidget Component', () => {
   });
 
   it('should render Arabic title when language is Arabic', () => {
-    renderWithProvider(<RewardsWidget />);
+    renderWithProvider(<RewardsWidget />, { language: 'ar' });
     expect(screen.getByText(/نقاط المكافآت/i)).toBeTruthy();
   });
 
@@ -58,7 +52,7 @@ describe('RewardsWidget Component', () => {
   });
 
   it('should display Arabic points to next tier', () => {
-    renderWithProvider(<RewardsWidget />);
+    renderWithProvider(<RewardsWidget />, { language: 'ar' });
     // Should display "نقطة متبقية"
     const pointsToGo = screen.getByText(/نقطة متبقية/i);
     expect(pointsToGo).toBeTruthy();
@@ -70,7 +64,7 @@ describe('RewardsWidget Component', () => {
   });
 
   it('should display Arabic how to earn points', () => {
-    renderWithProvider(<RewardsWidget />);
+    renderWithProvider(<RewardsWidget />, { language: 'ar' });
     expect(screen.getByText(/كيف تكسب النقاط/i)).toBeTruthy();
   });
 
@@ -81,7 +75,7 @@ describe('RewardsWidget Component', () => {
   });
 
   it('should display Arabic booking label', () => {
-    renderWithProvider(<RewardsWidget />);
+    renderWithProvider(<RewardsWidget />, { language: 'ar' });
     expect(screen.getByText(/حجز/i)).toBeTruthy();
   });
 
@@ -92,7 +86,7 @@ describe('RewardsWidget Component', () => {
   });
 
   it('should display Arabic attendance label', () => {
-    renderWithProvider(<RewardsWidget />);
+    renderWithProvider(<RewardsWidget />, { language: 'ar' });
     expect(screen.getByText(/حضور/i)).toBeTruthy();
   });
 
@@ -103,7 +97,7 @@ describe('RewardsWidget Component', () => {
   });
 
   it('should display Arabic review label', () => {
-    renderWithProvider(<RewardsWidget />);
+    renderWithProvider(<RewardsWidget />, { language: 'ar' });
     expect(screen.getByText(/تقييم/i)).toBeTruthy();
   });
 

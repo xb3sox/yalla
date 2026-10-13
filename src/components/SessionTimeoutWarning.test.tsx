@@ -1,189 +1,183 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SessionTimeoutWarning } from './SessionTimeoutWarning';
-import { AppProvider } from '../data/store';
+import { renderWithProviders } from '../test/utils';
 
-const renderWithProvider = (ui: React.ReactElement) => {
-  return render(
-    <AppProvider>
-      {ui}
-    </AppProvider>
-  );
-};
+const renderWithProvider = renderWithProviders;
 
-describe('SessionTimeoutWarning Component', () => {
-  beforeEach(() => {
+describe('SessionTimeoutWarning Component', async () => {
+  beforeEach(async () => {
     vi.useFakeTimers();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers();
   });
 
-  it('should not render initially', () => {
+  it('should not render initially', async () => {
     renderWithProvider(<SessionTimeoutWarning />);
     expect(screen.queryByText(/Session Timeout/i)).toBeNull();
   });
 
-  it('should render after 25 minutes of inactivity', () => {
+  it('should render after 25 minutes of inactivity', async () => {
     renderWithProvider(<SessionTimeoutWarning />);
     
     // Fast-forward 25 minutes
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     expect(screen.getByText(/Session Timeout Warning/i)).toBeTruthy();
   });
 
-  it('should render Arabic title when language is Arabic', () => {
-    renderWithProvider(<SessionTimeoutWarning />);
+  it('should render Arabic title when language is Arabic', async () => {
+    renderWithProvider(<SessionTimeoutWarning />, { language: 'ar' });
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     expect(screen.getByText(/تحذير انتهاء الجلسة/i)).toBeTruthy();
   });
 
-  it('should display countdown timer', () => {
+  it('should display countdown timer', async () => {
     renderWithProvider(<SessionTimeoutWarning />);
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     // Should display time in format MM:SS
     const timeElement = screen.getByText(/\d+:\d+/);
     expect(timeElement).toBeTruthy();
   });
 
-  it('should display "Time remaining" label', () => {
+  it('should display "Time remaining" label', async () => {
     renderWithProvider(<SessionTimeoutWarning />);
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     expect(screen.getByText(/Time remaining/i)).toBeTruthy();
   });
 
-  it('should display Arabic "Time remaining" label', () => {
-    renderWithProvider(<SessionTimeoutWarning />);
+  it('should display Arabic "Time remaining" label', async () => {
+    renderWithProvider(<SessionTimeoutWarning />, { language: 'ar' });
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     expect(screen.getByText(/الوقت المتبقي/i)).toBeTruthy();
   });
 
-  it('should display session expiration message', () => {
+  it('should display session expiration message', async () => {
     renderWithProvider(<SessionTimeoutWarning />);
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     expect(screen.getByText(/Your session will expire due to inactivity/i)).toBeTruthy();
   });
 
-  it('should display Arabic session expiration message', () => {
-    renderWithProvider(<SessionTimeoutWarning />);
+  it('should display Arabic session expiration message', async () => {
+    renderWithProvider(<SessionTimeoutWarning />, { language: 'ar' });
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     expect(screen.getByText(/ستنتهي جلستك بسبب عدم النشاط/i)).toBeTruthy();
   });
 
-  it('should display extend session instructions', () => {
+  it('should display extend session instructions', async () => {
     renderWithProvider(<SessionTimeoutWarning />);
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     expect(screen.getByText(/Click "Extend Session" to stay logged in/i)).toBeTruthy();
   });
 
-  it('should display Arabic extend session instructions', () => {
-    renderWithProvider(<SessionTimeoutWarning />);
+  it('should display Arabic extend session instructions', async () => {
+    renderWithProvider(<SessionTimeoutWarning />, { language: 'ar' });
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     expect(screen.getByText(/اضغط على "تمديد الجلسة" للبقاء مسجلاً للدخول/i)).toBeTruthy();
   });
 
-  it('should have Extend Session button', () => {
+  it('should have Extend Session button', async () => {
     renderWithProvider(<SessionTimeoutWarning />);
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     expect(screen.getByText(/Extend Session/i)).toBeTruthy();
   });
 
-  it('should have Arabic Extend Session button', () => {
-    renderWithProvider(<SessionTimeoutWarning />);
+  it('should have Arabic Extend Session button', async () => {
+    renderWithProvider(<SessionTimeoutWarning />, { language: 'ar' });
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     expect(screen.getByText(/تمديد الجلسة/i)).toBeTruthy();
   });
 
-  it('should close dialog when Extend Session is clicked', () => {
+  it('should close dialog when Extend Session is clicked', async () => {
     renderWithProvider(<SessionTimeoutWarning />);
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     fireEvent.click(screen.getByText(/Extend Session/i));
     
     expect(screen.queryByText(/Session Timeout Warning/i)).toBeNull();
   });
 
-  it('should have Clock icon', () => {
+  it('should have Clock icon', async () => {
     renderWithProvider(<SessionTimeoutWarning />);
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     const svg = document.querySelector('svg');
     expect(svg).toBeTruthy();
   });
 
-  it('should have warning background color', () => {
+  it('should have warning background color', async () => {
     renderWithProvider(<SessionTimeoutWarning />);
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     const iconContainer = document.querySelector('.bg-warning-bg');
     expect(iconContainer).toBeTruthy();
   });
 
-  it('should countdown from 5 minutes', () => {
+  it('should countdown from 5 minutes', async () => {
     renderWithProvider(<SessionTimeoutWarning />);
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     // Initial countdown should be 5:00
     const timeElement = screen.getByText('5:00');
     expect(timeElement).toBeTruthy();
   });
 
-  it('should countdown decrease over time', () => {
+  it('should countdown decrease over time', async () => {
     renderWithProvider(<SessionTimeoutWarning />);
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     // Initial time
     expect(screen.getByText('5:00')).toBeTruthy();
     
     // After 1 minute
-    vi.advanceTimersByTime(60 * 1000);
+    await vi.advanceTimersByTimeAsync(60 * 1000);
     expect(screen.getByText('4:00')).toBeTruthy();
     
     // After 2 minutes
-    vi.advanceTimersByTime(60 * 1000);
+    await vi.advanceTimersByTimeAsync(60 * 1000);
     expect(screen.getByText('3:00')).toBeTruthy();
   });
 
-  it('should have tabular-nums for countdown', () => {
+  it('should have tabular-nums for countdown', async () => {
     renderWithProvider(<SessionTimeoutWarning />);
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     const timeElement = screen.getByText('5:00');
     expect(timeElement.classList.contains('tabular-nums')).toBe(true);
   });
 
-  it('should have proper styling for time display', () => {
+  it('should have proper styling for time display', async () => {
     renderWithProvider(<SessionTimeoutWarning />);
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     const timeElement = screen.getByText('5:00');
     expect(timeElement.classList.contains('text-2xl')).toBe(true);
@@ -191,12 +185,12 @@ describe('SessionTimeoutWarning Component', () => {
     expect(timeElement.classList.contains('text-text-primary')).toBe(true);
   });
 
-  it('should cleanup timers on unmount', () => {
+  it('should cleanup timers on unmount', async () => {
     const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
     
     const { unmount } = renderWithProvider(<SessionTimeoutWarning />);
     
-    vi.advanceTimersByTime(25 * 60 * 1000);
+    await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
     unmount();
     
@@ -205,7 +199,7 @@ describe('SessionTimeoutWarning Component', () => {
     clearIntervalSpy.mockRestore();
   });
 
-  it('should cleanup warning timer on unmount', () => {
+  it('should cleanup warning timer on unmount', async () => {
     const clearTimeoutSpy = vi.spyOn(window, 'clearTimeout');
     
     const { unmount } = renderWithProvider(<SessionTimeoutWarning />);

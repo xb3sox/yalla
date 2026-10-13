@@ -1,15 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { SkipToContent } from './SkipToContent';
-import { AppProvider } from '../data/store';
+import { renderWithProviders } from '../test/utils';
 
-const renderWithProvider = (ui: React.ReactElement) => {
-  return render(
-    <AppProvider>
-      {ui}
-    </AppProvider>
-  );
-};
+const renderWithProvider = renderWithProviders;
 
 describe('SkipToContent Component', () => {
   it('should render skip link', () => {
@@ -18,7 +12,7 @@ describe('SkipToContent Component', () => {
   });
 
   it('should render Arabic text when language is Arabic', () => {
-    renderWithProvider(<SkipToContent />);
+    renderWithProvider(<SkipToContent />, { language: 'ar' });
     expect(screen.getByText('تخطي إلى المحتوى')).toBeTruthy();
   });
 

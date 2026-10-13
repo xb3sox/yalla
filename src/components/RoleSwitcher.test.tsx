@@ -1,15 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { RoleSwitcher } from './RoleSwitcher';
-import { AppProvider } from '../data/store';
+import { renderWithProviders } from '../test/utils';
 
-const renderWithProvider = (ui: React.ReactElement) => {
-  return render(
-    <AppProvider>
-      {ui}
-    </AppProvider>
-  );
-};
+const renderWithProvider = renderWithProviders;
 
 describe('RoleSwitcher Component', () => {
   it('should not render when isOpen is false', () => {
@@ -28,7 +22,8 @@ describe('RoleSwitcher Component', () => {
 
   it('should render Arabic title when language is Arabic', () => {
     renderWithProvider(
-      <RoleSwitcher isOpen={true} onClose={() => {}} />
+      <RoleSwitcher isOpen={true} onClose={() => {}} />,
+        { language: 'ar' },
     );
     expect(screen.getByText(/تبديل الدور/i)).toBeTruthy();
   });
@@ -45,7 +40,8 @@ describe('RoleSwitcher Component', () => {
 
   it('should display Arabic role names', () => {
     renderWithProvider(
-      <RoleSwitcher isOpen={true} onClose={() => {}} />
+      <RoleSwitcher isOpen={true} onClose={() => {}} />,
+        { language: 'ar' },
     );
     expect(screen.getByText(/مشارك/i)).toBeTruthy();
     expect(screen.getByText(/العمليات/i)).toBeTruthy();
@@ -65,7 +61,8 @@ describe('RoleSwitcher Component', () => {
 
   it('should display Arabic role descriptions', () => {
     renderWithProvider(
-      <RoleSwitcher isOpen={true} onClose={() => {}} />
+      <RoleSwitcher isOpen={true} onClose={() => {}} />,
+        { language: 'ar' },
     );
     expect(screen.getByText(/اكتشف واحجز التجارب/i)).toBeTruthy();
     expect(screen.getByText(/إدارة الخطط والمضيفين والأماكن/i)).toBeTruthy();
@@ -153,7 +150,8 @@ describe('RoleSwitcher Component', () => {
 
   it('should display Arabic footer message', () => {
     renderWithProvider(
-      <RoleSwitcher isOpen={true} onClose={() => {}} />
+      <RoleSwitcher isOpen={true} onClose={() => {}} />,
+        { language: 'ar' },
     );
     expect(screen.getByText(/تبديل الدور للمحاكاة فقط/i)).toBeTruthy();
   });

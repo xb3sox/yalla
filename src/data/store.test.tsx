@@ -1,133 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { mockExperiences, mockUser, mockReservations, mockNotifications } from '../infrastructure/mock/mockData';
 
-// Mock the store module
-const createStore = () => {
-  let state = {
-    language: 'en' as const,
-    role: 'participant' as const,
-    user: mockUser,
-    isAuthenticated: true,
-    onboardingStep: 'complete' as const,
-    experiences: mockExperiences,
-    reservations: [...mockReservations],
-    notifications: [...mockNotifications],
-    supportRequests: [] as any[],
-    feedbacks: [] as any[],
-    favorites: [] as string[],
-    blocks: [] as any[],
-    safetyCases: [] as any[],
-    auditEvents: [] as any[],
-    currentView: 'explore',
-  };
+import { reducer, initialState, type AppState, type Action } from './store';
 
-  const dispatch = (action: any) => {
-    switch (action.type) {
-      case 'SET_LANGUAGE':
-        state = { ...state, language: action.payload };
-        break;
-      case 'SET_ROLE':
-        state = { ...state, role: action.payload };
-        break;
-      case 'ADD_RESERVATION': {
-        const hasActiveReservation = state.reservations.some(
-          r => r.participantId === action.payload.participantId &&
-               r.planId === action.payload.planId &&
-               ['initiated', 'payment_pending', 'confirmed', 'reconfirmation_required', 'reconfirmed'].includes(r.state)
-        );
-        
-        if (!hasActiveReservation) {
-          state = { ...state, reservations: [...state.reservations, action.payload] };
-        }
-        break;
-      }
-      case 'RECONFIRM_RESERVATION': {
-        const reservation = state.reservations.find(r => r.id === action.payload);
-        
-        if (reservation && reservation.state === 'reconfirmation_required') {
-          if (!reservation.expiryAt || new Date(reservation.expiryAt) > new Date()) {
-            state = {
-              ...state,
-              reservations: state.reservations.map(r =>
-                r.id === action.payload 
-                  ? { ...r, state: 'reconfirmed' as const, reconfirmedAt: new Date().toISOString() }
-                  : r
-              ),
-            };
-          }
-        }
-        break;
-      }
-      case 'CANCEL_RESERVATION':
-        state = {
-          ...state,
-          reservations: state.reservations.map(r =>
-            r.id === action.payload 
-              ? { ...r, state: 'cancelled_by_participant' as const, cancelledAt: new Date().toISOString() }
-              : r
-          ),
-        };
-        break;
-      case 'ADD_FAVORITE': {
-        if (!state.favorites.includes(action.payload)) {
-          state = { ...state, favorites: [...state.favorites, action.payload] };
-        }
-        break;
-      }
-      case 'REMOVE_FAVORITE':
-        state = { ...state, favorites: state.favorites.filter(id => id !== action.payload) };
-        break;
-      case 'ADD_FEEDBACK':
-        state = { ...state, feedbacks: [...state.feedbacks, action.payload] };
-        break;
-      case 'ADD_SUPPORT_REQUEST':
-        state = { ...state, supportRequests: [...state.supportRequests, action.payload] };
-        break;
-      case 'ADD_BLOCK': {
-        const hasBlock = state.blocks.some(
-          b => b.blockerId === action.payload.blockerId && 
-               b.blockedEntityId === action.payload.blockedEntityId
-        );
-        if (!hasBlock) {
-          state = { ...state, blocks: [...state.blocks, action.payload] };
-        }
-        break;
-      }
-      case 'REMOVE_BLOCK':
-        state = { ...state, blocks: state.blocks.filter(b => b.id !== action.payload) };
-        break;
-      case 'ADD_SAFETY_CASE':
-        state = { ...state, safetyCases: [...state.safetyCases, action.payload] };
-        break;
-      case 'UPDATE_SAFETY_CASE':
-        state = {
-          ...state,
-          safetyCases: state.safetyCases.map(c =>
-            c.id === action.payload.id ? { ...c, state: action.payload.state } : c
-          ),
-        };
-        break;
-      case 'ADD_AUDIT_EVENT':
-        state = { ...state, auditEvents: [...state.auditEvents, action.payload] };
-        break;
-      case 'ACCEPT_MATERIAL_CHANGES': {
-        const auditEvent = {
-          id: `audit-${Date.now()}`,
-          actorId: state.user?.id || 'unknown',
-          actorRole: state.role,
-          action: 'material_changes_accepted',
-          resourceType: 'reservation',
-          resourceId: action.payload.reservationId,
-          details: { changeIds: action.payload.changeIds },
-          timestamp: new Date().toISOString(),
-          classification: 'confidential' as const,
-        };
-        state = { ...state, auditEvents: [...state.auditEvents, auditEvent] };
-        break;
-      }
-    }
-  };
-
+// Test-only state builder: seeds a base state then replays actions through the
+// REAL reducer so tests never re-implement (and drift from) production logic.
+const createStore = (overrides: Partial<AppState> = {}) => {
+  let state: AppState = { ...initialState, reservations: [...mockReservations], notifications: [...mockNotifications], ...overrides };
+  const dispatch = (action: Action) => { state = reducer(state, action); };
   return { getState: () => state, dispatch };
 };
 
@@ -218,7 +98,7 @@ describe('Store Integration Tests', () => {
       const expiredReservation = {
         id: 'res-expired',
         participantId: 'user-1',
-        planId: 'exp-1',
+        planId: 'exp-99', // No active reservation for this plan -> passes duplicate check
         state: 'reconfirmation_required' as const,
         createdAt: new Date().toISOString(),
         expiryAt: '2020-01-01T00:00:00Z', // Past date
@@ -231,7 +111,7 @@ describe('Store Integration Tests', () => {
 
       const state = store.getState();
       const reservation = state.reservations.find(r => r.id === 'res-expired');
-      expect(reservation?.state).toBe('reconfirmation_required'); // Should not change
+      expect(reservation?.state).toBe('expired'); // Expired: cannot reconfirm, moves to terminal state
     });
 
     it('should cancel a reservation', () => {

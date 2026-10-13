@@ -1,15 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { NotificationCenter, NotificationBell } from './NotificationCenter';
-import { AppProvider } from '../data/store';
+import { renderWithProviders } from '../test/utils';
 
-const renderWithProvider = (ui: React.ReactElement) => {
-  return render(
-    <AppProvider>
-      {ui}
-    </AppProvider>
-  );
-};
+const renderWithProvider = renderWithProviders;
+
+// Helper: render NotificationCenter with an Arabic locale pre-seeded through
+// the real reducer (keeps tests honest about default-English state).
+const renderArabic = (ui: React.ReactElement, options?: Parameters<typeof renderWithProvider>[1]) =>
+  renderWithProvider(ui, { ...options, language: 'ar' });
 
 describe('NotificationCenter Component', () => {
   it('should not render when isOpen is false', () => {
@@ -27,7 +26,7 @@ describe('NotificationCenter Component', () => {
   });
 
   it('should render Arabic title when language is Arabic', () => {
-    renderWithProvider(
+    renderArabic(
       <NotificationCenter isOpen={true} onClose={() => {}} />
     );
     expect(screen.getByText(/الإشعارات/i)).toBeTruthy();
@@ -55,7 +54,7 @@ describe('NotificationCenter Component', () => {
     renderWithProvider(
       <NotificationCenter isOpen={true} onClose={() => {}} />
     );
-    const backdrop = document.querySelector('.bg-black\\/40');
+    const backdrop = document.querySelector('[aria-hidden="true"]');
     expect(backdrop).toBeTruthy();
   });
 
@@ -65,7 +64,7 @@ describe('NotificationCenter Component', () => {
       <NotificationCenter isOpen={true} onClose={onClose} />
     );
     
-    const backdrop = document.querySelector('.bg-black\\/40');
+    const backdrop = document.querySelector('[aria-hidden="true"]');
     if (backdrop) {
       fireEvent.click(backdrop);
     }
@@ -106,14 +105,16 @@ describe('NotificationCenter Component', () => {
 
   it('should display empty state when no notifications', () => {
     renderWithProvider(
-      <NotificationCenter isOpen={true} onClose={() => {}} />
+      <NotificationCenter isOpen={true} onClose={() => {}} />,
+      { extraActions: [{ type: 'CLEAR_NOTIFICATIONS' as const }] }
     );
     expect(screen.getByText(/No notifications yet/i)).toBeTruthy();
   });
 
   it('should display Arabic empty state', () => {
-    renderWithProvider(
-      <NotificationCenter isOpen={true} onClose={() => {}} />
+    renderArabic(
+      <NotificationCenter isOpen={true} onClose={() => {}} />,
+      { extraActions: [{ type: 'CLEAR_NOTIFICATIONS' as const }] }
     );
     expect(screen.getByText(/لا توجد إشعارات/i)).toBeTruthy();
   });
@@ -161,7 +162,7 @@ describe('NotificationBell Component', () => {
   });
 
   it('should have Arabic aria-label', () => {
-    renderWithProvider(
+    renderArabic(
       <NotificationBell onClick={() => {}} count={0} />
     );
     const button = screen.getByLabelText('الإشعارات');

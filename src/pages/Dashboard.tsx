@@ -53,6 +53,7 @@ export function DashboardPage() {
     }
 
     loadDashboardData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, navigate]);
 
   const loadDashboardData = async () => {
@@ -61,21 +62,23 @@ export function DashboardPage() {
       setError(null);
 
       // Load reservations
+      let completedCount = 0;
       const reservationsResponse = await api.reservations.list();
       if (reservationsResponse.success && reservationsResponse.data) {
         const data = reservationsResponse.data as any;
         const reservations = data.reservations || [];
         setRecentReservations(reservations.slice(0, 5));
-        
+        completedCount = reservations.filter((r: any) =>
+          ['completed', 'attended'].includes(r.state)
+        ).length;
+
         setStats(prev => ({
           ...prev,
           totalReservations: reservations.length,
-          upcomingReservations: reservations.filter((r: any) => 
+          upcomingReservations: reservations.filter((r: any) =>
             ['confirmed', 'reconfirmed', 'reconfirmation_required'].includes(r.state)
           ).length,
-          completedExperiences: reservations.filter((r: any) => 
-            ['completed', 'attended'].includes(r.state)
-          ).length,
+          completedExperiences: completedCount,
         }));
       }
 
@@ -107,13 +110,12 @@ export function DashboardPage() {
       }
 
       // Calculate reward points (mock for now)
-      const completedCount = stats.completedExperiences;
       const points = completedCount * 30; // 30 points per completed experience
-      const tier = points >= 1000 ? 'Platinum' : 
-                   points >= 500 ? 'Gold' : 
-                   points >= 200 ? 'Silver' : 
+      const tier = points >= 1000 ? 'Platinum' :
+                   points >= 500 ? 'Gold' :
+                   points >= 200 ? 'Silver' :
                    points >= 50 ? 'Bronze' : 'Member';
-      
+
       setStats(prev => ({
         ...prev,
         rewardPoints: points,

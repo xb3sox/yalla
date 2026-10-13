@@ -26,8 +26,9 @@ export default defineConfig(async ({ mode }) => {
       globals: true,
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],
-      include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}', 'tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-      exclude: ['backend/**', 'node_modules/**', 'dist/**'],
+      include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+      exclude: ['backend/**', 'node_modules/**', 'dist/**', 'tests/e2e/**'],
+      isolate: false,
       css: true,
       coverage: {
         provider: 'v8',

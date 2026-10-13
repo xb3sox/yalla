@@ -108,7 +108,8 @@ describe('LoginPage', () => {
     render(
       <AppProvider>
         <LoginPage />
-      </AppProvider>
+      </AppProvider>,
+        { language: 'ar' },
     );
 
     // Check for Arabic translations

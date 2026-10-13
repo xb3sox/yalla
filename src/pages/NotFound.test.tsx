@@ -39,7 +39,8 @@ describe('NotFoundPage', () => {
     render(
       <AppProvider>
         <NotFoundPage />
-      </AppProvider>
+      </AppProvider>,
+        { language: 'ar' },
     );
 
     expect(screen.getByText(/الصفحة غير موجودة/i)).toBeTruthy();
@@ -72,7 +73,8 @@ describe('NotFoundPage', () => {
     render(
       <AppProvider>
         <NotFoundPage />
-      </AppProvider>
+      </AppProvider>,
+        { language: 'ar' },
     );
 
     const homeButton = screen.getByText(/العودة للرئيسية/i);
@@ -94,7 +96,8 @@ describe('NotFoundPage', () => {
     render(
       <AppProvider>
         <NotFoundPage />
-      </AppProvider>
+      </AppProvider>,
+        { language: 'ar' },
     );
 
     const exploreButton = screen.getByText(/استكشف التجارب/i);
@@ -116,7 +119,8 @@ describe('NotFoundPage', () => {
     render(
       <AppProvider>
         <NotFoundPage />
-      </AppProvider>
+      </AppProvider>,
+        { language: 'ar' },
     );
 
     const backButton = screen.getByText(/رجوع/i);
@@ -177,7 +181,8 @@ describe('NotFoundPage', () => {
     render(
       <AppProvider>
         <NotFoundPage />
-      </AppProvider>
+      </AppProvider>,
+        { language: 'ar' },
     );
 
     const supportLink = screen.getByText(/التواصل مع الدعم/i);
@@ -249,7 +254,8 @@ describe('NotFoundPage', () => {
     render(
       <AppProvider>
         <NotFoundPage />
-      </AppProvider>
+      </AppProvider>,
+        { language: 'ar' },
     );
 
     const helpText = screen.getByText(/إذا كنت تعتقد أن هذا خطأ/i);

@@ -32,7 +32,8 @@ describe('ArrivalModePage', () => {
     render(
       <AppProvider>
         <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>
+      </AppProvider>,
+        { language: 'ar' },
     );
 
     expect(screen.getByText(/الوصول/i)).toBeTruthy();
@@ -77,7 +78,8 @@ describe('ArrivalModePage', () => {
     render(
       <AppProvider>
         <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>
+      </AppProvider>,
+        { language: 'ar' },
     );
 
     expect(screen.getByText(/غير متاح بعد/i)).toBeTruthy();
@@ -152,7 +154,8 @@ describe('ArrivalModePage', () => {
     render(
       <AppProvider>
         <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>
+      </AppProvider>,
+        { language: 'ar' },
     );
 
     expect(screen.getByText(/تفاصيل المكان الدقيقة متاحة فقط/i)).toBeTruthy();
