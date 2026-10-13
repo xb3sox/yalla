@@ -1,6 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
+import request from 'supertest';
 import pool from '../../src/config/database';
-import { sanitizeInput, healthCheck } from '../../src/middleware/security.middleware';
+import { sanitizeInput, healthCheck, securityHeaders } from '../../src/middleware/security.middleware';
 
 jest.mock('../../src/config/database', () => ({
   __esModule: true,
@@ -10,6 +11,57 @@ jest.mock('../../src/config/database', () => ({
 }));
 
 describe('Security Middleware', () => {
+  describe('securityHeaders', () => {
+    let app: express.Application;
+
+    beforeEach(() => {
+      app = express();
+      app.use(securityHeaders);
+      app.get('/test', (_req, res) => {
+        res.status(200).send('OK');
+      });
+    });
+
+    it('should set Content-Security-Policy header with strict directives', async () => {
+      const response = await request(app).get('/test');
+
+      expect(response.headers['content-security-policy']).toBeDefined();
+      const csp = response.headers['content-security-policy'];
+
+      expect(csp).toContain("default-src 'self'");
+      expect(csp).toContain("script-src 'self'");
+      expect(csp).toContain("style-src 'self' 'unsafe-inline'");
+      expect(csp).toContain("img-src 'self' data: https:");
+      expect(csp).toContain("connect-src 'self' https:");
+      expect(csp).toContain("font-src 'self' https: data:");
+      expect(csp).toContain("object-src 'none'");
+      expect(csp).toContain("media-src 'self'");
+      expect(csp).toContain("frame-src 'none'");
+      expect(csp).toContain("frame-ancestors 'none'");
+      expect(csp).toContain("base-uri 'self'");
+      expect(csp).toContain("form-action 'self'");
+      expect(csp).toContain("upgrade-insecure-requests");
+    });
+
+    it('should set Strict-Transport-Security header with subdomains and max-age of 1 year', async () => {
+      const response = await request(app).get('/test');
+
+      expect(response.headers['strict-transport-security']).toBe('max-age=31536000; includeSubDomains; preload');
+    });
+
+    it('should set X-Content-Type-Options: nosniff header', async () => {
+      const response = await request(app).get('/test');
+
+      expect(response.headers['x-content-type-options']).toBe('nosniff');
+    });
+
+    it('should set frameguard to DENY (X-Frame-Options: DENY)', async () => {
+      const response = await request(app).get('/test');
+
+      expect(response.headers['x-frame-options']).toBe('DENY');
+    });
+  });
+
   describe('sanitizeInput', () => {
     let req: Partial<Request>;
     let res: Partial<Response>;
