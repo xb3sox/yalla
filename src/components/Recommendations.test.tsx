@@ -1,15 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Recommendations } from './Recommendations';
-import { AppProvider } from '../data/store';
+import { renderWithProviders } from '../test/utils';
 
-const renderWithProvider = (ui: React.ReactElement) => {
-  return render(
-    <AppProvider>
-      {ui}
-    </AppProvider>
-  );
-};
+const renderWithProvider = renderWithProviders;
 
 describe('Recommendations Component', () => {
   it('should render recommendations section', () => {
@@ -22,7 +16,8 @@ describe('Recommendations Component', () => {
 
   it('should render Arabic title when language is Arabic', () => {
     renderWithProvider(
-      <Recommendations onSelectExperience={() => {}} limit={3} />
+      <Recommendations onSelectExperience={() => {}} limit={3} />,
+        { language: 'ar' },
     );
     
     expect(screen.getByText(/مقترحات لك/i)).toBeTruthy();
@@ -38,7 +33,8 @@ describe('Recommendations Component', () => {
 
   it('should render Arabic description when language is Arabic', () => {
     renderWithProvider(
-      <Recommendations onSelectExperience={() => {}} limit={3} />
+      <Recommendations onSelectExperience={() => {}} limit={3} />,
+        { language: 'ar' },
     );
     
     expect(screen.getByText(/تجارب قد تعجبك/i)).toBeTruthy();

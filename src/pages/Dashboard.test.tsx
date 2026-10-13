@@ -19,8 +19,11 @@ vi.mock('../hooks/useAuth', () => ({
   }),
 }));
 
+// Stable navigate reference — an inline `() => vi.fn()` returns a NEW function
+// on every render, re-triggering the useEffect loop (max update depth).
+const mockNavigate = vi.fn();
 vi.mock('react-router-dom', () => ({
-  useNavigate: () => vi.fn(),
+  useNavigate: () => mockNavigate,
 }));
 
 describe('DashboardPage', () => {

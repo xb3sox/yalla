@@ -1,15 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { FavoriteButton } from './FavoriteButton';
-import { AppProvider } from '../data/store';
+import { renderWithProviders } from '../test/utils';
 
-const renderWithProvider = (ui: React.ReactElement) => {
-  return render(
-    <AppProvider>
-      {ui}
-    </AppProvider>
-  );
-};
+const renderWithProvider = renderWithProviders;
 
 describe('FavoriteButton Component', () => {
   it('should render favorite button', () => {
@@ -75,12 +69,10 @@ describe('FavoriteButton Component', () => {
   it('should prevent event propagation when clicked', () => {
     const parentClick = vi.fn();
     
-    render(
-      <AppProvider>
-        <div onClick={parentClick}>
-          <FavoriteButton experienceId="exp-1" />
-        </div>
-      </AppProvider>
+    renderWithProvider(
+      <div onClick={parentClick}>
+        <FavoriteButton experienceId="exp-1" />
+      </div>
     );
 
     const button = screen.getByRole('button');

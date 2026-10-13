@@ -6,7 +6,7 @@ import { allExperiences, mockUser, mockReservations, mockNotifications } from '.
 export const mockExperiences = allExperiences;
 
 // State
-interface AppState {
+export interface AppState {
   language: Language;
   role: Role;
   user: UserProfile | null;
@@ -24,7 +24,7 @@ interface AppState {
   currentView: string;
 }
 
-type Action =
+export type Action =
   | { type: 'SET_LANGUAGE'; payload: Language }
   | { type: 'SET_ROLE'; payload: Role }
   | { type: 'LOGIN'; payload: UserProfile }
@@ -36,6 +36,7 @@ type Action =
   | { type: 'ADD_FEEDBACK'; payload: Feedback }
   | { type: 'ADD_SUPPORT_REQUEST'; payload: SupportRequest }
   | { type: 'SET_VIEW'; payload: string }
+  | { type: 'CLEAR_NOTIFICATIONS' }
   | { type: 'RECONFIRM_RESERVATION'; payload: string }
   | { type: 'CANCEL_RESERVATION'; payload: string }
   | { type: 'ADD_FAVORITE'; payload: string }
@@ -47,7 +48,7 @@ type Action =
   | { type: 'ACCEPT_MATERIAL_CHANGES'; payload: { reservationId: string; changeIds: string[] } }
   | { type: 'ADD_AUDIT_EVENT'; payload: AuditEvent };
 
-const initialState: AppState = {
+export const initialState: AppState = {
   language: 'en',
   role: 'participant',
   user: mockUser,
@@ -68,7 +69,7 @@ const initialState: AppState = {
 // Demo: Start authenticated for immediate access to the full journey
 // Set isAuthenticated: false and onboardingStep: 'phone' to see onboarding flow
 
-function reducer(state: AppState, action: Action): AppState {
+export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'SET_LANGUAGE':
       return { ...state, language: action.payload };
@@ -111,9 +112,14 @@ function reducer(state: AppState, action: Action): AppState {
         return state;
       }
       
-      // Check if expired
+      // Expired reservations cannot be reconfirmed — move to terminal 'expired' state
       if (reservation.expiryAt && new Date(reservation.expiryAt) < new Date()) {
-        return state;
+        return {
+          ...state,
+          reservations: state.reservations.map(r =>
+            r.id === action.payload ? { ...r, state: 'expired' as const } : r
+          ),
+        };
       }
       
       return {
@@ -136,6 +142,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, supportRequests: [...state.supportRequests, action.payload] };
     case 'SET_VIEW':
       return { ...state, currentView: action.payload };
+    case 'CLEAR_NOTIFICATIONS':
+      return { ...state, notifications: [] };
     case 'ADD_FAVORITE': {
       // Check for duplicate
       if (state.favorites.includes(action.payload)) {
@@ -202,8 +210,12 @@ function reducer(state: AppState, action: Action): AppState {
 
 const AppContext = createContext<{ state: AppState; dispatch: React.Dispatch<Action> } | null>(null);
 
-export function AppProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+export function AppProvider({ children, initialActions }: { children: ReactNode; initialActions?: Action[] }) {
+  const [state, dispatch] = useReducer(
+    reducer,
+    initialActions ?? [],
+    (acts) => acts.reduce((s, a) => reducer(s, a), initialState)
+  );
   return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>;
 }
 

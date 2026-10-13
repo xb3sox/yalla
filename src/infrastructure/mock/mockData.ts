@@ -200,7 +200,8 @@ export const mockReservations: Reservation[] = [
     state: 'reconfirmation_required',
     createdAt: '2026-01-22T09:00:00Z',
     confirmedAt: '2026-01-22T09:01:00Z',
-    expiryAt: '2026-02-16T23:59:00Z',
+    // Dynamic future expiry so reconfirmation stays valid regardless of run date
+    expiryAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     paymentState: 'captured',
     paymentId: 'pay-synth-2',
     idempotencyKey: 'idem-2',

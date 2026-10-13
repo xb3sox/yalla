@@ -1,15 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { OfflineIndicator } from './OfflineIndicator';
-import { AppProvider } from '../data/store';
+import { renderWithProviders } from '../test/utils';
 
-const renderWithProvider = (ui: React.ReactElement) => {
-  return render(
-    <AppProvider>
-      {ui}
-    </AppProvider>
-  );
-};
+const renderWithProvider = renderWithProviders;
 
 describe('OfflineIndicator Component', () => {
   let addEventListenerSpy: any;
@@ -39,7 +33,7 @@ describe('OfflineIndicator Component', () => {
 
   it('should display Arabic message when language is Arabic', () => {
     Object.defineProperty(navigator, 'onLine', { value: false, writable: true });
-    renderWithProvider(<OfflineIndicator />);
+    renderWithProvider(<OfflineIndicator />, { language: 'ar' });
     expect(screen.getByText(/غير متصل/i)).toBeTruthy();
   });
 

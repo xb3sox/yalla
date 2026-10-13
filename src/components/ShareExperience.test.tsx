@@ -1,15 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ShareExperience } from './ShareExperience';
-import { AppProvider } from '../data/store';
+import { renderWithProviders } from '../test/utils';
 
-const renderWithProvider = (ui: React.ReactElement) => {
-  return render(
-    <AppProvider>
-      {ui}
-    </AppProvider>
-  );
-};
+const renderWithProvider = renderWithProviders;
 
 describe('ShareExperience Component', () => {
   const mockProps = {
@@ -24,7 +18,7 @@ describe('ShareExperience Component', () => {
   });
 
   it('should render Arabic share button label', () => {
-    renderWithProvider(<ShareExperience {...mockProps} />);
+    renderWithProvider(<ShareExperience {...mockProps} />, { language: 'ar' });
     const shareButton = screen.getByLabelText(/مشاركة التجربة/i);
     expect(shareButton).toBeTruthy();
   });
@@ -38,7 +32,7 @@ describe('ShareExperience Component', () => {
   });
 
   it('should open Arabic dialog', () => {
-    renderWithProvider(<ShareExperience {...mockProps} />);
+    renderWithProvider(<ShareExperience {...mockProps} />, { language: 'ar' });
     
     fireEvent.click(screen.getByLabelText(/مشاركة التجربة/i));
     
@@ -71,7 +65,7 @@ describe('ShareExperience Component', () => {
   });
 
   it('should display Arabic experience link label', () => {
-    renderWithProvider(<ShareExperience {...mockProps} />);
+    renderWithProvider(<ShareExperience {...mockProps} />, { language: 'ar' });
     
     fireEvent.click(screen.getByLabelText(/مشاركة التجربة/i));
     
@@ -96,7 +90,7 @@ describe('ShareExperience Component', () => {
   });
 
   it('should display Arabic share via section', () => {
-    renderWithProvider(<ShareExperience {...mockProps} />);
+    renderWithProvider(<ShareExperience {...mockProps} />, { language: 'ar' });
     
     fireEvent.click(screen.getByLabelText(/مشاركة التجربة/i));
     

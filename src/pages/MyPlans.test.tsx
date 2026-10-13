@@ -41,7 +41,8 @@ describe('MyPlansPage', () => {
           onGoToArrival={mockOnGoToArrival}
           onGoToFeedback={mockOnGoToFeedback}
         />
-      </AppProvider>
+      </AppProvider>,
+        { language: 'ar' },
     );
 
     expect(screen.getByText(/خططي/i)).toBeTruthy();
@@ -69,7 +70,8 @@ describe('MyPlansPage', () => {
           onGoToArrival={mockOnGoToArrival}
           onGoToFeedback={mockOnGoToFeedback}
         />
-      </AppProvider>
+      </AppProvider>,
+        { language: 'ar' },
     );
 
     expect(screen.getByText(/لا توجد خطط بعد/i)).toBeTruthy();
@@ -173,7 +175,8 @@ describe('MyPlansPage', () => {
           onGoToArrival={mockOnGoToArrival}
           onGoToFeedback={mockOnGoToFeedback}
         />
-      </AppProvider>
+      </AppProvider>,
+        { language: 'ar' },
     );
 
     expect(screen.getByText(/ابدأ الاستكشاف للعثور على تجربتك القادمة/i)).toBeTruthy();
