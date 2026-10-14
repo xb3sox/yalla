@@ -2,6 +2,7 @@
 
 export type Language = 'en' | 'ar';
 export type Role = 'visitor' | 'participant' | 'host' | 'operations' | 'support' | 'trust_safety' | 'admin';
+export type AppView = 'dashboard' | 'explore' | 'details' | 'plans' | 'arrival' | 'feedback' | 'profile' | 'support' | 'staff' | 'favorites' | 'notfound';
 
 export type PlanState = 'draft' | 'review' | 'published' | 'full' | 'changed' | 'in_progress' | 'completed' | 'archived' | 'cancelled';
 

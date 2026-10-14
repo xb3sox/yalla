@@ -94,7 +94,18 @@ describe('DashboardPage', () => {
     expect(mockOnNavigate).toHaveBeenCalledWith('explore');
   });
 
-  it('falls back to default title when Arabic notification title is missing', async () => {
+  it('calls onOpenNotifications when notification card button is clicked', async () => {
+    const mockOnOpenNotifications = vi.fn();
+    render(<AppProvider><DashboardPage onOpenNotifications={mockOnOpenNotifications} /></AppProvider>);
+    await waitFor(() => expect(screen.getByText('Unread Notifications')).toBeTruthy());
+
+    const notificationCard = screen.getByText('Unread Notifications').closest('div');
+    const viewAllBtn = notificationCard?.querySelector('button');
+    viewAllBtn?.click();
+    expect(mockOnOpenNotifications).toHaveBeenCalled();
+  });
+
+  it('falls back to default title when Arabic notification title is missing in Arabic mode', async () => {
     (api.notifications.list as any).mockResolvedValue({
       success: true,
       data: {
@@ -110,7 +121,11 @@ describe('DashboardPage', () => {
       },
     });
 
-    render(<AppProvider><DashboardPage /></AppProvider>);
+    render(
+      <AppProvider initialActions={[{ type: 'SET_LANGUAGE', payload: 'ar' }]}>
+        <DashboardPage />
+      </AppProvider>
+    );
     await waitFor(() => {
       expect(screen.getByText('English Title Only')).toBeTruthy();
       expect(screen.getByText('English Body Only')).toBeTruthy();

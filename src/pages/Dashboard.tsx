@@ -15,6 +15,8 @@ import {
   AlertCircle
 } from 'lucide-react';
 
+import { AppView } from '../types';
+
 interface DashboardStats {
   totalReservations: number;
   upcomingReservations: number;
@@ -26,16 +28,17 @@ interface DashboardStats {
 }
 
 interface DashboardPageProps {
-  onNavigate?: (view: string) => void;
+  onNavigate?: (view: AppView) => void;
+  onOpenNotifications?: () => void;
 }
 
-export function DashboardPage({ onNavigate }: DashboardPageProps = {}) {
+export function DashboardPage({ onNavigate, onOpenNotifications }: DashboardPageProps = {}) {
   const { user: authUser, isAuthenticated, isLoading: authLoading } = useAuth();
   const { state } = useApp();
   const lang = state.language;
   const navigate = useNavigate();
   
-  const handleNav = (path: string, view: string) => {
+  const handleNav = (path: string, view: AppView) => {
     if (onNavigate) {
       onNavigate(view);
     } else {
@@ -225,7 +228,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps = {}) {
               {lang === 'ar' ? 'إشعارات غير مقروءة' : 'Unread Notifications'}
             </h3>
             <button
-              onClick={() => handleNav('/notifications', 'plans')}
+              onClick={() => onOpenNotifications ? onOpenNotifications() : handleNav('/notifications', 'plans')}
               className="text-sm text-brand-600 hover:text-brand-700 font-medium"
             >
               {lang === 'ar' ? 'عرض الكل →' : 'View all →'}
