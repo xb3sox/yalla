@@ -1,47 +1,43 @@
-# AGENTS.md - Autonomous Agent Guide
+# AGENTS.md
 
-This repository contains **Yalla**, a curated experience platform with a React/Vite frontend and an Express/TypeScript/PostgreSQL backend.
+Yalla: React 18 + Vite 6 frontend at repo root, Express + TypeScript + PostgreSQL API in `backend/`. Two independent npm projects (no workspaces) — install/test each separately with `npm ci`. CI uses npm, Node 20 (a stale `pnpm-lock.yaml` exists; ignore it).
 
-## Project Structure
+## Commands
 
-- `/`: Frontend application (React 18, Vite, TypeScript, Tailwind CSS, Vitest).
-- `/backend`: Backend API service (Express, TypeScript, PostgreSQL, Jest).
-- `.github/workflows`: CI/CD workflows and automated PR checks.
-- `.jules`: Persistent agent operational learnings and guidelines.
+Frontend (repo root):
+- `npm run dev` — Vite on port 3000 (`strictPort`, host `0.0.0.0`)
+- `npm run typecheck` — `tsc --noEmit`, covers `src/` only
+- `npx vitest run <path>` — single/focused test. Bare `npm test` starts vitest **watch mode**; always add `run`.
+- `npm run test:coverage` — what CI runs
 
----
+Backend (`cd backend`):
+- `npm run dev` / `npm run build` / `npm start` — `tsx watch` / `tsc` / `node dist/server.js`
+- `npm run lint` — eslint (only the backend has a lint script)
+- `npm run typecheck`
+- `npm test -- tests/unit` — tolerates a missing DB locally (warn-and-skip in `tests/setup.ts`); CI runs it with Postgres + migrations. `tests/api` + `tests/e2e` strictly require `DATABASE_URL` + `npm run migrate`.
+- Full `npm test` adds `tests/api` + `tests/e2e` on top of unit. Without a DB those suites fail or pass vacuously via the warn-and-skip cleanup.
+- `npm run migrate` / `migrate:rollback` / `seed` — via `tsx`, need `DATABASE_URL`
 
-## Environment Setup & Build Commands
+Before a PR: frontend `typecheck` + `vitest run`, backend `lint` + `typecheck` + `tests/unit` (mirrors CI jobs `frontend` / `backend` / `code-quality`).
 
-### Frontend
-- Install: `npm ci`
-- Typecheck: `npm run typecheck`
-- Test: `npm test -- --run`
-- Build: `npm run build`
+## Architecture
 
-### Backend
-- Directory: `cd backend`
-- Install: `npm ci`
-- Lint: `npm run lint`
-- Typecheck: `npm run typecheck`
-- Test: `npm test -- tests/unit/`
-- Build: `npm run build`
+- Frontend entry: `src/main.tsx` → `App.tsx` (lazy-loaded routes). Layers: `domain/` + `application/` (business logic/use cases), `infrastructure/` (mock data), `data/store.tsx` (Context+useReducer), `services/api.ts` (fetch client with TTL cache + retry — invalidate on mutations), `hooks/useAuth.ts`.
+- Backend entry: `src/server.ts` (Express app, routes mount at `/api/<config.apiVersion>/`, default `v1`, override via `API_VERSION`). Layers: `routes/` → `controllers/` → `models/`; cross-cutting in `middleware/` (auth, `security.middleware.ts`, error), `config/`, `utils/`.
+- Tests: frontend Vitest+jsdom, `isolate: false` with shared cleanup in `src/test/setup.ts`. Backend Jest+ts-jest with `diagnostics: false` — **type errors never fail tests**, so always run `typecheck` separately.
+- Env: copy `.env.example` → `.env` (root) and `backend/.env.example` → `backend/.env`. Never commit `.env`.
 
----
+## Gotchas
 
-## Agent Coding & Execution Rules
+- **Port collision:** both Vite dev server and backend default to port 3000. Run one at a time or override `PORT` (backend) — backend `CORS_ORIGIN` defaults to `http://localhost:5173`.
+- **`docker-compose.yml` frontend service is stale:** it builds `./frontend` (does not exist; frontend lives at root) and mounts `./frontend/src`. Only `postgres`/`redis`/`backend` services work as written.
+- Vitest `exclude`s `backend/**`, `dist/**`, `tests/e2e/**` — root test runs never touch the backend.
+- Backend `tests/setup.ts` truncates tables with `session_replication_role = replica`; needs a Postgres role with permission to do so.
+- No frontend lint script; backend eslint warns (not errors) on `any` and unused vars.
+- Bilingual UI (en/ar, RTL) — keep new strings in `src/i18n/` translation keys, not hardcoded; project targets WCAG 2.2 AA.
 
-1. **Test-First Verification:**
-   - Every bugfix, refactor, or feature MUST include corresponding unit or integration tests.
-   - Run tests before creating a pull request. Do not submit failing tests.
-2. **Security & Performance Standards:**
-   - Refer to [`.jules/sentinel.md`](.jules/sentinel.md): Prevent prototype pollution in sanitizers and eliminate internal error leakage in public responses.
-   - Refer to [`.jules/bolt.md`](.jules/bolt.md): Precompute set lookups and avoid nested iteration loops.
-3. **Pull Request Protocol:**
-   - Always branch off `main` using prefix: `jules/<issue-id>-<short-description>`.
-   - In PR description, MUST link and close the target issue using: `Closes #<issue-id>`.
-   - Provide a concise PR description with:
-     - Summary of changes
-     - Motivation/Problem solved
-     - Verification command & test proof
-   - Run Jules internal Critic Agent self-review before submitting.
+## Hard-earned rules (from `.jules/`)
+
+- Recursive input sanitizers must strip `__proto__`/`constructor`/`prototype` keys (`backend/src/middleware/security.middleware.ts`) — prototype-pollution risk.
+- Public `/health` and `/metrics` responses must never include raw `error.message`/DB internals — use generic status only.
+- Precompute `Set` lookups outside scoring/filter loops instead of nested `.filter` per item (was `O(N·R·F)` in recommendation scoring).

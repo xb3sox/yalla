@@ -165,9 +165,9 @@ function LoginPage() {
 }
 ```
 
-**👉 See [STATE.md](./STATE.md) for detailed project status.**  
-**👉 See [FINAL_PROJECT_REPORT.md](./FINAL_PROJECT_REPORT.md) for complete project report.**  
-**👉 See [SESSION_FIXES_REPORT.md](./SESSION_FIXES_REPORT.md) for latest fixes.**
+**👉 See [STATE.md](./docs/archive/STATE.md) for detailed project status.**  
+**👉 See [FINAL_PROJECT_REPORT.md](./docs/archive/FINAL_PROJECT_REPORT.md) for complete project report.**  
+**👉 See [SESSION_FIXES_REPORT.md](./docs/archive/SESSION_FIXES_REPORT.md) for latest fixes.**
 
 ---
 
@@ -273,44 +273,40 @@ See `.env.example` for all available configuration options.
 ## Project Structure
 
 ```
-yalla-mvp/
-├── src/
-│   ├── components/          # 40+ reusable UI components
-│   ├── pages/               # 10 page components
-│   ├── hooks/               # 5 custom React hooks
+yalla/
+├── src/                     # Frontend source (React 18, Vite 6, Tailwind CSS)
+│   ├── components/          # Reusable UI components
+│   ├── pages/               # Page components
+│   ├── hooks/               # Custom React hooks (useAuth, etc.)
 │   ├── domain/              # Business logic (entities, services)
-│   ├── application/         # Use cases (booking, reconfirmation, etc.)
-│   ├── infrastructure/      # External concerns (mock data)
+│   ├── application/         # Use cases (booking, reconfirmation, rewards)
+│   ├── infrastructure/      # Mock data & external concerns
 │   ├── shared/              # Utilities (validation, errors, logger)
+│   ├── services/            # API client with TTL caching & retry
 │   ├── data/                # State management (store.tsx)
-│   ├── i18n/                # Localization (194+ translation keys)
-│   ├── types/               # TypeScript type definitions
-│   ├── App.tsx              # Main app component
-│   ├── main.tsx             # Entry point
-│   └── index.css            # Global styles & tokens
+│   ├── i18n/                # Localization (EN/AR with RTL)
+│   └── types/               # TypeScript type definitions
+├── backend/                 # Backend API (Express, TypeScript, PostgreSQL)
+│   ├── src/                 # Controllers, models, routes, middleware
+│   ├── tests/               # Unit, API, and E2E Jest test suites
+│   └── README.md            # Backend API documentation
+├── docs/
+│   └── archive/             # Historical completion reports & audit snapshots
 ├── public/                  # Static assets
-├── index.html               # HTML template
-├── package.json             # Dependencies
-├── tsconfig.json            # TypeScript config
+├── package.json             # Frontend dependencies & scripts
+├── tsconfig.json            # Frontend TypeScript config
 ├── vite.config.js           # Vite config
-├── .env.example             # Environment variables template
-├── README.md                # This file
+├── .env.example             # Frontend environment variables template
+├── README.md                # Project overview and setup
+├── AGENTS.md                # Developer & agent operational commands
 ├── PRD.md                   # Product Requirements Document
-├── VERIFICATION.md          # Verification report
+├── DEPLOYMENT.md            # Production deployment guide
 ├── ROADMAP.md               # Development roadmap
 ├── CHANGELOG.md             # Version history
 └── CONTRIBUTING.md          # Contribution guidelines
 ```
 
 ---
-
-## Documentation
-
-- **[PRD.md](./PRD.md)** - Complete product requirements (45 functional requirements, 22 business rules)
-- **[VERIFICATION.md](./VERIFICATION.md)** - Comprehensive verification report
-- **[ROADMAP.md](./ROADMAP.md)** - Development roadmap and future plans
-- **[CHANGELOG.md](./CHANGELOG.md)** - Version history and changes
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - How to contribute to the project
 
 ---
 
@@ -393,19 +389,14 @@ yalla-mvp/
 
 ## Testing
 
-### Current Coverage
-- ✅ TypeScript type checking (100% type-safe)
-- ✅ Build verification (0 errors, 0 warnings)
-- ✅ Manual testing (all flows tested)
-- ✅ Accessibility audit (WCAG 2.2 AA compliant)
-- ✅ Cross-browser testing (Chrome, Firefox, Safari, Edge)
-
-### Planned Testing
-- Unit tests with Vitest (target: 80% coverage)
-- Integration tests with React Testing Library
-- E2E tests with Playwright
-- Visual regression tests
-- Accessibility automated tests
+- **Frontend Tests**: Vitest + React Testing Library + jsdom (
+px vitest run)
+- **Backend Tests**: Jest + ts-jest (cd backend && npm test -- tests/unit)
+- **End-to-End Tests**: Playwright (
+px playwright test)
+- **Type Checking**: TypeScript strict mode (
+pm run typecheck across root and backend)
+- **CI Suite**: Automated GitHub Actions testing on every pull request and push to main
 
 ---
 
@@ -467,15 +458,14 @@ See [ROADMAP.md](./ROADMAP.md) for detailed roadmap.
 
 ## 📚 Documentation
 
+- **[AGENTS.md](./AGENTS.md)** - Operational commands, CI mirror commands, test instructions
 - **[PRD.md](./PRD.md)** - Complete product requirements (45 functional requirements, 22 business rules)
-- **[STATE.md](./STATE.md)** - Current project state and progress tracking
-- **[COMPLETE_PROJECT_STATUS.md](./COMPLETE_PROJECT_STATUS.md)** - Comprehensive project status report
-- **[VERIFICATION.md](./VERIFICATION.md)** - Comprehensive verification report
-- **[ROADMAP.md](./ROADMAP.md)** - Development roadmap and future plans
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Production deployment guide (PM2, Docker, systemd)
+- **[Backend README](./backend/README.md)** - Backend API endpoints, migrations, and architecture
+- **[ROADMAP.md](./ROADMAP.md)** - Development roadmap and feature plans
 - **[CHANGELOG.md](./CHANGELOG.md)** - Version history and changes
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - How to contribute to the project
-- **[BACKEND_TESTING_REPORT.md](./BACKEND_TESTING_REPORT.md)** - Backend testing progress and coverage
-- **[Backend README](./backend/README.md)** - Backend API documentation
+- **[Archived Reports](./docs/archive/README.md)** - Historical session completion and audit reports
 
 ---
 
@@ -519,6 +509,6 @@ Proprietary - All rights reserved.
 
 **Built with ❤️ for exceptional user experiences**
 
-[README](./README.md) • [PRD](./PRD.md) • [STATE](./STATE.md) • [COMPLETE_PROJECT_STATUS](./COMPLETE_PROJECT_STATUS.md) • [Backend Testing](./BACKEND_TESTING_REPORT.md)
+[README](./README.md) • [AGENTS](./AGENTS.md) • [PRD](./PRD.md) • [DEPLOYMENT](./DEPLOYMENT.md) • [Backend README](./backend/README.md) • [Archive](./docs/archive/README.md)
 
 </div>
