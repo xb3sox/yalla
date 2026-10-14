@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { MyPlansPage } from './MyPlans';
-import { AppProvider } from '../data/store';
+import { renderWithProviders } from '../test/utils';
 
 // Mock useToast hook
 vi.mock('../components/Toast', () => ({
   useToast: () => ({
     showToast: vi.fn(),
   }),
+  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 describe('MyPlansPage', () => {
@@ -20,102 +21,89 @@ describe('MyPlansPage', () => {
   });
 
   it('renders page title', () => {
-    render(
-      <AppProvider>
-        <MyPlansPage
-          onViewExperience={mockOnViewExperience}
-          onGoToArrival={mockOnGoToArrival}
-          onGoToFeedback={mockOnGoToFeedback}
-        />
-      </AppProvider>
+    renderWithProviders(
+      <MyPlansPage
+        onViewExperience={mockOnViewExperience}
+        onGoToArrival={mockOnGoToArrival}
+        onGoToFeedback={mockOnGoToFeedback}
+      />
     );
 
     expect(screen.getByText(/My Plans/i)).toBeTruthy();
   });
 
   it('renders Arabic title when language is Arabic', () => {
-    render(
-      <AppProvider>
-        <MyPlansPage
-          onViewExperience={mockOnViewExperience}
-          onGoToArrival={mockOnGoToArrival}
-          onGoToFeedback={mockOnGoToFeedback}
-        />
-      </AppProvider>,
-        { language: 'ar' },
+    renderWithProviders(
+      <MyPlansPage
+        onViewExperience={mockOnViewExperience}
+        onGoToArrival={mockOnGoToArrival}
+        onGoToFeedback={mockOnGoToFeedback}
+      />,
+      { language: 'ar' }
     );
 
     expect(screen.getByText(/خططي/i)).toBeTruthy();
   });
 
   it('displays empty state when no reservations', () => {
-    render(
-      <AppProvider>
-        <MyPlansPage
-          onViewExperience={mockOnViewExperience}
-          onGoToArrival={mockOnGoToArrival}
-          onGoToFeedback={mockOnGoToFeedback}
-        />
-      </AppProvider>
+    renderWithProviders(
+      <MyPlansPage
+        onViewExperience={mockOnViewExperience}
+        onGoToArrival={mockOnGoToArrival}
+        onGoToFeedback={mockOnGoToFeedback}
+      />,
+      { extraActions: [{ type: 'CLEAR_RESERVATIONS' }] }
     );
 
     expect(screen.getByText(/No plans yet/i)).toBeTruthy();
   });
 
   it('displays Arabic empty state', () => {
-    render(
-      <AppProvider>
-        <MyPlansPage
-          onViewExperience={mockOnViewExperience}
-          onGoToArrival={mockOnGoToArrival}
-          onGoToFeedback={mockOnGoToFeedback}
-        />
-      </AppProvider>,
-        { language: 'ar' },
+    renderWithProviders(
+      <MyPlansPage
+        onViewExperience={mockOnViewExperience}
+        onGoToArrival={mockOnGoToArrival}
+        onGoToFeedback={mockOnGoToFeedback}
+      />,
+      { language: 'ar', extraActions: [{ type: 'CLEAR_RESERVATIONS' }] }
     );
 
-    expect(screen.getByText(/لا توجد خطط بعد/i)).toBeTruthy();
+    expect(screen.getByText(/لم تحجز أي تجارب بعد/i)).toBeTruthy();
   });
 
-  it('has explore button in empty state', () => {
-    render(
-      <AppProvider>
-        <MyPlansPage
-          onViewExperience={mockOnViewExperience}
-          onGoToArrival={mockOnGoToArrival}
-          onGoToFeedback={mockOnGoToFeedback}
-        />
-      </AppProvider>
+  it('has explore message in empty state', () => {
+    renderWithProviders(
+      <MyPlansPage
+        onViewExperience={mockOnViewExperience}
+        onGoToArrival={mockOnGoToArrival}
+        onGoToFeedback={mockOnGoToFeedback}
+      />,
+      { extraActions: [{ type: 'CLEAR_RESERVATIONS' }] }
     );
 
-    const exploreButton = screen.getByText(/Explore experiences/i);
-    expect(exploreButton).toBeTruthy();
+    expect(screen.getByText(/Start exploring/i)).toBeTruthy();
   });
 
   it('has proper page structure', () => {
-    render(
-      <AppProvider>
-        <MyPlansPage
-          onViewExperience={mockOnViewExperience}
-          onGoToArrival={mockOnGoToArrival}
-          onGoToFeedback={mockOnGoToFeedback}
-        />
-      </AppProvider>
+    renderWithProviders(
+      <MyPlansPage
+        onViewExperience={mockOnViewExperience}
+        onGoToArrival={mockOnGoToArrival}
+        onGoToFeedback={mockOnGoToFeedback}
+      />
     );
 
-    const container = document.querySelector('.min-h-screen');
+    const container = document.querySelector('.px-5');
     expect(container).toBeTruthy();
   });
 
   it('has proper padding', () => {
-    render(
-      <AppProvider>
-        <MyPlansPage
-          onViewExperience={mockOnViewExperience}
-          onGoToArrival={mockOnGoToArrival}
-          onGoToFeedback={mockOnGoToFeedback}
-        />
-      </AppProvider>
+    renderWithProviders(
+      <MyPlansPage
+        onViewExperience={mockOnViewExperience}
+        onGoToArrival={mockOnGoToArrival}
+        onGoToFeedback={mockOnGoToFeedback}
+      />
     );
 
     const container = document.querySelector('.px-5');
@@ -123,14 +111,12 @@ describe('MyPlansPage', () => {
   });
 
   it('has proper spacing', () => {
-    render(
-      <AppProvider>
-        <MyPlansPage
-          onViewExperience={mockOnViewExperience}
-          onGoToArrival={mockOnGoToArrival}
-          onGoToFeedback={mockOnGoToFeedback}
-        />
-      </AppProvider>
+    renderWithProviders(
+      <MyPlansPage
+        onViewExperience={mockOnViewExperience}
+        onGoToArrival={mockOnGoToArrival}
+        onGoToFeedback={mockOnGoToFeedback}
+      />
     );
 
     const title = screen.getByText(/My Plans/i);
@@ -139,46 +125,42 @@ describe('MyPlansPage', () => {
   });
 
   it('has empty state with icon', () => {
-    render(
-      <AppProvider>
-        <MyPlansPage
-          onViewExperience={mockOnViewExperience}
-          onGoToArrival={mockOnGoToArrival}
-          onGoToFeedback={mockOnGoToFeedback}
-        />
-      </AppProvider>
+    renderWithProviders(
+      <MyPlansPage
+        onViewExperience={mockOnViewExperience}
+        onGoToArrival={mockOnGoToArrival}
+        onGoToFeedback={mockOnGoToFeedback}
+      />,
+      { extraActions: [{ type: 'CLEAR_RESERVATIONS' }] }
     );
 
-    const icon = document.querySelector('.w-16');
+    const icon = document.querySelector('.w-10');
     expect(icon).toBeTruthy();
   });
 
   it('has empty state with description', () => {
-    render(
-      <AppProvider>
-        <MyPlansPage
-          onViewExperience={mockOnViewExperience}
-          onGoToArrival={mockOnGoToArrival}
-          onGoToFeedback={mockOnGoToFeedback}
-        />
-      </AppProvider>
+    renderWithProviders(
+      <MyPlansPage
+        onViewExperience={mockOnViewExperience}
+        onGoToArrival={mockOnGoToArrival}
+        onGoToFeedback={mockOnGoToFeedback}
+      />,
+      { extraActions: [{ type: 'CLEAR_RESERVATIONS' }] }
     );
 
-    expect(screen.getByText(/Start exploring to find your next experience/i)).toBeTruthy();
+    expect(screen.getByText(/You haven't booked any experiences yet. Start exploring!/i)).toBeTruthy();
   });
 
   it('has Arabic description', () => {
-    render(
-      <AppProvider>
-        <MyPlansPage
-          onViewExperience={mockOnViewExperience}
-          onGoToArrival={mockOnGoToArrival}
-          onGoToFeedback={mockOnGoToFeedback}
-        />
-      </AppProvider>,
-        { language: 'ar' },
+    renderWithProviders(
+      <MyPlansPage
+        onViewExperience={mockOnViewExperience}
+        onGoToArrival={mockOnGoToArrival}
+        onGoToFeedback={mockOnGoToFeedback}
+      />,
+      { language: 'ar', extraActions: [{ type: 'CLEAR_RESERVATIONS' }] }
     );
 
-    expect(screen.getByText(/ابدأ الاستكشاف للعثور على تجربتك القادمة/i)).toBeTruthy();
+    expect(screen.getByText(/لم تحجز أي تجارب بعد. ابدأ بالاستكشاف!/i)).toBeTruthy();
   });
 });

@@ -452,10 +452,13 @@ export function Dialog({ open, onClose, title, children, actions }: DialogProps)
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 fade-in" onClick={onClose} aria-hidden="true" />
       <div
         ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         className="relative bg-surface-raised rounded-2xl shadow-lg max-w-md w-full p-6 max-h-[85vh] overflow-y-auto slide-up"
       >
         <h2 className="text-lg font-semibold text-text-primary mb-4">{title}</h2>

@@ -25,17 +25,17 @@ describe('RoleSwitcher Component', () => {
       <RoleSwitcher isOpen={true} onClose={() => {}} />,
         { language: 'ar' },
     );
-    expect(screen.getByText(/تبديل الدور/i)).toBeTruthy();
+    expect(screen.getAllByText(/تبديل الدور/i).length).toBeGreaterThan(0);
   });
 
   it('should display all role options', () => {
     renderWithProvider(
       <RoleSwitcher isOpen={true} onClose={() => {}} />
     );
-    expect(screen.getByText(/Participant/i)).toBeTruthy();
-    expect(screen.getByText(/Operations/i)).toBeTruthy();
-    expect(screen.getByText(/Support/i)).toBeTruthy();
-    expect(screen.getByText(/Trust & Safety/i)).toBeTruthy();
+    expect(screen.getByText(/^Participant$/i)).toBeTruthy();
+    expect(screen.getByText(/^Operations$/i)).toBeTruthy();
+    expect(screen.getByText(/^Support$/i)).toBeTruthy();
+    expect(screen.getByText(/^Trust & Safety$/i)).toBeTruthy();
   });
 
   it('should display Arabic role names', () => {
@@ -43,10 +43,10 @@ describe('RoleSwitcher Component', () => {
       <RoleSwitcher isOpen={true} onClose={() => {}} />,
         { language: 'ar' },
     );
-    expect(screen.getByText(/مشارك/i)).toBeTruthy();
-    expect(screen.getByText(/العمليات/i)).toBeTruthy();
-    expect(screen.getByText(/الدعم/i)).toBeTruthy();
-    expect(screen.getByText(/الثقة والسلامة/i)).toBeTruthy();
+    expect(screen.getByText(/^مشارك$/i)).toBeTruthy();
+    expect(screen.getByText(/^العمليات$/i)).toBeTruthy();
+    expect(screen.getByText(/^الدعم$/i)).toBeTruthy();
+    expect(screen.getByText(/^الثقة والسلامة$/i)).toBeTruthy();
   });
 
   it('should display role descriptions', () => {
@@ -177,7 +177,7 @@ describe('RoleSwitcher Component', () => {
     renderWithProvider(
       <RoleSwitcher isOpen={true} onClose={() => {}} />
     );
-    const buttons = screen.getAllByRole('button');
+    const buttons = screen.getAllByRole('button').filter(b => b.getAttribute('aria-label') !== 'Close' && !b.querySelector('svg.lucide-x'));
     buttons.forEach(button => {
       expect(button.classList.contains('w-full')).toBe(true);
       expect(button.classList.contains('flex')).toBe(true);

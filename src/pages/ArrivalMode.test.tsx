@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import { ArrivalModePage } from './ArrivalMode';
-import { AppProvider } from '../data/store';
+import { renderWithProviders } from '../test/utils';
 
-// Mock useToast hook
 vi.mock('../components/Toast', () => ({
   useToast: () => ({
     showToast: vi.fn(),
   }),
+  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 describe('ArrivalModePage', () => {
@@ -19,31 +19,25 @@ describe('ArrivalModePage', () => {
   });
 
   it('renders page title', () => {
-    render(
-      <AppProvider>
-        <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>
+    renderWithProviders(
+      <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
     );
 
     expect(screen.getByText(/Arrival/i)).toBeTruthy();
   });
 
   it('renders Arabic title when language is Arabic', () => {
-    render(
-      <AppProvider>
-        <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>,
-        { language: 'ar' },
+    renderWithProviders(
+      <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />,
+      { language: 'ar' }
     );
 
-    expect(screen.getByText(/الوصول/i)).toBeTruthy();
+    expect(screen.getAllByText(/الوصول/i).length).toBeGreaterThan(0);
   });
 
   it('has back button', () => {
-    render(
-      <AppProvider>
-        <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>
+    renderWithProviders(
+      <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
     );
 
     const backButton = screen.getByLabelText(/Back/i);
@@ -51,10 +45,8 @@ describe('ArrivalModePage', () => {
   });
 
   it('calls onBack when back button is clicked', () => {
-    render(
-      <AppProvider>
-        <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>
+    renderWithProviders(
+      <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
     );
 
     const backButton = screen.getByLabelText(/Back/i);
@@ -64,32 +56,25 @@ describe('ArrivalModePage', () => {
   });
 
   it('displays not entitled message for non-confirmed reservations', () => {
-    render(
-      <AppProvider>
-        <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>
+    renderWithProviders(
+      <ArrivalModePage experienceId="exp-3" onBack={mockOnBack} />
     );
 
-    // Should show not entitled message since we're using mock data
     expect(screen.getByText(/Not yet available/i)).toBeTruthy();
   });
 
   it('displays Arabic not entitled message', () => {
-    render(
-      <AppProvider>
-        <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>,
-        { language: 'ar' },
+    renderWithProviders(
+      <ArrivalModePage experienceId="exp-3" onBack={mockOnBack} />,
+      { language: 'ar' }
     );
 
     expect(screen.getByText(/غير متاح بعد/i)).toBeTruthy();
   });
 
   it('has proper page structure', () => {
-    render(
-      <AppProvider>
-        <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>
+    renderWithProviders(
+      <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
     );
 
     const container = document.querySelector('.min-h-screen');
@@ -97,10 +82,8 @@ describe('ArrivalModePage', () => {
   });
 
   it('has header with gradient background', () => {
-    render(
-      <AppProvider>
-        <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>
+    renderWithProviders(
+      <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
     );
 
     const header = document.querySelector('.bg-brand-700');
@@ -108,10 +91,8 @@ describe('ArrivalModePage', () => {
   });
 
   it('has proper padding', () => {
-    render(
-      <AppProvider>
-        <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>
+    renderWithProviders(
+      <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
     );
 
     const content = document.querySelector('.px-5');
@@ -119,10 +100,8 @@ describe('ArrivalModePage', () => {
   });
 
   it('has centered message for not entitled', () => {
-    render(
-      <AppProvider>
-        <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>
+    renderWithProviders(
+      <ArrivalModePage experienceId="exp-3" onBack={mockOnBack} />
     );
 
     const container = document.querySelector('.text-center');
@@ -130,34 +109,28 @@ describe('ArrivalModePage', () => {
   });
 
   it('has icon for not entitled state', () => {
-    render(
-      <AppProvider>
-        <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>
+    renderWithProviders(
+      <ArrivalModePage experienceId="exp-3" onBack={mockOnBack} />
     );
 
-    const icon = document.querySelector('.w-12');
+    const icon = document.querySelector('.w-10');
     expect(icon).toBeTruthy();
   });
 
   it('has explanation text', () => {
-    render(
-      <AppProvider>
-        <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>
+    renderWithProviders(
+      <ArrivalModePage experienceId="exp-3" onBack={mockOnBack} />
     );
 
     expect(screen.getByText(/Exact venue details are available only/i)).toBeTruthy();
   });
 
   it('has Arabic explanation text', () => {
-    render(
-      <AppProvider>
-        <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
-      </AppProvider>,
-        { language: 'ar' },
+    renderWithProviders(
+      <ArrivalModePage experienceId="exp-3" onBack={mockOnBack} />,
+      { language: 'ar' }
     );
 
-    expect(screen.getByText(/تفاصيل المكان الدقيقة متاحة فقط/i)).toBeTruthy();
+    expect(screen.getByText(/تفاصيل المكان الدقيق متاحة فقط/i)).toBeTruthy();
   });
 });

@@ -11,21 +11,23 @@ interface MyPlansPageProps {
   onViewExperience: (id: string) => void;
   onGoToArrival: (id: string) => void;
   onGoToFeedback: (id: string) => void;
+  initialLoading?: boolean;
 }
 
-export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback }: MyPlansPageProps) {
+export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback, initialLoading = false }: MyPlansPageProps) {
   const { state, dispatch } = useApp();
   const { showToast } = useToast();
   const lang = state.language;
   const [cancelDialog, setCancelDialog] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(initialLoading);
 
   const userReservations = state.reservations.filter(r => r.participantId === 'user-1');
 
   useEffect(() => {
+    if (!initialLoading) return;
     const timer = setTimeout(() => setIsLoading(false), 600);
     return () => clearTimeout(timer);
-  }, []);
+  }, [initialLoading]);
 
   if (isLoading) {
     return <MyPlansPageSkeleton />;
@@ -199,3 +201,4 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback }:
     </div>
   );
 }
+

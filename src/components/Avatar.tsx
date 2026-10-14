@@ -6,7 +6,8 @@ interface AvatarProps {
 
 export function Avatar({ name, size = 'md', className = '' }: AvatarProps) {
   const initials = name
-    .split(' ')
+    .split(/[\s-]+/)
+    .filter(Boolean)
     .map(n => n[0])
     .join('')
     .toUpperCase()

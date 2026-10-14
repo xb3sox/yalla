@@ -69,10 +69,9 @@ describe('PageTransition Component', () => {
       </PageTransition>
     );
     
-    // During transition, should have opacity-0
-    const container = screen.getByText('Content 2').parentElement;
-    // Note: This is a snapshot test, actual animation timing may vary
-    expect(container).toBeTruthy();
+    // During transition, container is in transitioning state
+    const container = screen.getByText('Content 1').parentElement;
+    expect(container?.classList.contains('opacity-0')).toBe(true);
   });
 
   it('should handle multiple children', () => {

@@ -82,7 +82,7 @@ describe('Dialog Component', () => {
     );
     
     // Click on backdrop (the overlay div)
-    const backdrop = screen.getByText('Content').parentElement?.parentElement?.firstElementChild;
+    const backdrop = document.querySelector('.bg-black\\/40');
     if (backdrop) {
       fireEvent.click(backdrop);
     }

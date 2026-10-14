@@ -99,7 +99,7 @@ describe('SessionTimeoutWarning Component', async () => {
     
     await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
-    expect(screen.getByText(/Extend Session/i)).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Extend Session/i })).toBeTruthy();
   });
 
   it('should have Arabic Extend Session button', async () => {
@@ -107,7 +107,7 @@ describe('SessionTimeoutWarning Component', async () => {
     
     await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
-    expect(screen.getByText(/تمديد الجلسة/i)).toBeTruthy();
+    expect(screen.getByRole('button', { name: /تمديد الجلسة/i })).toBeTruthy();
   });
 
   it('should close dialog when Extend Session is clicked', async () => {
@@ -115,7 +115,7 @@ describe('SessionTimeoutWarning Component', async () => {
     
     await vi.advanceTimersByTimeAsync(25 * 60 * 1000);
     
-    fireEvent.click(screen.getByText(/Extend Session/i));
+    fireEvent.click(screen.getByRole('button', { name: /Extend Session/i }));
     
     expect(screen.queryByText(/Session Timeout Warning/i)).toBeNull();
   });

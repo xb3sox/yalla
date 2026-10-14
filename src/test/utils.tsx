@@ -26,9 +26,10 @@ export function renderWithProviders(ui: React.ReactElement, options: RenderWithP
   actions.push(...extraActions);
 
   function Wrapper({ children }: { children: ReactNode }) {
+    const hasToastProvider = withToast && typeof ToastProvider === 'function';
     return (
       <AppProvider initialActions={actions}>
-        {withToast ? <ToastProvider>{children}</ToastProvider> : children}
+        {hasToastProvider ? <ToastProvider>{children}</ToastProvider> : children}
       </AppProvider>
     );
   }

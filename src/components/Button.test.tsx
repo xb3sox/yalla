@@ -42,7 +42,7 @@ describe('Button Component', () => {
     const button = screen.getByRole('button');
     expect(button.classList.contains('text-brand-600')).toBe(true);
     // ghost variant has no background utility (transparent by default)
-    expect(button.className).not.toMatch(/bg-(brand|surface|white)-?\d*/);
+    expect(button.className).not.toMatch(/(?:^|\s)bg-(brand|surface|white)-?\d*/);
   });
 
   it('should render danger variant', () => {

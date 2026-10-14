@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState, useRef } from 'react';
 
 interface PageTransitionProps {
   children: ReactNode;
@@ -6,14 +6,21 @@ interface PageTransitionProps {
 }
 
 export function PageTransition({ children, transitionKey }: PageTransitionProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [currentChildren, setCurrentChildren] = useState(children);
+  const prevKeyRef = useRef(transitionKey);
 
   useEffect(() => {
-    // Fade out
+    // Only animate if the key actually changes
+    if (prevKeyRef.current === transitionKey) {
+      setCurrentChildren(children);
+      const timer = setTimeout(() => {}, 0);
+      return () => clearTimeout(timer);
+    }
+
+    prevKeyRef.current = transitionKey;
     setIsVisible(false);
-    
-    // Wait for fade out, then change content and fade in
+
     const timer = setTimeout(() => {
       setCurrentChildren(children);
       setIsVisible(true);

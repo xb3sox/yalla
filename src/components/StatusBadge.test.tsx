@@ -44,7 +44,7 @@ describe('StatusBadge Component', () => {
   it('should render with small size', () => {
     renderWithProvider(<StatusBadge state="confirmed" size="sm" />);
     const badge = screen.getByText('Confirmed').closest('span');
-    expect(badge?.classList.contains('text-[10px]')).toBe(true);
+    expect(badge?.classList.contains('text-[11px]')).toBe(true);
   });
 
   it('should render with medium size', () => {

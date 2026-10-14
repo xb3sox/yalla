@@ -37,6 +37,7 @@ export type Action =
   | { type: 'ADD_SUPPORT_REQUEST'; payload: SupportRequest }
   | { type: 'SET_VIEW'; payload: string }
   | { type: 'CLEAR_NOTIFICATIONS' }
+  | { type: 'CLEAR_RESERVATIONS' }
   | { type: 'RECONFIRM_RESERVATION'; payload: string }
   | { type: 'CANCEL_RESERVATION'; payload: string }
   | { type: 'ADD_FAVORITE'; payload: string }
@@ -144,6 +145,8 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, currentView: action.payload };
     case 'CLEAR_NOTIFICATIONS':
       return { ...state, notifications: [] };
+    case 'CLEAR_RESERVATIONS':
+      return { ...state, reservations: [] };
     case 'ADD_FAVORITE': {
       // Check for duplicate
       if (state.favorites.includes(action.payload)) {

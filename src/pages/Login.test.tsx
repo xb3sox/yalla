@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import { LoginPage } from './Login';
-import { AppProvider } from '../data/store';
+import { renderWithProviders } from '../test/utils';
 
 // Mock useAuth hook
 vi.mock('../hooks/useAuth', () => ({
@@ -25,26 +25,18 @@ describe('LoginPage', () => {
   });
 
   it('renders login form by default', () => {
-    render(
-      <AppProvider>
-        <LoginPage />
-      </AppProvider>
-    );
+    renderWithProviders(<LoginPage />);
 
     expect(screen.getByText(/Yalla/i)).toBeTruthy();
-    expect(screen.getByText(/Login/i)).toBeTruthy();
-    expect(screen.getByText(/Register/i)).toBeTruthy();
+    expect(screen.getAllByText(/Login/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Register/i).length).toBeGreaterThan(0);
   });
 
   it('switches to register mode when register button is clicked', () => {
-    render(
-      <AppProvider>
-        <LoginPage />
-      </AppProvider>
-    );
+    renderWithProviders(<LoginPage />);
 
-    const registerButton = screen.getByText(/Register/i);
-    fireEvent.click(registerButton);
+    const registerToggle = screen.getAllByRole('button', { name: /Register/i })[0];
+    fireEvent.click(registerToggle);
 
     expect(screen.getByText(/Display Name/i)).toBeTruthy();
     expect(screen.getByText(/I confirm that I am 18 years or older/i)).toBeTruthy();
@@ -52,27 +44,21 @@ describe('LoginPage', () => {
   });
 
   it('switches back to login mode when login button is clicked', () => {
-    render(
-      <AppProvider>
-        <LoginPage />
-      </AppProvider>
-    );
+    renderWithProviders(<LoginPage />);
 
     // Switch to register
-    fireEvent.click(screen.getByText(/Register/i));
+    const registerToggle = screen.getAllByRole('button', { name: /Register/i })[0];
+    fireEvent.click(registerToggle);
     expect(screen.getByText(/Display Name/i)).toBeTruthy();
 
     // Switch back to login
-    fireEvent.click(screen.getByText(/Login/i));
+    const loginToggle = screen.getAllByRole('button', { name: /Login/i })[0];
+    fireEvent.click(loginToggle);
     expect(screen.queryByText(/Display Name/i)).toBeFalsy();
   });
 
   it('renders phone input field', () => {
-    render(
-      <AppProvider>
-        <LoginPage />
-      </AppProvider>
-    );
+    renderWithProviders(<LoginPage />);
 
     const phoneInput = screen.getByPlaceholderText(/966/i);
     expect(phoneInput).toBeTruthy();
@@ -80,11 +66,7 @@ describe('LoginPage', () => {
   });
 
   it('renders password input field', () => {
-    render(
-      <AppProvider>
-        <LoginPage />
-      </AppProvider>
-    );
+    renderWithProviders(<LoginPage />);
 
     const passwordInput = screen.getByPlaceholderText(/password/i);
     expect(passwordInput).toBeTruthy();
@@ -92,11 +74,7 @@ describe('LoginPage', () => {
   });
 
   it('displays demo credentials', () => {
-    render(
-      <AppProvider>
-        <LoginPage />
-      </AppProvider>
-    );
+    renderWithProviders(<LoginPage />);
 
     expect(screen.getByText(/Demo credentials/i)).toBeTruthy();
     expect(screen.getByText(/Participant: \+966501234567/)).toBeTruthy();
@@ -105,62 +83,40 @@ describe('LoginPage', () => {
   });
 
   it('displays Arabic text', () => {
-    render(
-      <AppProvider>
-        <LoginPage />
-      </AppProvider>,
-        { language: 'ar' },
-    );
+    renderWithProviders(<LoginPage />, { language: 'ar' });
 
     // Check for Arabic translations
     expect(screen.getByText(/اكتشف التجارب المحلية/i)).toBeTruthy();
   });
 
   it('has proper form structure', () => {
-    render(
-      <AppProvider>
-        <LoginPage />
-      </AppProvider>
-    );
+    renderWithProviders(<LoginPage />);
 
     const form = document.querySelector('form');
     expect(form).toBeTruthy();
   });
 
   it('has submit button', () => {
-    render(
-      <AppProvider>
-        <LoginPage />
-      </AppProvider>
-    );
+    renderWithProviders(<LoginPage />);
 
-    const submitButton = screen.getByRole('button', { name: /Login/i });
+    const submitButton = document.querySelector('button[type="submit"]');
     expect(submitButton).toBeTruthy();
-    expect(submitButton.getAttribute('type')).toBe('submit');
+    expect(submitButton?.getAttribute('type')).toBe('submit');
   });
 
   it('has proper styling for mode toggle buttons', () => {
-    render(
-      <AppProvider>
-        <LoginPage />
-      </AppProvider>
-    );
+    renderWithProviders(<LoginPage />);
 
-    const loginButton = screen.getByText(/Login/i);
-    const registerButton = screen.getByText(/Register/i);
+    const modeButtons = screen.getAllByRole('button');
+    const loginButton = modeButtons.find(b => b.textContent?.trim() === 'Login' && b.getAttribute('type') !== 'submit');
+    const registerButton = modeButtons.find(b => b.textContent?.trim() === 'Register');
 
-    // Active button should have brand color
-    expect(loginButton.className).toContain('bg-brand-500');
-    // Inactive button should have surface color
-    expect(registerButton.className).toContain('bg-surface-raised');
+    expect(loginButton?.className).toContain('bg-brand-500');
+    expect(registerButton?.className).toContain('bg-surface-raised');
   });
 
   it('has centered layout', () => {
-    render(
-      <AppProvider>
-        <LoginPage />
-      </AppProvider>
-    );
+    renderWithProviders(<LoginPage />);
 
     const container = document.querySelector('.min-h-screen');
     expect(container?.className).toContain('flex');
@@ -169,22 +125,14 @@ describe('LoginPage', () => {
   });
 
   it('has max width for form', () => {
-    render(
-      <AppProvider>
-        <LoginPage />
-      </AppProvider>
-    );
+    renderWithProviders(<LoginPage />);
 
     const formContainer = document.querySelector('.max-w-md');
     expect(formContainer).toBeTruthy();
   });
 
   it('has logo section', () => {
-    render(
-      <AppProvider>
-        <LoginPage />
-      </AppProvider>
-    );
+    renderWithProviders(<LoginPage />);
 
     const logo = screen.getByText(/Yalla/i);
     expect(logo).toBeTruthy();

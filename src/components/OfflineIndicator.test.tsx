@@ -68,7 +68,7 @@ describe('OfflineIndicator Component', () => {
     Object.defineProperty(navigator, 'onLine', { value: false, writable: true });
     renderWithProvider(<OfflineIndicator />);
     const indicator = screen.getByRole('alert');
-    expect(indicator.classList.contains('border-warning')).toBe(true);
+    expect(indicator.className).toContain('border-warning');
   });
 
   it('should have role="alert" for accessibility', () => {
@@ -117,10 +117,7 @@ describe('OfflineIndicator Component', () => {
     
     // Simulate going offline
     Object.defineProperty(navigator, 'onLine', { value: false, writable: true });
-    const offlineHandler = addEventListenerSpy.mock.calls.find(
-      (call: any) => call[0] === 'offline'
-    )[1];
-    offlineHandler();
+    fireEvent(window, new Event('offline'));
     
     expect(screen.getByText(/offline/i)).toBeTruthy();
   });
@@ -133,10 +130,7 @@ describe('OfflineIndicator Component', () => {
     
     // Simulate going online
     Object.defineProperty(navigator, 'onLine', { value: true, writable: true });
-    const onlineHandler = addEventListenerSpy.mock.calls.find(
-      (call: any) => call[0] === 'online'
-    )[1];
-    onlineHandler();
+    fireEvent(window, new Event('online'));
     
     expect(screen.queryByText(/offline/i)).toBeNull();
   });
