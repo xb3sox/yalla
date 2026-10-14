@@ -15,6 +15,8 @@ import {
   AlertCircle
 } from 'lucide-react';
 
+import { AppView } from '../types';
+
 interface DashboardStats {
   totalReservations: number;
   upcomingReservations: number;
@@ -25,12 +27,27 @@ interface DashboardStats {
   currentTier: string;
 }
 
-export function DashboardPage() {
-  const { user, isAuthenticated } = useAuth();
+interface DashboardPageProps {
+  onNavigate?: (view: AppView) => void;
+  onOpenNotifications?: () => void;
+}
+
+export function DashboardPage({ onNavigate, onOpenNotifications }: DashboardPageProps = {}) {
+  const { user: authUser, isAuthenticated, isLoading: authLoading } = useAuth();
   const { state } = useApp();
   const lang = state.language;
   const navigate = useNavigate();
   
+  const handleNav = (path: string, view: AppView) => {
+    if (onNavigate) {
+      onNavigate(view);
+    } else {
+      navigate(path);
+    }
+  };
+
+  const displayName = authUser?.display_name || state.user?.displayName || (lang === 'ar' ? 'ضيف' : 'Guest');
+
   const [stats, setStats] = useState<DashboardStats>({
     totalReservations: 0,
     upcomingReservations: 0,
@@ -47,14 +64,14 @@ export function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
+    if (!authLoading && !isAuthenticated && !state.isAuthenticated) {
+      handleNav('/login', 'explore');
       return;
     }
 
     loadDashboardData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authLoading, state.isAuthenticated]);
 
   const loadDashboardData = async () => {
     try {
@@ -169,7 +186,7 @@ export function DashboardPage() {
       <div className="bg-gradient-to-r from-brand-600 to-brand-700 text-white px-6 py-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold mb-2">
-            {lang === 'ar' ? `مرحباً، ${user?.display_name}` : `Welcome, ${user?.display_name}`}
+            {lang === 'ar' ? `مرحباً، ${displayName}` : `Welcome, ${displayName}`}
           </h1>
           <p className="text-brand-100">
             {lang === 'ar' ? 'نظرة عامة على نشاطك' : 'Overview of your activity'}
@@ -192,7 +209,7 @@ export function DashboardPage() {
               {lang === 'ar' ? 'الحجوزات القادمة' : 'Upcoming Reservations'}
             </h3>
             <button
-              onClick={() => navigate('/my-plans')}
+              onClick={() => handleNav('/my-plans', 'plans')}
               className="text-sm text-brand-600 hover:text-brand-700 font-medium"
             >
               {lang === 'ar' ? 'عرض الكل →' : 'View all →'}
@@ -211,7 +228,7 @@ export function DashboardPage() {
               {lang === 'ar' ? 'إشعارات غير مقروءة' : 'Unread Notifications'}
             </h3>
             <button
-              onClick={() => navigate('/notifications')}
+              onClick={() => onOpenNotifications ? onOpenNotifications() : handleNav('/notifications', 'plans')}
               className="text-sm text-brand-600 hover:text-brand-700 font-medium"
             >
               {lang === 'ar' ? 'عرض الكل →' : 'View all →'}
@@ -230,7 +247,7 @@ export function DashboardPage() {
               {lang === 'ar' ? 'التجارب المفضلة' : 'Favorite Experiences'}
             </h3>
             <button
-              onClick={() => navigate('/favorites')}
+              onClick={() => handleNav('/favorites', 'favorites')}
               className="text-sm text-brand-600 hover:text-brand-700 font-medium"
             >
               {lang === 'ar' ? 'عرض الكل →' : 'View all →'}
@@ -356,10 +373,10 @@ export function DashboardPage() {
                     }`} />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-text-primary">
-                        {lang === 'ar' ? notification.title_ar : notification.title}
+                        {lang === 'ar' ? (notification.title_ar || notification.title) : notification.title}
                       </p>
                       <p className="text-xs text-text-secondary mt-1">
-                        {lang === 'ar' ? notification.body_ar : notification.body}
+                        {lang === 'ar' ? (notification.body_ar || notification.body) : notification.body}
                       </p>
                       <p className="text-xs text-text-tertiary mt-1">
                         {new Date(notification.created_at).toLocaleDateString(
@@ -381,7 +398,7 @@ export function DashboardPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
-              onClick={() => navigate('/explore')}
+              onClick={() => handleNav('/explore', 'explore')}
               className="flex items-center gap-3 p-4 bg-brand-50 rounded-lg hover:bg-brand-100 transition-colors"
             >
               <TrendingUp className="w-6 h-6 text-brand-600" />
@@ -396,7 +413,7 @@ export function DashboardPage() {
             </button>
 
             <button
-              onClick={() => navigate('/my-plans')}
+              onClick={() => handleNav('/my-plans', 'plans')}
               className="flex items-center gap-3 p-4 bg-info-bg rounded-lg hover:bg-info-bg/70 transition-colors"
             >
               <Clock className="w-6 h-6 text-info" />
@@ -411,7 +428,7 @@ export function DashboardPage() {
             </button>
 
             <button
-              onClick={() => navigate('/profile')}
+              onClick={() => handleNav('/profile', 'profile')}
               className="flex items-center gap-3 p-4 bg-accent-50 rounded-lg hover:bg-accent-50/70 transition-colors"
             >
               <CheckCircle className="w-6 h-6 text-accent-500" />

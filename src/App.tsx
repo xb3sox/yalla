@@ -27,8 +27,9 @@ const DashboardPage = lazy(() => import('./pages/Dashboard').then(m => ({ defaul
 const OnboardingPage = lazy(() => import('./pages/Onboarding').then(m => ({ default: m.OnboardingPage })));
 const FavoritesPage = lazy(() => import('./pages/Favorites').then(m => ({ default: m.FavoritesPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFoundPage })));
+import { AppView } from './types';
 
-type View = 'dashboard' | 'explore' | 'details' | 'plans' | 'arrival' | 'feedback' | 'profile' | 'support' | 'staff' | 'favorites' | 'notfound';
+type View = AppView;
 
 function AppContent() {
   const { state, dispatch } = useApp();
@@ -169,7 +170,12 @@ function AppContent() {
           </div>
         }>
           <main id="main-content" tabIndex={-1}>
-            {currentView === 'dashboard' && <DashboardPage />}
+            {currentView === 'dashboard' && (
+              <DashboardPage
+                onNavigate={(view) => setCurrentView(view as View)}
+                onOpenNotifications={() => setShowNotifications(true)}
+              />
+            )}
             {currentView === 'explore' && <ExplorePage onSelectExperience={handleSelectExperience} />}
             {currentView === 'details' && (
               <ExperienceDetailsPage experienceId={selectedExperienceId} onBack={() => setCurrentView('explore')} onBookSuccess={() => setCurrentView('plans')} />
