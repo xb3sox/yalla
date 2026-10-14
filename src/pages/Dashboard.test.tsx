@@ -84,4 +84,51 @@ describe('DashboardPage', () => {
       expect(screen.getByText('60')).toBeTruthy();
     });
   });
+
+  it('calls onNavigate callback when quick action or stat card is clicked', async () => {
+    const mockOnNavigate = vi.fn();
+    render(<AppProvider><DashboardPage onNavigate={mockOnNavigate} /></AppProvider>);
+    await waitFor(() => expect(screen.getByText('Explore Experiences')).toBeTruthy());
+
+    screen.getByText('Explore Experiences').click();
+    expect(mockOnNavigate).toHaveBeenCalledWith('explore');
+  });
+
+  it('calls onOpenNotifications when notification card button is clicked', async () => {
+    const mockOnOpenNotifications = vi.fn();
+    render(<AppProvider><DashboardPage onOpenNotifications={mockOnOpenNotifications} /></AppProvider>);
+    await waitFor(() => expect(screen.getByText('Unread Notifications')).toBeTruthy());
+
+    const notificationCard = screen.getByText('Unread Notifications').closest('div');
+    const viewAllBtn = notificationCard?.querySelector('button');
+    viewAllBtn?.click();
+    expect(mockOnOpenNotifications).toHaveBeenCalled();
+  });
+
+  it('falls back to default title when Arabic notification title is missing in Arabic mode', async () => {
+    (api.notifications.list as any).mockResolvedValue({
+      success: true,
+      data: {
+        notifications: [
+          {
+            id: 'notif-1',
+            title: 'English Title Only',
+            body: 'English Body Only',
+            state: 'delivered',
+            created_at: '2026-01-20T10:00:00Z',
+          },
+        ],
+      },
+    });
+
+    render(
+      <AppProvider initialActions={[{ type: 'SET_LANGUAGE', payload: 'ar' }]}>
+        <DashboardPage />
+      </AppProvider>
+    );
+    await waitFor(() => {
+      expect(screen.getByText('English Title Only')).toBeTruthy();
+      expect(screen.getByText('English Body Only')).toBeTruthy();
+    });
+  });
 });
