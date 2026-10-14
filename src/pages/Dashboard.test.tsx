@@ -84,4 +84,36 @@ describe('DashboardPage', () => {
       expect(screen.getByText('60')).toBeTruthy();
     });
   });
+
+  it('calls onNavigate callback when quick action or stat card is clicked', async () => {
+    const mockOnNavigate = vi.fn();
+    render(<AppProvider><DashboardPage onNavigate={mockOnNavigate} /></AppProvider>);
+    await waitFor(() => expect(screen.getByText('Explore Experiences')).toBeTruthy());
+
+    screen.getByText('Explore Experiences').click();
+    expect(mockOnNavigate).toHaveBeenCalledWith('explore');
+  });
+
+  it('falls back to default title when Arabic notification title is missing', async () => {
+    (api.notifications.list as any).mockResolvedValue({
+      success: true,
+      data: {
+        notifications: [
+          {
+            id: 'notif-1',
+            title: 'English Title Only',
+            body: 'English Body Only',
+            state: 'delivered',
+            created_at: '2026-01-20T10:00:00Z',
+          },
+        ],
+      },
+    });
+
+    render(<AppProvider><DashboardPage /></AppProvider>);
+    await waitFor(() => {
+      expect(screen.getByText('English Title Only')).toBeTruthy();
+      expect(screen.getByText('English Body Only')).toBeTruthy();
+    });
+  });
 });

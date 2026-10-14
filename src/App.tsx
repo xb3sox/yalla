@@ -169,7 +169,7 @@ function AppContent() {
           </div>
         }>
           <main id="main-content" tabIndex={-1}>
-            {currentView === 'dashboard' && <DashboardPage />}
+            {currentView === 'dashboard' && <DashboardPage onNavigate={(view) => setCurrentView(view as View)} />}
             {currentView === 'explore' && <ExplorePage onSelectExperience={handleSelectExperience} />}
             {currentView === 'details' && (
               <ExperienceDetailsPage experienceId={selectedExperienceId} onBack={() => setCurrentView('explore')} onBookSuccess={() => setCurrentView('plans')} />
