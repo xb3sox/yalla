@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Stage 6: Maintenance & Closed-Loop Monitor
- * Deterministically checks system health and error thresholds.
+ * Stage 6: Maintenance & Closed-Loop Monitor for Complete Product
+ * Continuously audits the health, routes, and architectural invariants across all product pillars.
  * When an anomaly or control band breach occurs, generates an intent artifact
  * in `intent/` to autonomously re-enter Stage 1 of the AI-Native SDLC.
  */
@@ -10,6 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execSync } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,32 +19,57 @@ const rootDir = path.resolve(__dirname, '..');
 const isDryRun = process.argv.includes('--dry-run');
 const healthUrl = process.env.HEALTH_CHECK_URL || 'http://localhost:3000/health';
 
-console.log('🤖 Running Stage 6 Autonomous Maintenance Check...');
+console.log('🤖 Running Stage 6 Complete Product Autonomous Maintenance Check...');
 
 async function runCheck() {
   const anomalies = [];
 
-  // Check 1: Invariant Check on critical files
-  const requiredFiles = [
-    'src/services/api.ts',
-    'backend/src/middleware/security.middleware.ts',
-    'backend/src/server.ts',
-    'intent/TEMPLATE.md',
-    'specs/TEMPLATE.md',
-    'plans/TEMPLATE.md'
+  // Check 1: Invariant Check on all 5 Product Pillar Controllers & Services
+  const requiredProductFiles = [
+    // Pillar 1: Discovery, Booking & Payments
+    'backend/src/routes/experience.routes.ts',
+    'backend/src/routes/reservation.routes.ts',
+    'backend/src/routes/payment.routes.ts',
+    'src/domain/services/ReservationStateMachine.ts',
+    // Pillar 2: Arrival Mode & Host Verification
+    'backend/src/routes/host.routes.ts',
+    'backend/src/controllers/host.controller.ts',
+    // Pillar 3: Staff Operations & Capacity
+    'backend/src/routes/staff.routes.ts',
+    'backend/src/controllers/staff.controller.ts',
+    // Pillar 4: Trust, Safety Cases & Audit
+    'backend/src/routes/safety_case.routes.ts',
+    'backend/src/routes/blocks.routes.ts',
+    'backend/src/routes/audit.routes.ts',
+    'backend/src/models/audit.model.ts',
+    // Pillar 5: Feedback, Rewards & Recommendations
+    'backend/src/controllers/recommendation.controller.ts',
+    'backend/src/controllers/feedback.controller.ts',
+    'backend/src/controllers/reward.controller.ts'
   ];
 
-  for (const file of requiredFiles) {
+  for (const file of requiredProductFiles) {
     if (!fs.existsSync(path.join(rootDir, file))) {
       anomalies.push({
         severity: 'critical',
         component: file,
-        message: `Core invariant file missing: ${file}`
+        message: `Product pillar file missing: ${file}`
       });
     }
   }
 
-  // Check 2: Health endpoint check (if live or testing)
+  // Check 2: Run Continuous Invariant Evals
+  try {
+    execSync('node evals/check.js', { cwd: rootDir, stdio: 'pipe' });
+  } catch (err) {
+    anomalies.push({
+      severity: 'high',
+      component: 'Continuous Invariant Evals (evals/check.js)',
+      message: 'One or more product architectural invariant evaluations failed'
+    });
+  }
+
+  // Check 3: Health endpoint check (if live)
   if (!isDryRun) {
     try {
       const controller = new AbortController();
@@ -59,8 +85,7 @@ async function runCheck() {
         });
       }
     } catch (err) {
-      // In local non-running environment without server, treat as informative warning unless strict
-      console.log(`ℹ️ Health check skipped or unreachable: ${err.message}`);
+      console.log(`ℹ️ Health endpoint check skipped: ${err.message}`);
     }
   }
 
@@ -70,7 +95,7 @@ async function runCheck() {
     const intentFilename = `intent/${timestamp}-breach-diagnosis.md`;
     const intentPath = path.join(rootDir, intentFilename);
 
-    const intentContent = `# Intent: Automated Incident Diagnosis (${timestamp})
+    const intentContent = `# Intent: Automated Product Incident Diagnosis (${timestamp})
 
 **Author**: Stage 6 Autonomous Maintenance Monitor  
 **Date**: ${new Date().toISOString().slice(0, 10)}  
@@ -79,7 +104,7 @@ async function runCheck() {
 ---
 
 ## 1. Problem
-Automated monitoring detected one or more control band breaches or invariant violations:
+Automated product monitoring detected one or more control band breaches or architectural regressions:
 ${anomalies.map(a => `- **[${a.severity.toUpperCase()}]** \`${a.component}\`: ${a.message}`).join('\n')}
 
 ## 2. Proposed Outcome
@@ -101,7 +126,7 @@ Investigate root cause, restore failing invariant, and run regression tests thro
     console.log(`✅ Autonomous diagnosis saved to ${intentFilename}. Loop closed.`);
     process.exit(1);
   } else {
-    console.log('✅ System healthy. Zero control-band breaches detected.');
+    console.log('✅ Complete product healthy. All 5 pillars and 10 evals intact. Zero breaches.');
     process.exit(0);
   }
 }

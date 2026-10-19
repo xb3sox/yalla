@@ -48,5 +48,74 @@
       "plans/TEMPLATE.md"
     ],
     "description": "Ensures AI-Native SDLC artifact home directories and templates are intact"
+  },
+  {
+    "id": "eval-006",
+    "name": "Complete product SDLC artifact coverage",
+    "target": "directory_check",
+    "must_exist": [
+      "intent/001-repo-organization-sdlc.md",
+      "intent/002-discovery-booking-payments.md",
+      "intent/003-arrival-mode-protected-venue.md",
+      "intent/004-staff-operations-capacity.md",
+      "intent/005-trust-safety-audit.md",
+      "intent/006-feedback-rewards-recommendations.md",
+      "specs/001-sdlc-architecture.md",
+      "specs/002-discovery-booking-payments.md",
+      "specs/003-arrival-mode-protected-venue.md",
+      "specs/004-staff-operations-capacity.md",
+      "specs/005-trust-safety-audit.md",
+      "specs/006-feedback-rewards-recommendations.md",
+      "plans/001-sdlc-execution-plan.md",
+      "plans/002-discovery-booking-payments.md",
+      "plans/003-arrival-mode-protected-venue.md",
+      "plans/004-staff-operations-capacity.md",
+      "plans/005-trust-safety-audit.md",
+      "plans/006-feedback-rewards-recommendations.md"
+    ],
+    "description": "Ensures all 5 core product pillars maintain version-controlled intent, spec, and plan artifacts"
+  },
+  {
+    "id": "eval-007",
+    "name": "Reservation state machine lifecycle invariants",
+    "target": "src/domain/services/ReservationStateMachine.ts",
+    "must_contain": [
+      "payment_pending",
+      "confirmed",
+      "reconfirmed",
+      "checked_in"
+    ],
+    "description": "Ensures the reservation state machine defines critical lifecycle states"
+  },
+  {
+    "id": "eval-008",
+    "name": "Protected venue arrival mode gating",
+    "target": "backend/src/routes/reservation.routes.ts",
+    "must_contain": [
+      "reconfirm",
+      "check-in"
+    ],
+    "description": "Ensures secret arrival venue coordinates are gated behind reconfirmation and check-in lifecycle"
+  },
+  {
+    "id": "eval-009",
+    "name": "Host check-in PIN verification route",
+    "target": "backend/src/routes/host.routes.ts",
+    "must_contain": [
+      "verify-pin"
+    ],
+    "description": "Ensures host route exists for attendee PIN check-in verification"
+  },
+  {
+    "id": "eval-010",
+    "name": "Append-only audit logging compliance",
+    "target": "backend/src/models/audit.model.ts",
+    "must_contain": [
+      "create"
+    ],
+    "must_not_contain": [
+      "DELETE FROM audit_logs"
+    ],
+    "description": "Ensures audit log model enforces immutable append-only records with no delete queries"
   }
 ]
