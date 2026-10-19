@@ -7,6 +7,7 @@ const poolConfig: PoolConfig = {
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
+  ssl: config.env === 'production' && !config.database.url.includes('localhost') ? { rejectUnauthorized: false } : undefined,
 };
 
 const pool = new Pool(poolConfig);
@@ -17,8 +18,7 @@ pool.on('connect', () => {
 });
 
 pool.on('error', (err) => {
-  logger.error('Unexpected error on PostgreSQL client', err);
-  process.exit(-1);
+  logger.error('Unexpected error on idle PostgreSQL client', err);
 });
 
 export const query = async (text: string, params?: any[]) => {

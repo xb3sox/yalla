@@ -101,7 +101,7 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
   }
 
   // Handle database errors
-  if (err.name === 'UniqueViolationError') {
+  if (err.name === 'UniqueViolationError' || (err as any).code === '23505') {
     statusCode = 409;
     code = 'DUPLICATE_ENTRY';
     message = 'Resource already exists';

@@ -80,12 +80,23 @@ describe('Configuration Loader', () => {
       }).toThrow('SESSION_SECRET must be set to a secure secret in production');
     });
 
+    it('should throw error if DATABASE_URL is missing or local in production', () => {
+      expect(() => {
+        loadConfig({
+          NODE_ENV: 'production',
+          JWT_SECRET: 'prod-jwt-secret-12345',
+          JWT_REFRESH_SECRET: 'prod-refresh-secret-12345',
+          SESSION_SECRET: 'prod-session-secret-12345',
+        });
+      }).toThrow('DATABASE_URL must be configured with a production database URI');
+    });
+
     it('should aggregate multiple validation errors in production', () => {
       expect(() => {
         loadConfig({
           NODE_ENV: 'production',
         });
-      }).toThrow(/JWT_SECRET must be set.*JWT_REFRESH_SECRET must be set.*SESSION_SECRET must be set/s);
+      }).toThrow(/JWT_SECRET must be set.*JWT_REFRESH_SECRET must be set.*SESSION_SECRET must be set.*DATABASE_URL must be configured/s);
     });
 
     it('should succeed in production when all secrets are properly provided', () => {
@@ -94,12 +105,14 @@ describe('Configuration Loader', () => {
         JWT_SECRET: 'secure-prod-jwt-secret-value-12345',
         JWT_REFRESH_SECRET: 'secure-prod-jwt-refresh-secret-value-12345',
         SESSION_SECRET: 'secure-prod-session-secret-value-12345',
+        DATABASE_URL: 'postgresql://postgres:prodpassword@db.prod.internal:5432/yalla_prod',
       });
 
       expect(config.env).toBe('production');
       expect(config.jwt.secret).toBe('secure-prod-jwt-secret-value-12345');
       expect(config.jwt.refreshSecret).toBe('secure-prod-jwt-refresh-secret-value-12345');
       expect(config.security.sessionSecret).toBe('secure-prod-session-secret-value-12345');
+      expect(config.database.url).toBe('postgresql://postgres:prodpassword@db.prod.internal:5432/yalla_prod');
     });
   });
 });

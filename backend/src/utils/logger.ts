@@ -25,7 +25,7 @@ const logger = winston.createLogger({
   defaultMeta: { service: 'yalla-api' },
   transports: [
     new winston.transports.Console({
-      format: consoleFormat,
+      format: config.env === 'production' ? logFormat : consoleFormat,
     }),
     new winston.transports.File({
       filename: 'logs/error.log',
@@ -36,14 +36,5 @@ const logger = winston.createLogger({
     }),
   ],
 });
-
-// If we're not in production, log to the console with colorized output
-if (config.env !== 'production') {
-  logger.add(
-    new winston.transports.Console({
-      format: consoleFormat,
-    })
-  );
-}
 
 export default logger;

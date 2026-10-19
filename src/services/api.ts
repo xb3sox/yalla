@@ -123,14 +123,18 @@ class ApiClient {
   }
 
   /**
-   * Handle API response with transparent retry on 401
+   * Handle API response with transparent retry on 401 (max 1 retry attempt)
    */
-  private async handleResponse<T>(response: Response, retryFn?: () => Promise<ApiResponse<T>>): Promise<ApiResponse<T>> {
+  private async handleResponse<T>(
+    response: Response,
+    retryFn?: () => Promise<ApiResponse<T>>,
+    isRetry = false
+  ): Promise<ApiResponse<T>> {
     const data = await response.json();
 
     if (!response.ok) {
       // Try to refresh token if unauthorized and retry callback is available
-      if (response.status === 401 && retryFn) {
+      if (response.status === 401 && retryFn && !isRetry) {
         const refreshed = await this.refreshAccessToken();
         if (refreshed) {
           return await retryFn();
@@ -164,6 +168,7 @@ class ApiClient {
         return true;
       }
 
+      this.clearTokens();
       return false;
     } catch (error) {
       this.clearTokens();
@@ -198,13 +203,13 @@ class ApiClient {
 
     // Make request with retry logic
     const response = await this.retryRequest(async () => {
-      const execute = async () => {
+      const execute = async (isRetry = false): Promise<ApiResponse<T>> => {
         const res = await fetch(url.toString(), {
           method: 'GET',
           headers: this.getHeaders(),
           credentials: 'include',
         });
-        return this.handleResponse<T>(res, execute);
+        return this.handleResponse<T>(res, () => execute(true), isRetry);
       };
       return execute();
     });
@@ -250,14 +255,14 @@ class ApiClient {
 
   async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
     const response = await this.retryRequest(async () => {
-      const execute = async () => {
+      const execute = async (isRetry = false): Promise<ApiResponse<T>> => {
         const res = await fetch(`${API_BASE_URL}${endpoint}`, {
           method: 'POST',
           headers: this.getHeaders(),
           credentials: 'include',
           body: data ? JSON.stringify(data) : undefined,
         });
-        return this.handleResponse<T>(res, execute);
+        return this.handleResponse<T>(res, () => execute(true), isRetry);
       };
       return execute();
     });
@@ -275,14 +280,14 @@ class ApiClient {
    */
   async put<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
     const response = await this.retryRequest(async () => {
-      const execute = async () => {
+      const execute = async (isRetry = false): Promise<ApiResponse<T>> => {
         const res = await fetch(`${API_BASE_URL}${endpoint}`, {
           method: 'PUT',
           headers: this.getHeaders(),
           credentials: 'include',
           body: data ? JSON.stringify(data) : undefined,
         });
-        return this.handleResponse<T>(res, execute);
+        return this.handleResponse<T>(res, () => execute(true), isRetry);
       };
       return execute();
     });
@@ -300,13 +305,13 @@ class ApiClient {
    */
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
     const response = await this.retryRequest(async () => {
-      const execute = async () => {
+      const execute = async (isRetry = false): Promise<ApiResponse<T>> => {
         const res = await fetch(`${API_BASE_URL}${endpoint}`, {
           method: 'DELETE',
           headers: this.getHeaders(),
           credentials: 'include',
         });
-        return this.handleResponse<T>(res, execute);
+        return this.handleResponse<T>(res, () => execute(true), isRetry);
       };
       return execute();
     });

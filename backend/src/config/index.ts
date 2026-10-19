@@ -28,6 +28,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     if (!env.SESSION_SECRET || env.SESSION_SECRET === INSECURE_SESSION_SECRET) {
       errors.push('SESSION_SECRET must be set to a secure secret in production');
     }
+    if (!env.DATABASE_URL || env.DATABASE_URL.includes('localhost:5432/yalla')) {
+      errors.push('DATABASE_URL must be configured with a production database URI');
+    }
 
     if (errors.length > 0) {
       throw new Error(`Production configuration validation failed:\n- ${errors.join('\n- ')}`);
