@@ -76,6 +76,10 @@ jobs:
                [[ "$file" =~ ^AGENTS\.md$ ]] || \
                [[ "$file" =~ ^CLAUDE\.md$ ]] || \
                [[ "$file" =~ ^\.jules/ ]] || \
+               [[ "$file" =~ ^evals/ ]] || \
+               [[ "$file" =~ ^scripts/ ]] || \
+               [[ "$file" =~ (^|/)Dockerfile.*$ ]] || \
+               [[ "$file" =~ (^|/)docker-compose\.ya?ml$ ]] || \
                [[ "$file" =~ (^|/)package(-lock)?\.json$ ]] || \
                [[ "$file" =~ (^|/)pnpm-lock\.yaml$ ]] || \
                [[ "$file" =~ (^|/)yarn\.lock$ ]] || \

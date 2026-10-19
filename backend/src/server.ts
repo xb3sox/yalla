@@ -60,11 +60,13 @@ app.use('/api/', apiLimiter);
 app.use(`/api/${config.apiVersion}/auth/login`, authLimiter);
 app.use(`/api/${config.apiVersion}/auth/register`, authLimiter);
 
-// Health check endpoint
+// Health check endpoint (root and api version)
 app.get('/health', healthCheck);
+app.get(`/api/${config.apiVersion}/health`, healthCheck);
 
-// Metrics endpoint (for monitoring)
+// Metrics endpoint (root and api version)
 app.get('/metrics', metrics);
+app.get(`/api/${config.apiVersion}/metrics`, metrics);
 
 // API routes
 app.use(`/api/${config.apiVersion}/auth`, authRoutes);

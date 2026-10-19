@@ -40,7 +40,7 @@ Before a PR: frontend `typecheck` + `vitest run`, backend `lint` + `typecheck` +
 ## Gotchas
 
 - **Port collision:** both Vite dev server and backend default to port 3000. Run one at a time or override `PORT` (backend) — backend `CORS_ORIGIN` defaults to `http://localhost:5173`.
-- **Docker Compose:** root `Dockerfile` powers frontend on `5173:3000`; backend runs on `3000:3000`.
+- **Docker Compose:** `docker-compose.yml` runs dev frontend via `Dockerfile.dev` (`5173:3000`) and backend on `3000:3000`. Root `Dockerfile` produces a multi-stage Nginx production container on port 80.
 - Vitest `exclude`s `backend/**`, `dist/**`, `tests/e2e/**` — root test runs never touch the backend.
 - Backend `tests/setup.ts` truncates tables with `session_replication_role = replica`; needs a Postgres role with permission to do so.
 - No frontend lint script; backend eslint warns (not errors) on `any` and unused vars.
