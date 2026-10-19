@@ -74,6 +74,7 @@ jobs:
             if [[ "$file" =~ ^\.github/ ]] || \
                [[ "$file" =~ (^|/)\.env ]] || \
                [[ "$file" =~ ^AGENTS\.md$ ]] || \
+               [[ "$file" =~ ^CLAUDE\.md$ ]] || \
                [[ "$file" =~ ^\.jules/ ]] || \
                [[ "$file" =~ (^|/)package(-lock)?\.json$ ]] || \
                [[ "$file" =~ (^|/)pnpm-lock\.yaml$ ]] || \

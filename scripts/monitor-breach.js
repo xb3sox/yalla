@@ -10,13 +10,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execSync } from 'node:child_process';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execAsync = promisify(exec);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
 const isDryRun = process.argv.includes('--dry-run');
+const isStrictEndpoint = process.argv.includes('--strict-endpoint');
 const healthUrl = process.env.HEALTH_CHECK_URL || 'http://localhost:3000/health';
 
 console.log('🤖 Running Stage 6 Complete Product Autonomous Maintenance Check...');
@@ -58,9 +62,9 @@ async function runCheck() {
     }
   }
 
-  // Check 2: Run Continuous Invariant Evals
+  // Check 2: Run Continuous Invariant Evals asynchronously
   try {
-    execSync('node evals/check.js', { cwd: rootDir, stdio: 'pipe' });
+    await execAsync('node evals/check.js', { cwd: rootDir });
   } catch (err) {
     anomalies.push({
       severity: 'high',
@@ -85,7 +89,15 @@ async function runCheck() {
         });
       }
     } catch (err) {
-      console.log(`ℹ️ Health endpoint check skipped: ${err.message}`);
+      if (isStrictEndpoint) {
+        anomalies.push({
+          severity: 'high',
+          component: 'API Health Endpoint',
+          message: `Health check unreachable in strict mode: ${err.message}`
+        });
+      } else {
+        console.log(`ℹ️ Health endpoint check skipped: ${err.message}`);
+      }
     }
   }
 
