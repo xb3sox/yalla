@@ -4,6 +4,7 @@ import {
   getUserReservations,
   getReservationById,
   reconfirmReservation,
+  checkInReservation,
   cancelReservation,
   getExperienceReservations,
   getWaitlist,
@@ -66,6 +67,13 @@ router.get('/:id', authenticate, getReservationById);
  * @access  Private (Participants)
  */
 router.post('/:id/reconfirm', authenticate, reconfirmReservation);
+
+/**
+ * @route   POST /api/v1/reservations/:id/check-in
+ * @desc    Check in reservation (transition to attended)
+ * @access  Private (Participants)
+ */
+router.post('/:id/check-in', authenticate, checkInReservation);
 
 /**
  * @route   POST /api/v1/reservations/:id/cancel

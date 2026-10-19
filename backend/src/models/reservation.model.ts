@@ -34,9 +34,9 @@ export interface ReservationStateMachine {
 const VALID_TRANSITIONS: Record<string, string[]> = {
   initiated: ['payment_pending', 'cancelled_by_participant', 'cancelled_by_yalla'],
   payment_pending: ['confirmed', 'waitlisted', 'failed', 'cancelled_by_participant', 'cancelled_by_yalla'],
-  confirmed: ['reconfirmation_required', 'checked_in', 'cancelled_by_participant', 'cancelled_by_yalla'],
+  confirmed: ['reconfirmation_required', 'checked_in', 'attended', 'cancelled_by_participant', 'cancelled_by_yalla'],
   reconfirmation_required: ['reconfirmed', 'expired', 'cancelled_by_participant', 'cancelled_by_yalla'],
-  reconfirmed: ['checked_in', 'cancelled_by_participant', 'cancelled_by_yalla'],
+  reconfirmed: ['checked_in', 'attended', 'cancelled_by_participant', 'cancelled_by_yalla'],
   waitlisted: ['offered', 'cancelled_by_participant', 'cancelled_by_yalla'],
   offered: ['confirmed', 'expired', 'declined', 'cancelled_by_participant', 'cancelled_by_yalla'],
   checked_in: ['attended', 'no_show', 'cancelled_by_yalla'],
@@ -212,6 +212,14 @@ class ReservationModel {
         values.push(new Date());
         paramCount++;
       }
+
+      if (newState === 'attended') {
+        if (!reservation.checked_in_at) {
+          updates.push(`checked_in_at = $${paramCount}`);
+          values.push(new Date());
+          paramCount++;
+        }
+      }
       
       if (newState === 'cancelled_by_participant' || newState === 'cancelled_by_yalla') {
         updates.push(`cancelled_at = $${paramCount}`);
@@ -268,6 +276,23 @@ class ReservationModel {
     }
     
     return await this.updateState(reservationId, 'reconfirmed');
+  }
+
+  /**
+   * Check in reservation (transition to attended directly and record checked_in_at)
+   */
+  async checkIn(reservationId: string): Promise<Reservation> {
+    const reservation = await this.findById(reservationId);
+    
+    if (!reservation) {
+      throw new Error('Reservation not found');
+    }
+    
+    if (!['confirmed', 'reconfirmed', 'checked_in'].includes(reservation.state)) {
+      throw new Error('Reservation cannot be checked in from its current state');
+    }
+    
+    return await this.updateState(reservationId, 'attended');
   }
 
   /**
