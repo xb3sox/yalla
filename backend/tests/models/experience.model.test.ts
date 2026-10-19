@@ -1,5 +1,5 @@
-import experienceModel from '../src/models/experience.model';
-import pool from '../src/config/database';
+import experienceModel from '../../src/models/experience.model';
+import pool from '../../src/config/database';
 
 describe('Experience Model', () => {
   let testExperienceId: string;
@@ -188,6 +188,82 @@ describe('Experience Model', () => {
         experiences.every(
           (e) =>
             e.title.includes('Cooking') && e.area === 'Jeddah' && e.language === 'ar'
+        )
+      ).toBe(true);
+    });
+  });
+
+  describe('staffSearch', () => {
+    beforeEach(async () => {
+      await experienceModel.create({
+        ...testExperience,
+        title: 'VIP Tour',
+        description: 'Exclusive tour',
+        area: 'Jeddah',
+        planState: 'published',
+        capacity: 10,
+        price: 500,
+      });
+
+      const drafted = await experienceModel.create({
+        ...testExperience,
+        title: 'Draft Tour',
+        area: 'Riyadh',
+        planState: 'draft',
+        capacity: 5,
+        price: 200,
+      });
+      // Mock booking to test minSpots
+      await experienceModel.incrementBooked(drafted.id);
+      await experienceModel.incrementBooked(drafted.id);
+    });
+
+    it('should search by searchQuery in title or description', async () => {
+      const experiences = await experienceModel.staffSearch({ searchQuery: 'VIP' });
+      expect(experiences.length).toBeGreaterThan(0);
+      expect(experiences.some((e) => e.title.includes('VIP'))).toBe(true);
+
+      const exp2 = await experienceModel.staffSearch({ searchQuery: 'Exclusive' });
+      expect(exp2.length).toBeGreaterThan(0);
+      expect(exp2.some((e) => e.description.includes('Exclusive'))).toBe(true);
+    });
+
+    it('should filter by city (area)', async () => {
+      const experiences = await experienceModel.staffSearch({ city: 'Jeddah' });
+      expect(experiences.length).toBeGreaterThan(0);
+      expect(experiences.every((e) => e.area === 'Jeddah')).toBe(true);
+    });
+
+    it('should filter by status (plan_state)', async () => {
+      const draftExperiences = await experienceModel.staffSearch({ status: 'draft' });
+      expect(draftExperiences.length).toBeGreaterThan(0);
+      expect(draftExperiences.every((e) => e.planState === 'draft')).toBe(true);
+    });
+
+    it('should filter by minSpots', async () => {
+      // Draft Tour has capacity 5, booked 2 -> 3 spots left. VIP Tour has 10 spots.
+      // If we ask for minSpots: 5, Draft Tour shouldn't be included.
+      const experiences = await experienceModel.staffSearch({ minSpots: 5 });
+      expect(experiences.length).toBeGreaterThan(0);
+      expect(experiences.every((e) => (e.capacity - e.booked) >= 5)).toBe(true);
+    });
+
+    it('should filter by maxPrice', async () => {
+      const experiences = await experienceModel.staffSearch({ maxPrice: 300 });
+      expect(experiences.length).toBeGreaterThan(0);
+      expect(experiences.every((e) => e.price <= 300)).toBe(true);
+    });
+
+    it('should combine multiple staff search filters', async () => {
+      const experiences = await experienceModel.staffSearch({
+        city: 'Jeddah',
+        status: 'published',
+        maxPrice: 600,
+      });
+      expect(experiences.length).toBeGreaterThan(0);
+      expect(
+        experiences.every(
+          (e) => e.area === 'Jeddah' && e.planState === 'published' && e.price <= 600
         )
       ).toBe(true);
     });

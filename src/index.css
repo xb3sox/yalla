@@ -110,11 +110,13 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
 }
 
 body {
   background-color: var(--color-surface);
   color: var(--color-text-primary);
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';

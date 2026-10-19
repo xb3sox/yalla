@@ -208,7 +208,7 @@ class SafetyCaseModel {
       throw new Error('Safety case not found');
     }
 
-    const currentActions = safetyCase.actions || [];
+    const currentActions = typeof safetyCase.actions === 'string' ? JSON.parse(safetyCase.actions) : safetyCase.actions || [];
     const newAction = {
       ...action,
       timestamp: new Date().toISOString(),
@@ -217,6 +217,22 @@ class SafetyCaseModel {
     const updatedActions = [...currentActions, newAction];
 
     return await this.update(caseId, { actions: updatedActions });
+  }
+
+  /**
+   * Add evidence to safety case
+   */
+  async addEvidence(caseId: string, evidenceItem: any): Promise<SafetyCase> {
+    const safetyCase = await this.findById(caseId);
+
+    if (!safetyCase) {
+      throw new Error('Safety case not found');
+    }
+
+    const currentEvidence = typeof safetyCase.evidence === 'string' ? JSON.parse(safetyCase.evidence) : safetyCase.evidence || [];
+    const updatedEvidence = [...currentEvidence, evidenceItem];
+
+    return await this.update(caseId, { evidence: updatedEvidence });
   }
 
   /**
@@ -257,6 +273,33 @@ class SafetyCaseModel {
     const query = 'DELETE FROM safety_cases WHERE id = $1';
     await pool.query(query, [id]);
     logger.info('Safety case deleted', { caseId: id });
+  }
+
+  /**
+   * Update safety case state
+   */
+  async updateState(caseId: string, newState: string): Promise<SafetyCase> {
+    const safetyCase = await this.findById(caseId);
+
+    if (!safetyCase) {
+      throw new Error('Safety case not found');
+    }
+
+    const validTransitions: Record<string, string[]> = {
+      submitted: ['triage', 'under_review', 'closed'],
+      triage: ['under_review', 'closed'],
+      under_review: ['action_taken', 'closed'],
+      action_taken: ['closed', 'appealed'],
+      closed: ['appealed'],
+      appealed: ['final'],
+      final: [],
+    };
+
+    if (!validTransitions[safetyCase.state]?.includes(newState)) {
+      throw new Error('Invalid state transition');
+    }
+
+    return await this.update(caseId, { state: newState });
   }
 }
 

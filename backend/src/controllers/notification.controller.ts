@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import notificationModel from '../models/notification.model';
 import logger from '../utils/logger';
+import { EmailService } from '../services/email.service';
 
 /**
  * Get user notifications
@@ -269,13 +270,21 @@ export const sendBookingConfirmation = async (req: AuthRequest, res: Response) =
 
     const { recipientId, experienceTitle, experienceTitleAr, date, time } = req.body;
 
-    const notification = await notificationModel.sendBookingConfirmation(
-      recipientId,
+    const emailContent = EmailService.generateBookingConfirmationEmail({
       experienceTitle,
       experienceTitleAr,
       date,
       time
-    );
+    });
+
+    const notification = await notificationModel.createAndSend({
+      recipient_id: recipientId,
+      type: 'email',
+      title: 'Booking Confirmed',
+      title_ar: 'تم تأكيد الحجز',
+      body: emailContent.html,
+      body_ar: emailContent.text
+    });
 
     logger.info('Booking confirmation sent', { 
       notificationId: notification.id,

@@ -168,7 +168,7 @@ describe('Button Component', () => {
   it('should have min-height for small size', () => {
     renderWithProvider(<Button size="sm">Small</Button>);
     const button = screen.getByRole('button');
-    expect(button.classList.contains('min-h-[36px]')).toBe(true);
+    expect(button.classList.contains('min-h-[44px]')).toBe(true);
   });
 
   it('should have min-height for medium size', () => {

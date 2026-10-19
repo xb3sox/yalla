@@ -5,6 +5,7 @@ import {
   getAllSafetyCases,
   updateSafetyCase,
   addActionToSafetyCase,
+  uploadSafetyCaseEvidence,
   getSafetyCaseStatistics,
   deleteSafetyCase,
 } from '../controllers/safety_case.controller';
@@ -56,6 +57,13 @@ router.put('/:id', authorize('trust_safety', 'admin'), updateSafetyCase);
  * @access  Private (Trust & Safety, Admin)
  */
 router.post('/:id/actions', authorize('trust_safety', 'admin'), addActionToSafetyCase);
+
+/**
+ * @route   POST /api/v1/safety-cases/:id/evidence
+ * @desc    Upload evidence to safety case
+ * @access  Private (Reporter, Trust & Safety, Admin)
+ */
+router.post('/:id/evidence', uploadSafetyCaseEvidence);
 
 /**
  * @route   DELETE /api/v1/safety-cases/:id

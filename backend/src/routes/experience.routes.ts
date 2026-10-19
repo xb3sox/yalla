@@ -3,11 +3,14 @@ import {
   getExperiences,
   getExperienceById,
   searchExperiences,
+  staffSearchExperiences,
   createExperience,
   updateExperience,
   deleteExperience,
 } from '../controllers/experience.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
+import { getRecommendations } from '../controllers/recommendation.controller';
+
 
 const router = Router();
 
@@ -17,6 +20,14 @@ const router = Router();
  * @access  Public
  */
 router.get('/', getExperiences);
+
+/**
+ * @route   GET /api/v1/experiences/recommendations
+ * @desc    Get personalized experience recommendations
+ * @access  Private
+ */
+router.get('/recommendations', authenticate, getRecommendations);
+
 
 /**
  * @route   GET /api/v1/experiences/search
@@ -31,6 +42,13 @@ router.get('/search', searchExperiences);
  * @access  Public
  */
 router.get('/:id', getExperienceById);
+
+/**
+ * @route   GET /api/v1/experiences/staff/search
+ * @desc    Staff search experiences
+ * @access  Private (Staff only)
+ */
+router.get('/staff/search', authenticate, authorize('operations', 'admin'), staffSearchExperiences);
 
 /**
  * @route   POST /api/v1/experiences

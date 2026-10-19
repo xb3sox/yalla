@@ -292,6 +292,86 @@ export const reconfirmReservation = async (req: AuthRequest, res: Response) => {
 };
 
 /**
+ * Check in reservation
+ */
+export const checkInReservation = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required',
+        },
+      });
+    }
+
+    const { id } = req.params;
+    const reservation = await reservationModel.findById(id);
+
+    if (!reservation) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'RESERVATION_NOT_FOUND',
+          message: 'Reservation not found',
+        },
+      });
+    }
+
+    // Check ownership
+    // Depending on business logic, this might be staff only, 
+    // but the issue specifies "Reservations Attendee Check-In", 
+    // so we assume the attendee can self-check-in, or host.
+    // For now we allow participant.
+    if (reservation.participant_id !== req.user.userId && !['operations', 'admin', 'host'].includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to check in this reservation',
+        },
+      });
+    }
+
+    const checkedIn = await reservationModel.checkIn(id);
+
+    logger.info('Reservation checked in', { 
+      userId: req.user.userId, 
+      reservationId: id 
+    });
+
+    res.json({
+      success: true,
+      data: { reservation: checkedIn },
+      message: 'Reservation checked in successfully',
+    });
+  } catch (error: any) {
+    if (
+      error.message === 'Reservation not found' ||
+      error.message === 'Reservation cannot be checked in from its current state'
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'CHECK_IN_FAILED',
+          message: error.message,
+        },
+      });
+    }
+
+    logger.error('Check in reservation failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'CHECK_IN_RESERVATION_FAILED',
+        message: 'Failed to check in reservation',
+      },
+    });
+  }
+};
+
+/**
  * Cancel reservation
  */
 export const cancelReservation = async (req: AuthRequest, res: Response) => {
