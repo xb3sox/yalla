@@ -1,327 +1,56 @@
 # Yalla Product Roadmap
 
-**Last Updated**: January 2026
+**Status**: Version 2.0.0 Architecture Complete  
+**Last Updated**: October 2026  
 
 ---
 
-## Current State (v1.0 - MVP)
+## 1. Completed Baseline (v1.0 & v2.0 Architecture)
 
-### ✅ Completed Features
+### Core User Platform
+- [x] Experience discovery with category, city, and date filters
+- [x] Reservation flow with synthetic & Stripe payment intents
+- [x] Waitlist queue management
+- [x] 24-hour attendance reconfirmation system
+- [x] Arrival mode with protected venue access & dynamic check-in PIN
+- [x] Post-experience feedback and rating collection
+- [x] Bilingual user interface (Arabic native RTL & English LTR)
+- [x] WCAG 2.2 AA accessibility compliance
 
-**Core Platform**
-- Experience discovery with rich imagery
-- Booking flow with synthetic payments
-- Waitlist management
-- Reconfirmation system
-- Arrival mode with protected venue access
-- Post-experience feedback
-- Bilingual support (EN/AR)
-- RTL layout support
+### Backend & API
+- [x] Express.js API with TypeScript and 53 endpoints
+- [x] PostgreSQL 15 schema with 12 normalized tables
+- [x] JWT access tokens and HttpOnly refresh cookie rotation
+- [x] Clean Architecture with Use Cases and Domain State Machine
+- [x] Security middleware: prototype pollution protection, rate limiters, security headers
+- [x] Generic `/health` and `/metrics` monitoring endpoints
+- [x] O(N) Set precomputed recommendation engine
 
-**User Management**
-- Phone verification (simulated)
-- Adult declaration
-- Preference collection
-- Profile management
-- Data privacy controls (export/delete)
-
-**Staff Operations**
-- Plan management
-- Host & venue assignment
-- Capacity control
-- Attendance tracking
-- Notification system
-- Support ticket handling
-- Audit trail
-
-**Design System**
-- 40+ reusable components
-- Semantic color tokens
-- Loading skeletons
-- Toast notifications
-- Error boundaries
-- Avatar system
-- Confirmation dialogs
-
-**Quality & Polish**
-- TypeScript strict mode
-- Zero build errors
-- WCAG 2.2 AA compliance
-- Responsive design
-- Smooth animations
-- Keyboard navigation
-- Screen reader support
+### AI-Native SDLC Framework
+- [x] Stage 1 Plan: `intent/` artifact intake
+- [x] Stage 2 Design: `specs/` policy and architectural standards
+- [x] Stage 3 Build: `plans/` plan mode & Jules autonomous agent execution
+- [x] Stage 4 Test: Automated feedback loops and continuous evals (`evals/`)
+- [x] Stage 5 Deploy: Guardrailed GitHub Actions auto-merge pipeline
+- [x] Stage 6 Maintain: Deterministic drift and anomaly detection (`scripts/monitor-breach.js`)
 
 ---
 
-## Phase 1: Testing Infrastructure (Q1 2026)
+## 2. Upcoming Milestones
 
-**Goal**: Production-ready infrastructure and reliability
+### Phase 3: Real-Time & Communications (Q1 2027)
+- [ ] WebSocket gateway for instant host check-in roster synchronization
+- [ ] Production SMS gateway (Twilio / Unifonic) integration for arrival alerts
+- [ ] Push notification service workers for mobile browser engagement
+- [ ] Automated attendee cancellation refund automation
 
-### Priority 1: Testing Framework
-- [ ] Unit tests with Vitest (target: 80% coverage)
-- [ ] Integration tests with React Testing Library
-- [ ] E2E tests with Playwright
-- [ ] Visual regression tests
-- [ ] Accessibility automated testing (axe-core)
-- [ ] Performance monitoring setup
+### Phase 4: Expansion & Scale (Q2 2027)
+- [ ] Multi-city expansion across Riyadh, Jeddah, and Al-Khobar
+- [ ] Host self-service portal with calendar management
+- [ ] Advanced recommendation algorithms with seasonal preference weighting
+- [ ] Read-replica PostgreSQL database clustering for reporting queries
 
-**Effort**: 3-4 weeks  
-**Impact**: Critical for production confidence
-
-### Priority 2: Error Handling & Recovery
-- [ ] Global error boundary with user-friendly UI
-- [ ] Network error detection and retry logic
-- [ ] Offline mode with service worker
-- [ ] Graceful degradation for failed API calls
-- [ ] Error tracking integration (Sentry)
-- [ ] User-facing error messages (no technical jargon)
-
-**Effort**: 2-3 weeks  
-**Impact**: High - prevents user frustration
-
-### Priority 3: Performance Optimization
-- [ ] Code splitting by route
-- [ ] Image optimization (WebP, lazy loading)
-- [ ] Bundle size analysis and reduction
-- [ ] Critical CSS extraction
-- [ ] Prefetching for likely next actions
-- [ ] Virtual scrolling for long lists
-
-**Effort**: 2 weeks  
-**Impact**: Medium - improves perceived speed
-
-### Priority 4: Security Hardening
-- [ ] CSP headers implementation
-- [ ] XSS prevention audit
-- [ ] CSRF token implementation
-- [ ] Rate limiting on API calls
-- [ ] Input sanitization review
-- [ ] Security headers (HSTS, X-Frame-Options)
-
-**Effort**: 1-2 weeks  
-**Impact**: Critical - prevents attacks
-
----
-
-## Phase 2: Feature Completion (Q2 2026)
-
-**Goal**: Complete all P0 features for launch
-
-### Priority 1: Real Backend Integration
-- [ ] PostgreSQL database setup
-- [ ] RESTful API implementation
-- [ ] Authentication system (JWT)
-- [ ] Role-based access control
-- [ ] Row-level security policies
-- [ ] Database migrations
-- [ ] API documentation (OpenAPI/Swagger)
-
-**Effort**: 6-8 weeks  
-**Impact**: Critical - enables real data persistence
-
-### Priority 2: Payment Integration
-- [ ] Stripe integration for real payments
-- [ ] Payment webhook handling
-- [ ] Refund processing
-- [ ] Payment failure recovery
-- [ ] Receipt generation
-- [ ] Transaction history
-
-**Effort**: 4-5 weeks  
-**Impact**: Critical - enables revenue
-
-### Priority 3: Communication System
-- [ ] Email notifications (SendGrid/AWS SES)
-- [ ] SMS notifications (Twilio)
-- [ ] Push notifications (web)
-- [ ] Notification preferences
-- [ ] Template management
-- [ ] Delivery tracking
-
-**Effort**: 3-4 weeks  
-**Impact**: High - improves engagement
-
-### Priority 4: Advanced Staff Features
-- [ ] Bulk operations (mass email, status updates)
-- [ ] Advanced filtering and search
-- [ ] Export to CSV/Excel
-- [ ] Custom reports
-- [ ] Staff onboarding flow
-- [ ] Permission management UI
-
-**Effort**: 4-5 weeks  
-**Impact**: High - improves operational efficiency
-
----
-
-## Phase 3: Scale & Optimize (Q3 2026)
-
-**Goal**: Prepare for growth and improve UX
-
-### Priority 1: Analytics & Insights
-- [ ] Privacy-safe analytics (Plausible/Fathom)
-- [ ] User behavior tracking
-- [ ] Conversion funnel analysis
-- [ ] A/B testing framework
-- [ ] Staff performance metrics
-- [ ] Experience popularity tracking
-
-**Effort**: 3-4 weeks  
-**Impact**: High - enables data-driven decisions
-
-### Priority 2: Search & Discovery
-- [ ] Full-text search (Elasticsearch)
-- [ ] Advanced filters (date, price, location, accessibility)
-- [ ] Sort options (popularity, price, date)
-- [ ] Search suggestions
-- [ ] Recent searches
-- [ ] Saved searches
-
-**Effort**: 4-5 weeks  
-**Impact**: High - improves discovery
-
-### Priority 3: Mobile Optimization
-- [ ] Progressive Web App (PWA)
-- [ ] Offline mode with sync
-- [ ] Push notifications
-- [ ] App-like navigation
-- [ ] Touch gesture support
-- [ ] Mobile-specific optimizations
-
-**Effort**: 3-4 weeks  
-**Impact**: High - improves mobile UX
-
-### Priority 4: Social Features (Privacy-First)
-- [ ] Private groups (invite-only)
-- [ ] Share experience with friends (private link)
-- [ ] Group booking discounts
-- [ ] Attendee list (opt-in, first names only)
-- [ ] Post-experience connections (mutual opt-in)
-
-**Effort**: 5-6 weeks  
-**Impact**: Medium - increases virality
-
----
-
-## Phase 4: Advanced Features (Q4 2026)
-
-**Goal**: Differentiation and competitive advantage
-
-### Priority 1: AI-Powered Recommendations
-- [ ] Collaborative filtering algorithm
-- [ ] Content-based recommendations
-- [ ] Personalized experience suggestions
-- [ ] Smart rebooking suggestions
-- [ ] Group compatibility hints (non-personality)
-- [ ] A/B test recommendation algorithms
-
-**Effort**: 6-8 weeks  
-**Impact**: High - improves retention
-
-### Priority 2: Host Tools
-- [ ] Host dashboard
-- [ ] Attendance management
-- [ ] Participant messaging (restricted)
-- [ ] Performance analytics
-- [ ] Earnings tracking
-- [ ] Availability calendar
-
-**Effort**: 5-6 weeks  
-**Impact**: Medium - improves host experience
-
-### Priority 3: Multi-City Expansion
-- [ ] City selection onboarding
-- [ ] Location-based experience filtering
-- [ ] City-specific curation
-- [ ] Multi-city staff roles
-- [ ] Regional pricing
-- [ ] Local partnerships
-
-**Effort**: 4-5 weeks  
-**Impact**: High - enables expansion
-
-### Priority 4: Premium Features
-- [ ] Priority booking (early access)
-- [ ] Exclusive experiences
-- [ ] Premium support tier
-- [ ] Custom experience requests
-- [ ] Corporate/team bookings
-- [ ] Gift cards
-
-**Effort**: 6-8 weeks  
-**Impact**: Medium - increases revenue
-
----
-
-## Success Metrics
-
-### Phase 1 Metrics
-- [ ] Test coverage > 80%
-- [ ] Build time < 30s
-- [ ] Zero critical security vulnerabilities
-- [ ] Error rate < 0.1%
-- [ ] Page load time < 2s (95th percentile)
-
-### Phase 2 Metrics
-- [ ] Payment success rate > 98%
-- [ ] Email delivery rate > 99%
-- [ ] API response time < 200ms (95th percentile)
-- [ ] Zero data loss incidents
-- [ ] Staff task completion time -30%
-
-### Phase 3 Metrics
-- [ ] Monthly active users > 10,000
-- [ ] Booking conversion rate > 15%
-- [ ] Rebooking rate > 40%
-- [ ] NPS score > 50
-- [ ] Support ticket resolution time < 24h
-
-### Phase 4 Metrics
-- [ ] Recommendation click-through rate > 25%
-- [ ] Host satisfaction score > 4.5/5
-- [ ] Multi-city launch success (3+ cities)
-- [ ] Premium feature adoption > 10%
-- [ ] Revenue growth > 50% QoQ
-
----
-
-## Timeline Summary
-
-| Phase | Duration | Key Deliverables | Success Criteria |
-|-------|----------|------------------|------------------|
-| **Phase 1** | Q1 2026 (10-12 weeks) | Testing, error handling, security | Production-ready |
-| **Phase 2** | Q2 2026 (17-22 weeks) | Backend, payments, communication | Revenue-enabled |
-| **Phase 3** | Q3 2026 (14-18 weeks) | Analytics, search, mobile | Growth-ready |
-| **Phase 4** | Q4 2026 (21-27 weeks) | AI, host tools, multi-city | Market leader |
-
-**Total Estimated Time**: 62-79 weeks (14-18 months)
-
----
-
-## Risk Assessment
-
-### High Risk
-- **Payment integration failures** - Mitigation: Extensive testing, fallback providers
-- **Data privacy breaches** - Mitigation: Security audit, encryption, access controls
-- **Performance degradation at scale** - Mitigation: Load testing, caching, CDN
-
-### Medium Risk
-- **Low user adoption** - Mitigation: User research, A/B testing, marketing
-- **Host supply issues** - Mitigation: Host recruitment, backup plans
-- **Regulatory compliance** - Mitigation: Legal review, compliance checklist
-
-### Low Risk
-- **Technology obsolescence** - Mitigation: Modern stack, regular updates
-- **Team turnover** - Mitigation: Documentation, knowledge sharing
-- **Competitor entry** - Mitigation: Focus on UX, build community
-
----
-
-<div align="center">
-
-**Building the future of curated experiences, one phase at a time**
-
-[Back to README](./README.md) • [PRD](./PRD.md) • [Verification](./VERIFICATION.md)
-
-</div>
+### Phase 5: Mobile Applications (Q3 2027)
+- [ ] Capacitor / React Native cross-platform mobile wrapper
+- [ ] Apple Pay & Mada native mobile SDK integration
+- [ ] Offline boarding pass storage in Apple Wallet / Google Wallet

@@ -1,0 +1,35 @@
+name: Agent Evals
+
+on:
+  pull_request:
+    paths:
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+      - '.jules/**'
+      - 'evals/**'
+      - 'intent/**'
+      - 'specs/**'
+      - 'plans/**'
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: agent-evals-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evals:
+    name: Run Continuous Agent Evals
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Architecture & Agent Evals
+        run: node evals/check.js

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "eval-001",
+    "name": "Prototype pollution security guardrail",
+    "target": "backend/src/middleware/security.middleware.ts",
+    "must_contain": [
+      "__proto__",
+      "constructor",
+      "prototype"
+    ],
+    "description": "Ensures recursive input sanitizer explicitly strips prototype pollution keys"
+  },
+  {
+    "id": "eval-002",
+    "name": "Generic healthcheck error message",
+    "target": "backend/src/middleware/security.middleware.ts",
+    "must_not_contain": [
+      "error.message"
+    ],
+    "description": "Ensures healthcheck does not leak raw database exception details to public clients"
+  },
+  {
+    "id": "eval-003",
+    "name": "O(N) Set precomputation in recommendation scoring",
+    "target": "backend/src/controllers/recommendation.controller.ts",
+    "must_contain": [
+      "new Set"
+    ],
+    "description": "Ensures recommendation scoring precomputes lookup sets outside iterative loops"
+  },
+  {
+    "id": "eval-004",
+    "name": "API client TTL cache and retry configuration",
+    "target": "src/services/api.ts",
+    "must_contain": [
+      "CACHE_TTL",
+      "exponential"
+    ],
+    "description": "Ensures frontend API client provides TTL caching and resilient retry mechanisms"
+  },
+  {
+    "id": "eval-005",
+    "name": "AI SDLC artifact directories structure",
+    "target": "directory_check",
+    "must_exist": [
+      "intent/TEMPLATE.md",
+      "specs/TEMPLATE.md",
+      "plans/TEMPLATE.md"
+    ],
+    "description": "Ensures AI-Native SDLC artifact home directories and templates are intact"
+  }
+]

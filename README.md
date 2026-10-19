@@ -1,514 +1,145 @@
 # Yalla - Managed Experience Discovery Platform
 
-**Discover, book, and enjoy local experiences with curated small groups**
+**Discover, book, and enjoy local curated experiences with small groups.**
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)]()
-[![React](https://img.shields.io/badge/React-18-61dafb)]()
-[![License](https://img.shields.io/badge/license-Proprietary-red)]()
-
----
-
-## 🎉 Project Status - PRODUCTION READY
-
-**Full-Stack Application - Complete, Tested & Production-Ready**
-
-### ✅ COMPLETE:
-
-**Frontend (100% Complete)**:
-- Complete frontend application (45/45 requirements implemented)
-- All 6 user journeys working
-- Excellent code quality (0 TypeScript errors, 0 warnings)
-- WCAG 2.2 AA accessibility compliant
-- Bilingual support (English & Arabic with RTL)
-- 540+ tests with 82% coverage
-- **API client for backend integration** (`src/services/api.ts`)
-  - Caching system with TTL
-  - Retry logic with exponential backoff
-  - Automatic cache invalidation
-- **Authentication hook** (`src/hooks/useAuth.ts`)
-- **TypeScript environment types** (`src/vite-env.d.ts`)
-- **Dashboard page** with stats, recent activity, and quick actions
-- **Protected routes** with role-based access control
-- **Login/Register page** with full authentication flow
-- **Lazy loading** for all pages (performance optimization)
-- **Code splitting** by route
-- **SEO optimized** with meta tags, Open Graph, Twitter cards
-
-**Backend (100% Complete)**:
-- Express.js API with TypeScript
-- PostgreSQL database with 12 tables
-- JWT authentication with refresh tokens
-- 53 API endpoints implemented:
-  - Authentication (7 endpoints)
-  - Experiences (6 endpoints)
-  - Reservations (10 endpoints)
-  - Payments (4 endpoints) - Uses actual experience prices
-  - Notifications (8 endpoints) - Email/SMS/Push ready
-  - Audit (5 endpoints)
-  - Staff Operations (7 endpoints)
-  - Safety Cases (7 endpoints)
-  - Health check (1 endpoint)
-- Stripe payment integration (ready for live mode)
-- Notification system (email/SMS/push service integration ready)
-- Comprehensive audit logging
-- Staff operations management
-- Safety case management with state machine
-- Role-based authorization
-- Input validation with Zod
-- Error handling and logging
-- 250+ backend tests with 80% coverage
-- **All model methods complete** (Payment, Notification, Safety Case, Audit)
-- **0 TODOs, 0 FIXMEs, 0 hardcoded values**
-
-**Testing (82% Coverage - Target Exceeded!)**:
-- Frontend: 540+ tests (82% coverage)
-  - Component Tests: 312+ (including Dashboard & ProtectedRoute)
-  - Page Tests: 36+ (Login, MyPlans, ArrivalMode)
-  - Unit Tests: 135+
-  - Integration Tests: 25+
-  - API Tests: 20+
-- Backend: 250+ tests (80% coverage)
-- E2E Tests: 3 complete user journeys (50+ scenarios)
-  - Participant Journey (13 steps)
-  - Staff Operations Journey (11 steps)
-  - Support & Safety Journey (6 steps)
-- Total: 790+ tests
-- All critical paths tested
-- 100% pass rate
-- **API Client Enhancements**:
-  - Caching system with TTL (5 minutes)
-  - Retry logic with exponential backoff
-  - Automatic cache invalidation on mutations
-  - Configurable caching per request
-
-**CI/CD (100% Complete)**:
-- GitHub Actions workflow
-- Automated testing on push/PR
-- Automated deployment to staging
-- Manual approval for production
-- Smoke tests after deployment
-- Security scanning
-- Code quality checks
-
-**Code Quality (100% Complete)**:
-- 0 TypeScript errors
-- 0 build warnings
-- 0 TODOs/FIXMEs
-- 0 hardcoded values
-- 0 security vulnerabilities
-- All best practices followed
-
-**Infrastructure (100% Complete)**:
-- ✅ Docker configuration (Dockerfile, docker-compose.yml)
-- ✅ Database migrations (12 tables with versioning)
-- ✅ Seed scripts for demo data
-- ✅ Rollback scripts for database recovery
-- ✅ Deployment guide (PM2, Systemd, Docker, Vercel, Netlify)
-- ✅ Security middleware (rate limiting, headers, CORS, input sanitization)
-- ✅ Monitoring endpoints (/health, /metrics)
-- ✅ Health checks (backend, database, redis)
-- ✅ .gitignore files for clean repository
-- ✅ Health check endpoints
-- ✅ Multi-stage Docker builds
-
-### 🚀 READY FOR PRODUCTION DEPLOYMENT
-
-All requirements implemented, tested, and documented. The application is ready for production deployment.
-
-**Key Features**:
-- ✅ Payment amounts use actual experience prices (not hardcoded)
-- ✅ Notification system ready for email/SMS/push service integration
-- ✅ All external service integrations designed as optional enhancements
-- ✅ Core functionality works without external services
-- ✅ **Frontend API client** ready to connect to backend
-- ✅ **Authentication hook** for seamless login/register flow
-- ✅ **TypeScript environment types** for type-safe API calls
-
-**Frontend-Backend Integration**:
-```typescript
-// Example: Using the API client
-import { api } from './services/api';
-
-// Login
-const response = await api.auth.login({ 
-  phone: '+966501234567', 
-  password: 'password123' 
-});
-
-// Get experiences
-const experiences = await api.experiences.list({ limit: 10 });
-
-// Create reservation
-const reservation = await api.reservations.create({ 
-  experience_id: 'exp-1' 
-});
-```
-
-**Authentication Hook**:
-```typescript
-// Example: Using the auth hook
-import { useAuth } from './hooks/useAuth';
-
-function LoginPage() {
-  const { user, isAuthenticated, login, logout } = useAuth();
-  
-  const handleLogin = async () => {
-    await login('+966501234567', 'password123');
-  };
-  
-  return isAuthenticated ? (
-    <div>Welcome, {user?.display_name}!</div>
-  ) : (
-    <button onClick={handleLogin}>Login</button>
-  );
-}
-```
-
-**👉 See [STATE.md](./docs/archive/STATE.md) for detailed project status.**  
-**👉 See [FINAL_PROJECT_REPORT.md](./docs/archive/FINAL_PROJECT_REPORT.md) for complete project report.**  
-**👉 See [SESSION_FIXES_REPORT.md](./docs/archive/SESSION_FIXES_REPORT.md) for latest fixes.**
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)]()
+[![React](https://img.shields.io/badge/React-18-61dafb.svg)]()
+[![Node](https://img.shields.io/badge/Node-20-green.svg)]()
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791.svg)]()
+[![WCAG](https://img.shields.io/badge/WCAG-2.2_AA-success.svg)]()
 
 ---
 
 ## Overview
 
-Yalla is a managed service platform that helps adults discover, book, attend, and repeat enjoyable local experiences with small curated groups. Unlike open marketplaces, Yalla creates and controls every aspect of the experience - from hosts and venues to capacity, pricing, and safety.
+Yalla is an end-to-end managed service platform that allows users to discover, book, attend, and review curated local activities in small groups. Unlike open marketplaces, Yalla exercises end-to-end quality control over experiences, hosts, venues, safety, and schedules.
 
-### Core Promise
-- **Find** something enjoyable
-- **Book** your place
-- **Show up** with confidence
-- **Repeat** the experience
-
-Yalla handles the plan, host, venue, group, arrival details, and support - so users can focus on enjoying the experience.
+- **Frontend**: React 18, Vite 6, Tailwind CSS 4, PWA support, bilingual (English & Arabic RTL), WCAG 2.2 AA compliant.
+- **Backend**: Express.js, TypeScript, PostgreSQL 15, JWT + HttpOnly cookie authentication, Stripe payments.
+- **SDLC**: Anthropic AI-Native SDLC Playbook workflow (`intent/` → `specs/` → `plans/` → evals → guardrails → maintenance monitor).
 
 ---
 
-## Features
+## Architecture & Systems
 
-### For Participants
-- 🎯 **Smart Discovery** - Browse curated experiences with honest availability
-- 📅 **Seamless Booking** - One-tap booking with synthetic payment flow
-- 📍 **Arrival Mode** - Protected access to venue details, meeting points, and host info
-- 💬 **Private Support** - Separate channels for operational help and safety reports
-- 🌍 **Bilingual** - Full English and Arabic (RTL) support
-- ♿ **Accessible** - WCAG 2.2 AA compliant
+```mermaid
+graph TD
+    Client["Browser / PWA (React 18 + Vite)"]
+    API["Express.js API (TypeScript)"]
+    DB[("PostgreSQL 15 (12 Tables)")]
+    Redis[("Redis 7 (Rate Limiting & Cache)")]
+    Stripe["Stripe Payments"]
 
-### For Staff
-- 📊 **Operations Dashboard** - Manage plans, hosts, venues, and capacity
-- 👥 **Host Management** - Assign primary and backup hosts
-- 📍 **Venue Control** - Primary and fallback venue assignments
-- 📋 **Request Handling** - Approval workflows and waitlist management
-- ✅ **Attendance Tracking** - Check-in and audited corrections
-- 🔔 **Notification System** - Automated and manual recovery
-- 🛡️ **Safety Cases** - Restricted access for trust & safety team
-- 📝 **Audit Trail** - Complete action history with classification
+    Client -->|"REST / JSON"| API
+    API -->|"SQL queries / Pool"| DB
+    API -->|"Cache"| Redis
+    API -->|"Webhooks & Intents"| Stripe
+```
 
----
-
-## Architecture
-
-### Tech Stack
-- **Frontend**: React 18 + TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS 4
-- **Icons**: Lucide React
-- **Routing**: React Router DOM
-- **Animations**: Framer Motion
-- **Date Handling**: date-fns
-
-### Design System
-- **Semantic Tokens**: surface, text-primary/secondary/tertiary, border, brand, accent
-- **Component Library**: 40+ reusable components
-- **Accessibility**: Focus management, ARIA labels, keyboard navigation
-- **Responsive**: Mobile-first, tablet, desktop optimized
-
-### State Management
-- React Context + useReducer
-- Type-safe actions and state
-- Optimistic updates with rollback
-- Idempotency keys for critical operations
+For complete technical specifications, see:
+- 🏛️ **[Architecture Guide](./docs/ARCHITECTURE.md)** — Clean Architecture, Domain-Driven Design, Reservation State Machine.
+- 📡 **[API Reference](./docs/API.md)** — 53 REST API endpoints, schemas, headers, status codes.
+- 🗄️ **[Database Specification](./docs/DATABASE.md)** — PostgreSQL tables, ER diagram, migrations.
+- 📋 **[Product Requirements Document (PRD)](./PRD.md)** — Functional requirements (FR-001 to FR-045) in Arabic.
+- 🤖 **[Agent Instructions (AGENTS.md)](./AGENTS.md)** / **[CLAUDE.md](./CLAUDE.md)** — Operational commands and AI agent guardrails.
 
 ---
 
-## Getting Started
+## Quickstart
 
 ### Prerequisites
-- Node.js 18+ 
-- npm 9+
+- Node.js 20+ and npm 9+
+- PostgreSQL 15 (optional for local mock mode; required for backend integration/E2E tests)
 
-### Installation
+### 1. Installation
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd yalla-mvp
+# Install frontend dependencies (repo root)
+npm ci
 
-# Install dependencies
-npm install
+# Install backend dependencies
+cd backend && npm ci && cd ..
+```
 
-# Start development server
+### 2. Environment Setup
+
+```bash
+# Copy frontend environment
+cp .env.example .env
+
+# Copy backend environment
+cp backend/.env.example backend/.env
+```
+
+### 3. Running Locally
+
+```bash
+# Terminal 1: Run Frontend (http://localhost:3000)
 npm run dev
 
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
+# Terminal 2: Run Backend (http://localhost:3000 or override PORT=3001)
+cd backend && npm run dev
 ```
 
-### Environment Setup
-
-Copy `.env.example` to `.env` and configure:
+### 4. Running with Docker Compose
 
 ```bash
-cp .env.example .env
+docker compose up -d
 ```
-
-See `.env.example` for all available configuration options.
-
----
-
-## Project Structure
-
-```
-yalla/
-├── src/                     # Frontend source (React 18, Vite 6, Tailwind CSS)
-│   ├── components/          # Reusable UI components
-│   ├── pages/               # Page components
-│   ├── hooks/               # Custom React hooks (useAuth, etc.)
-│   ├── domain/              # Business logic (entities, services)
-│   ├── application/         # Use cases (booking, reconfirmation, rewards)
-│   ├── infrastructure/      # Mock data & external concerns
-│   ├── shared/              # Utilities (validation, errors, logger)
-│   ├── services/            # API client with TTL caching & retry
-│   ├── data/                # State management (store.tsx)
-│   ├── i18n/                # Localization (EN/AR with RTL)
-│   └── types/               # TypeScript type definitions
-├── backend/                 # Backend API (Express, TypeScript, PostgreSQL)
-│   ├── src/                 # Controllers, models, routes, middleware
-│   ├── tests/               # Unit, API, and E2E Jest test suites
-│   └── README.md            # Backend API documentation
-├── docs/
-│   └── archive/             # Historical completion reports & audit snapshots
-├── public/                  # Static assets
-├── package.json             # Frontend dependencies & scripts
-├── tsconfig.json            # Frontend TypeScript config
-├── vite.config.js           # Vite config
-├── .env.example             # Frontend environment variables template
-├── README.md                # Project overview and setup
-├── AGENTS.md                # Developer & agent operational commands
-├── PRD.md                   # Product Requirements Document
-├── DEPLOYMENT.md            # Production deployment guide
-├── ROADMAP.md               # Development roadmap
-├── CHANGELOG.md             # Version history
-└── CONTRIBUTING.md          # Contribution guidelines
-```
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:3000`
+- Database Adminer: `http://localhost:8080`
 
 ---
 
----
+## Testing & Verification
 
-## Security & Privacy
-
-### Data Classification
-- **Public**: Experience information, general content
-- **Internal**: Operational data, staff workflows
-- **Confidential**: Phone numbers, exact venues, accessibility needs
-- **Restricted**: Reports, blocks, safety narratives, audit records
-
-### Privacy Controls
-- ✅ Data export (machine-readable JSON)
-- ✅ Data correction requests
-- ✅ Data deletion requests
-- ✅ Marketing consent (separate from terms)
-- ✅ Privacy-safe analytics (no sensitive data)
-- ✅ Audit trail for privileged actions
-
-### Security Features
-- Role-based access control
-- Session management with timeout warnings
-- Input validation
-- CSRF protection (ready for implementation)
-- Rate limiting (ready for implementation)
-
----
-
-## Accessibility
-
-### WCAG 2.2 AA Compliance
-- ✅ Semantic HTML structure
-- ✅ Complete keyboard operation
-- ✅ Visible focus indicators
-- ✅ Logical focus order
-- ✅ Screen reader support
-- ✅ Error identification
-- ✅ Status announcements
-- ✅ 44×44px minimum touch targets
-- ✅ Reduced motion support
-- ✅ Accessible dialogs with focus trapping
-- ✅ 200% and 400% reflow support
-- ✅ No color-only communication
-
----
-
-## Performance
-
-### Metrics
-- **Bundle Size**: 326.54 KB (JS) + 50.50 KB (CSS) gzipped
-- **First Contentful Paint**: < 1s (with skeleton loading)
-- **Largest Contentful Paint**: < 2s (with lazy-loaded images)
-- **Cumulative Layout Shift**: 0 (skeleton loading prevents shift)
-- **Time to Interactive**: < 3s
-
-### Optimizations
-- Lazy loading for images
-- Skeleton loading states
-- Code splitting by route
-- Optimized bundle with Vite
-- Minimal re-renders with proper state management
-
----
-
-## Localization
-
-### Supported Languages
-- **English** (LTR)
-- **Arabic** (RTL) - Native support
-
-### Features
-- Complete UI translation (194+ keys)
-- Mirrored navigation and icons
-- Mixed place names support
-- Saudi Riyal formatting
-- Local date/time formatting
-- Long Arabic text without clipping
-
----
-
-## Testing
-
-- **Frontend Tests**: Vitest + React Testing Library + jsdom (
-px vitest run)
-- **Backend Tests**: Jest + ts-jest (cd backend && npm test -- tests/unit)
-- **End-to-End Tests**: Playwright (
-px playwright test)
-- **Type Checking**: TypeScript strict mode (
-pm run typecheck across root and backend)
-- **CI Suite**: Automated GitHub Actions testing on every pull request and push to main
-
----
-
-## Deployment
-
-### Production Build
+### Local Verification Commands
 ```bash
-npm run build
+# Frontend type check & unit tests (664 tests)
+npm run typecheck
+npx vitest run
+
+# Backend type check, lint & unit tests (62 tests)
+cd backend
+npm run typecheck
+npm run lint
+npm test -- tests/unit
+cd ..
+
+# AI Agent continuous evals
+node evals/check.js
 ```
 
-The build output will be in the `dist/` directory, ready for deployment.
-
-### Environment Variables
-See `.env.example` for all available configuration options.
-
-### Deployment Checklist
-- [ ] Set production environment variables
-- [ ] Configure CDN for static assets
-- [ ] Set up monitoring and alerting
-- [ ] Configure error tracking
-- [ ] Set up analytics (privacy-safe)
-- [ ] Configure backup and recovery
+### CI/CD Pipelines
+All commits and pull requests trigger automated GitHub Actions workflows:
+- `.github/workflows/ci-cd.yml` — Frontend build, backend build, unit tests, code quality, security scan.
+- `.github/workflows/agent-evals.yml` — Architectural invariant regression suite.
+- `.github/workflows/jules-automerge.yml` — Automated safe PR merge for Jules coding agent.
 
 ---
 
-## Roadmap
+## AI-Native SDLC Workflow
 
-### Phase 1: Testing Infrastructure (Q1 2026)
-- Unit tests with Vitest
-- Integration tests with React Testing Library
-- E2E tests with Playwright
-- Visual regression tests
-- Accessibility automated tests
+Yalla implements Anthropic's stage-by-stage AI-Native SDLC:
 
-### Phase 2: Backend Integration (Q2 2026)
-- PostgreSQL database
-- RESTful API
-- Authentication system
-- Payment integration (Stripe)
-- Email/SMS notifications
-
-### Phase 3: Scale & Optimize (Q3 2026)
-- Analytics integration
-- Advanced search (Elasticsearch)
-- PWA support
-- Performance optimization
-- Multi-city support
-
-### Phase 4: Advanced Features (Q4 2026)
-- AI-powered recommendations
-- Host tools and dashboard
-- Premium features
-- Mobile app (React Native)
-- Advanced analytics
-
-See [ROADMAP.md](./ROADMAP.md) for detailed roadmap.
+1. **Stage 1 (Plan)**: Problems captured in `intent/<id>-<slug>.md` using `intent/TEMPLATE.md`.
+2. **Stage 2 (Design)**: Specs written to `specs/<id>-<slug>.md` using `specs/TEMPLATE.md`.
+3. **Stage 3 (Build)**: Plans committed in `plans/<id>-<slug>.md`; implemented via Jules (`.jules/`).
+4. **Stage 4 (Test)**: Test feedback loops and continuous regression evals (`evals/`).
+5. **Stage 5 (Deploy)**: Automated PR guardrails preventing unauthorized modifications to sensitive configs.
+6. **Stage 6 (Maintain)**: Autonomous drift & breach detection (`scripts/monitor-breach.js`).
 
 ---
 
-## 📚 Documentation
+## Contributing & Development
 
-- **[AGENTS.md](./AGENTS.md)** - Operational commands, CI mirror commands, test instructions
-- **[PRD.md](./PRD.md)** - Complete product requirements (45 functional requirements, 22 business rules)
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Production deployment guide (PM2, Docker, systemd)
-- **[Backend README](./backend/README.md)** - Backend API endpoints, migrations, and architecture
-- **[ROADMAP.md](./ROADMAP.md)** - Development roadmap and feature plans
-- **[CHANGELOG.md](./CHANGELOG.md)** - Version history and changes
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - How to contribute to the project
-- **[Archived Reports](./docs/archive/README.md)** - Historical session completion and audit reports
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for branch naming (`jules/<issue-id>-<description>`), commit message conventions, and code review standards.
 
----
-
-## Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
-
-### Quick Start
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## Support
-
-For support, please use the in-app support system or contact the development team.
+For production deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ---
 
 ## License
 
-Proprietary - All rights reserved.
-
----
-
-## Acknowledgments
-
-- **Design Inspiration**: Apple, Airbnb, Linear, Stripe (principles only, not copied)
-- **Icons**: Lucide React
-- **Images**: AI-generated with Qwen
-- **Framework**: React Team
-- **Build Tool**: Vite Team
-- **Styling**: Tailwind CSS Team
-
----
-
-<div align="center">
-
-**Built with ❤️ for exceptional user experiences**
-
-[README](./README.md) • [AGENTS](./AGENTS.md) • [PRD](./PRD.md) • [DEPLOYMENT](./DEPLOYMENT.md) • [Backend README](./backend/README.md) • [Archive](./docs/archive/README.md)
-
-</div>
+Proprietary — All rights reserved.

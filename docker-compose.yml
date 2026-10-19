@@ -13,7 +13,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -72,21 +71,21 @@ services:
       - yalla-network
     command: npm run dev
 
-  # Frontend (Optional - for local development)
+  # Frontend (Root React + Vite App)
   frontend:
     build:
-      context: ./frontend
+      context: .
       dockerfile: Dockerfile
     container_name: yalla-frontend
     environment:
       VITE_API_URL: http://localhost:3000
     ports:
-      - "5173:5173"
+      - "5173:3000"
     depends_on:
       - backend
     volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public:/app/public
+      - ./src:/app/src
+      - ./public:/app/public
     networks:
       - yalla-network
     command: npm run dev
