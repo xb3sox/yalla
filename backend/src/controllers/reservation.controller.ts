@@ -32,40 +32,13 @@ export const createReservation = async (req: AuthRequest, res: Response) => {
     }
     const idempotency_key = req.body.idempotency_key || uuidv4();
 
-    // Validate experience exists and is published
-    const experience = await experienceModel.findById(experience_id);
-    
-    if (!experience) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: 'EXPERIENCE_NOT_FOUND',
-          message: 'Experience not found',
-        },
-      });
-    }
+    const { reservation, isWaitlisted, experience } = await reservationModel.createWithCapacityCheck({
+      participant_id: req.user.userId,
+      experience_id,
+      idempotency_key,
+    });
 
-    if (experience.plan_state !== 'published') {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'EXPERIENCE_NOT_AVAILABLE',
-          message: 'Experience is not available for booking',
-        },
-      });
-    }
-
-    // Check capacity
-    if (experience.booked >= experience.capacity) {
-      // Add to waitlist
-      const reservation = await reservationModel.create({
-        participant_id: req.user.userId,
-        experience_id,
-        idempotency_key,
-      });
-
-      await reservationModel.updateState(reservation.id, 'waitlisted');
-
+    if (isWaitlisted) {
       logger.info('User added to waitlist', { 
         userId: req.user.userId, 
         experienceId: experience_id 
@@ -80,43 +53,44 @@ export const createReservation = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Create reservation
-    const reservation = await reservationModel.create({
-      participant_id: req.user.userId,
-      experience_id,
-      idempotency_key,
-    });
-
-    // Update experience booked count
-    await experienceModel.incrementBooked(experience_id);
-
-    // Update reservation to confirmed (simulating payment success)
-    const confirmedReservation = await reservationModel.updateState(
-      reservation.id,
-      'confirmed',
-      { payment_state: 'captured', payment_id: `pay_${uuidv4()}` }
-    );
-
     logger.info('Reservation created and confirmed', { 
       userId: req.user.userId, 
       experienceId: experience_id,
-      reservationId: confirmedReservation.id 
+      reservationId: reservation.id 
     });
 
     res.status(201).json({
       success: true,
       data: {
-        reservation: confirmedReservation,
+        reservation,
         experience,
       },
     });
   } catch (error: any) {
-    if (error.message === 'Active reservation already exists for this experience') {
+    if (error.message === 'Active reservation already exists for this experience' || error.message === 'DUPLICATE_RESERVATION') {
       return res.status(409).json({
         success: false,
         error: {
           code: 'DUPLICATE_RESERVATION',
-          message: error.message,
+          message: 'Active reservation already exists for this experience',
+        },
+      });
+    }
+    if (error.message === 'EXPERIENCE_NOT_FOUND') {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'EXPERIENCE_NOT_FOUND',
+          message: 'Experience not found',
+        },
+      });
+    }
+    if (error.message === 'EXPERIENCE_NOT_AVAILABLE') {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'EXPERIENCE_NOT_AVAILABLE',
+          message: 'Experience is not available for booking',
         },
       });
     }

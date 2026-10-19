@@ -63,6 +63,109 @@ const stateMachine: ReservationStateMachine = {
 
 class ReservationModel {
   /**
+   * Deep transactional reservation intake with capacity lock and idempotency check
+   */
+  async createWithCapacityCheck(input: {
+    participant_id: string;
+    experience_id: string;
+    idempotency_key: string;
+  }): Promise<{ reservation: Reservation; isWaitlisted: boolean; experience: any }> {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // 1. Lock experience row to serialize concurrent booking attempts
+      const expRes = await client.query(
+        'SELECT * FROM experiences WHERE id = $1 FOR UPDATE',
+        [input.experience_id]
+      );
+      if (expRes.rows.length === 0) {
+        throw new Error('EXPERIENCE_NOT_FOUND');
+      }
+      const experience = expRes.rows[0];
+      if (experience.plan_state !== 'published') {
+        throw new Error('EXPERIENCE_NOT_AVAILABLE');
+      }
+
+      // 2. Idempotency check inside transaction
+      const existingRes = await client.query(
+        'SELECT * FROM reservations WHERE idempotency_key = $1',
+        [input.idempotency_key]
+      );
+      if (existingRes.rows.length > 0) {
+        await client.query('COMMIT');
+        return {
+          reservation: existingRes.rows[0],
+          isWaitlisted: existingRes.rows[0].state === 'waitlisted',
+          experience,
+        };
+      }
+
+      // 3. Active duplicate reservation check
+      const activeCheck = await client.query(
+        `SELECT id FROM reservations 
+         WHERE participant_id = $1 
+           AND experience_id = $2 
+           AND state IN ('initiated', 'payment_pending', 'confirmed', 'reconfirmation_required', 'reconfirmed', 'waitlisted', 'offered')`,
+        [input.participant_id, input.experience_id]
+      );
+      if (activeCheck.rows.length > 0) {
+        throw new Error('Active reservation already exists for this experience');
+      }
+
+      // 4. Check capacity atomically
+      const isWaitlisted = experience.booked >= experience.capacity;
+      const targetState = isWaitlisted ? 'waitlisted' : 'confirmed';
+      const paymentState = isWaitlisted ? 'initiated' : 'captured';
+      const paymentId = isWaitlisted ? null : `pay_${uuidv4()}`;
+
+      // 5. Insert reservation
+      const insertRes = await client.query(
+        `INSERT INTO reservations (
+           participant_id, experience_id, state, payment_state, payment_id, idempotency_key, confirmed_at
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING *`,
+        [
+          input.participant_id,
+          input.experience_id,
+          targetState,
+          paymentState,
+          paymentId,
+          input.idempotency_key,
+          isWaitlisted ? null : new Date(),
+        ]
+      );
+
+      // 6. If confirmed, increment booked count atomically on locked row
+      if (!isWaitlisted) {
+        await client.query(
+          'UPDATE experiences SET booked = booked + 1, updated_at = NOW() WHERE id = $1',
+          [input.experience_id]
+        );
+        experience.booked += 1;
+      }
+
+      await client.query('COMMIT');
+      logger.info('Reservation intake completed atomically', {
+        reservationId: insertRes.rows[0].id,
+        state: targetState,
+        isWaitlisted,
+      });
+
+      return {
+        reservation: insertRes.rows[0],
+        isWaitlisted,
+        experience,
+      };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
    * Create a new reservation with idempotency check
    */
   async create(input: CreateReservationInput): Promise<Reservation> {

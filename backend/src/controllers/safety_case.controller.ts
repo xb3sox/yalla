@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
-import safetyCaseModel from '../models/safety_case.model';
+import safetyCaseModel, { SAFETY_CASE_TRANSITIONS } from '../models/safety_case.model';
 import auditModel from '../models/audit.model';
 import logger from '../utils/logger';
 
@@ -210,17 +210,7 @@ export const updateSafetyCase = async (req: AuthRequest, res: Response) => {
 
     // Validate state transition if state is being updated
     if (updates.state) {
-      const validTransitions: Record<string, string[]> = {
-        submitted: ['triage', 'under_review', 'closed'],
-        triage: ['under_review', 'closed'],
-        under_review: ['action_taken', 'closed'],
-        action_taken: ['closed', 'appealed'],
-        closed: ['appealed'],
-        appealed: ['final'],
-        final: [],
-      };
-
-      if (!validTransitions[safetyCase.state]?.includes(updates.state)) {
+      if (!SAFETY_CASE_TRANSITIONS[safetyCase.state]?.includes(updates.state)) {
         return res.status(400).json({
           success: false,
           error: {

@@ -6,6 +6,7 @@ import { StatusPanel, StatusBadge, Button, MaterialChangeBanner } from '../compo
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { MyPlansPageSkeleton } from '../components/LoadingSkeleton';
 import { Calendar } from 'lucide-react';
+import { api } from '../services/api';
 
 interface MyPlansPageProps {
   onViewExperience: (id: string) => void;
@@ -22,6 +23,40 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback, i
   const [isLoading, setIsLoading] = useState(initialLoading);
 
   const userReservations = state.reservations.filter(r => r.participantId === 'user-1');
+
+  useEffect(() => {
+    let isMounted = true;
+    api.reservations
+      .list()
+      .then((res: any) => {
+        if (isMounted && res?.success && res?.data?.reservations) {
+          const serverList = res.data.reservations;
+          if (Array.isArray(serverList) && serverList.length > 0) {
+            serverList.forEach((r: any) => {
+              dispatch({
+                type: 'ADD_RESERVATION',
+                payload: {
+                  id: r.id,
+                  participantId: r.participant_id || 'user-1',
+                  planId: r.experience_id,
+                  state: r.state,
+                  createdAt: r.created_at,
+                  confirmedAt: r.confirmed_at,
+                  paymentState: r.payment_state || 'captured',
+                  paymentId: r.payment_id,
+                  idempotencyKey: r.idempotency_key || `idem-${r.id}`,
+                },
+              });
+            });
+          }
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dispatch]);
 
   useEffect(() => {
     if (!initialLoading) return;
@@ -53,6 +88,7 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback, i
           label: t('plans.reconfirm', lang),
           action: () => {
             dispatch({ type: 'RECONFIRM_RESERVATION', payload: reservation.id });
+            api.reservations.reconfirm(reservation.id).catch(() => {});
             showToast('success', lang === 'ar' ? 'تم تأكيد حضورك' : 'Attendance confirmed');
           }
         };
@@ -185,6 +221,7 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback, i
         onConfirm={() => {
           if (cancelDialog) {
             dispatch({ type: 'CANCEL_RESERVATION', payload: cancelDialog });
+            api.reservations.cancel(cancelDialog).catch(() => {});
             showToast('success', lang === 'ar' ? 'تم إلغاء الحجز' : 'Booking cancelled');
             setCancelDialog(null);
           }

@@ -1,6 +1,18 @@
 import pool from '../config/database';
 import logger from '../utils/logger';
 
+export const EXPERIENCE_TRANSITIONS: Record<string, string[]> = {
+  draft: ['review', 'cancelled'],
+  review: ['published', 'cancelled'],
+  published: ['full', 'changed', 'cancelled'],
+  full: ['in_progress', 'cancelled'],
+  changed: ['in_progress', 'cancelled'],
+  in_progress: ['completed', 'cancelled'],
+  completed: ['archived'],
+  archived: [],
+  cancelled: [],
+};
+
 export interface Experience {
   id: string;
   title: string;

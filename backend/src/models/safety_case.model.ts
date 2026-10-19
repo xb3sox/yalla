@@ -32,6 +32,16 @@ export interface UpdateSafetyCaseInput {
   actions?: any;
 }
 
+export const SAFETY_CASE_TRANSITIONS: Record<string, string[]> = {
+  submitted: ['triage', 'under_review', 'closed'],
+  triage: ['under_review', 'closed'],
+  under_review: ['action_taken', 'closed'],
+  action_taken: ['closed', 'appealed'],
+  closed: ['appealed'],
+  appealed: ['final'],
+  final: [],
+};
+
 class SafetyCaseModel {
   /**
    * Create a safety case
@@ -285,17 +295,7 @@ class SafetyCaseModel {
       throw new Error('Safety case not found');
     }
 
-    const validTransitions: Record<string, string[]> = {
-      submitted: ['triage', 'under_review', 'closed'],
-      triage: ['under_review', 'closed'],
-      under_review: ['action_taken', 'closed'],
-      action_taken: ['closed', 'appealed'],
-      closed: ['appealed'],
-      appealed: ['final'],
-      final: [],
-    };
-
-    if (!validTransitions[safetyCase.state]?.includes(newState)) {
+    if (!SAFETY_CASE_TRANSITIONS[safetyCase.state]?.includes(newState)) {
       throw new Error('Invalid state transition');
     }
 

@@ -50,6 +50,7 @@ export const getRecommendations = async (req: Request, res: Response) => {
     // O(N) loop to score experiences
     const scoredExperiences = allExperiences.map((exp) => {
       let score = 0;
+      const reasons: string[] = [];
 
       // 1. Scoring by Bookings (exclude past bookings)
       if (bookedExperienceIds.has(exp.id)) {
@@ -59,27 +60,40 @@ export const getRecommendations = async (req: Request, res: Response) => {
       // 2. Scoring by Area
       if (userPreferredArea && exp.area?.toLowerCase().includes(userPreferredArea)) {
         score += 10;
+        reasons.push('Matches your preferred area');
       }
 
       // 3. Scoring by Budget
       const price = Number(exp.price);
       if (price >= userBudgetMin && price <= userBudgetMax) {
         score += 5;
+        reasons.push('Within your budget range');
       }
 
       // 4. Scoring by Accessibility Needs
       if (userAccessibilityNeeds && exp.accessibility && exp.accessibility?.toLowerCase().includes(userAccessibilityNeeds)) {
         score += 5;
+        reasons.push('Matches accessibility needs');
       }
 
       // 5. Scoring by Popularity (Bookings)
       if (exp.booked > 0) {
         score += Math.min(exp.booked, 10) * 0.1;
+        if (exp.booked >= (exp.capacity || 10) * 0.8) {
+          reasons.push('Limited spots available');
+        } else {
+          reasons.push('Good availability');
+        }
+      }
+
+      if (reasons.length === 0) {
+        reasons.push('New experience to discover');
       }
 
       return {
         ...exp,
         score,
+        reasons,
       };
     });
 

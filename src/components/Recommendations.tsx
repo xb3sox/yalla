@@ -113,9 +113,22 @@ export function Recommendations({ onSelectExperience, limit = 3 }: Recommendatio
 
           if (hasServerRecs) {
             experience = rec; // Server returns full experience objects
-            // The server might not return reasons, or they might be formatted differently.
-            // Assuming no specific reasons from server in this snippet as it isn't documented
-            // in the controller besides 'score'. We can omit reasons for server recs or add custom ones.
+            const rawReasons: string[] = Array.isArray(rec.reasons) ? rec.reasons : [];
+            if (lang === 'ar') {
+              const translations: Record<string, string> = {
+                'Matches your preferred area': 'يتطابق مع منطقتك المفضلة',
+                'In your preferred language': 'بلغتك المفضلة',
+                'Within your budget range': 'ضمن نطاق ميزانيتك',
+                'Based on your positive experiences': 'بناءً على تجاربك الإيجابية',
+                'Limited spots available': 'أماكن محدودة متاحة',
+                'Good availability': 'توفر جيد',
+                'New experience to discover': 'تجربة جديدة للاكتشاف',
+                'Matches accessibility needs': 'يناسب احتياجات إمكانية الوصول',
+              };
+              reasons = rawReasons.map((r: string) => translations[r] || r);
+            } else {
+              reasons = rawReasons;
+            }
           } else {
             experience = state.experiences.find(e => e.id === rec.experienceId);
             reasons = getRecommendationReasons(rec as RecommendationScore, lang);
@@ -129,7 +142,7 @@ export function Recommendations({ onSelectExperience, limit = 3 }: Recommendatio
                 experience={experience}
                 onPress={() => onSelectExperience(experience.id)}
               />
-              {!hasServerRecs && reasons.length > 0 && (
+              {reasons.length > 0 && (
                 <div className="mt-2 px-4 py-2 bg-brand-50 rounded-lg border border-brand-100">
                   <p className="text-xs text-brand-700">
                     <span className="font-semibold">{lang === 'ar' ? 'لماذا:' : 'Why:'}</span>{' '}

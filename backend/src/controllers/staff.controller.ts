@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
-import experienceModel from '../models/experience.model';
+import experienceModel, { EXPERIENCE_TRANSITIONS } from '../models/experience.model';
 import reservationModel from '../models/reservation.model';
 import auditModel from '../models/audit.model';
 import { Parser } from 'json2csv';
@@ -37,20 +37,7 @@ export const updateExperienceState = async (req: AuthRequest, res: Response) => 
       });
     }
 
-    // Validate state transition
-    const validTransitions: Record<string, string[]> = {
-      draft: ['review', 'cancelled'],
-      review: ['published', 'cancelled'],
-      published: ['full', 'changed', 'cancelled'],
-      full: ['in_progress', 'cancelled'],
-      changed: ['in_progress', 'cancelled'],
-      in_progress: ['completed', 'cancelled'],
-      completed: ['archived'],
-      archived: [],
-      cancelled: [],
-    };
-
-    if (!validTransitions[experience.plan_state]?.includes(state)) {
+    if (!EXPERIENCE_TRANSITIONS[experience.plan_state]?.includes(state)) {
       return res.status(400).json({
         success: false,
         error: {
