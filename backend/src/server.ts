@@ -90,47 +90,48 @@ app.use(notFoundHandler);
 // Error handler
 app.use(errorHandler);
 
-// Start server
-const PORT = config.port;
-const server = app.listen(PORT, () => {
-  logger.info(`🚀 Server running on port ${PORT}`);
-  logger.info(`📝 Environment: ${config.env}`);
-  logger.info(`🔗 API Version: ${config.apiVersion}`);
-  logger.info(`🏥 Health check: http://localhost:${PORT}/health`);
-});
-
-// Graceful shutdown
-const shutdown = (signal: string) => {
-  logger.info(`Received ${signal}. Shutting down gracefully...`);
-  server.close(async () => {
-    logger.info('HTTP server closed.');
-    try {
-      await pool.end();
-      logger.info('PostgreSQL pool drained.');
-      process.exit(0);
-    } catch (err) {
-      logger.error('Error closing database pool', err);
-      process.exit(1);
-    }
+// Start server and setup graceful shutdown only outside test runs
+if (config.env !== 'test' && process.env.NODE_ENV !== 'test') {
+  const PORT = config.port;
+  const server = app.listen(PORT, () => {
+    logger.info(`🚀 Server running on port ${PORT}`);
+    logger.info(`📝 Environment: ${config.env}`);
+    logger.info(`🔗 API Version: ${config.apiVersion}`);
+    logger.info(`🏥 Health check: http://localhost:${PORT}/health`);
   });
 
-  setTimeout(() => {
-    logger.error('Forcefully shutting down after timeout');
-    process.exit(1);
-  }, 10000).unref();
-};
+  const shutdown = (signal: string) => {
+    logger.info(`Received ${signal}. Shutting down gracefully...`);
+    server.close(async () => {
+      logger.info('HTTP server closed.');
+      try {
+        await pool.end();
+        logger.info('PostgreSQL pool drained.');
+        process.exit(0);
+      } catch (err) {
+        logger.error('Error closing database pool', err);
+        process.exit(1);
+      }
+    });
 
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
+    setTimeout(() => {
+      logger.error('Forcefully shutting down after timeout');
+      process.exit(1);
+    }, 10000).unref();
+  };
 
-process.on('unhandledRejection', (reason: any) => {
-  logger.error('Unhandled Rejection detected', { reason: reason?.stack || reason });
-  shutdown('unhandledRejection');
-});
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 
-process.on('uncaughtException', (error: Error) => {
-  logger.error('Uncaught Exception detected', { error: error.message, stack: error.stack });
-  shutdown('uncaughtException');
-});
+  process.on('unhandledRejection', (reason: any) => {
+    logger.error('Unhandled Rejection detected', { reason: reason?.stack || reason });
+    shutdown('unhandledRejection');
+  });
+
+  process.on('uncaughtException', (error: Error) => {
+    logger.error('Uncaught Exception detected', { error: error.message, stack: error.stack });
+    shutdown('uncaughtException');
+  });
+}
 
 export default app;

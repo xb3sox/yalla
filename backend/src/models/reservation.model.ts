@@ -158,7 +158,11 @@ class ReservationModel {
         experience,
       };
     } catch (err) {
-      await client.query('ROLLBACK');
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackErr) {
+        logger.error('Failed to rollback reservation transaction', rollbackErr);
+      }
       throw err;
     } finally {
       client.release();

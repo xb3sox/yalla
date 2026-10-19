@@ -104,20 +104,10 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
 
         setBookingState(waitlisted ? 'waitlisted' : 'success');
       })
-      .catch(() => {
-        const fallbackRes = {
-          id: `res-${Date.now()}`,
-          participantId: 'user-1',
-          planId: experience.id,
-          state: isFull ? ('waitlisted' as const) : ('confirmed' as const),
-          createdAt: new Date().toISOString(),
-          confirmedAt: isFull ? undefined : new Date().toISOString(),
-          paymentState: 'captured' as const,
-          paymentId: `pay-synth-${Date.now()}`,
-          idempotencyKey,
-        };
-        dispatch({ type: 'ADD_RESERVATION', payload: fallbackRes });
-        setBookingState(isFull ? 'waitlisted' : 'success');
+      .catch((err: any) => {
+        setBookingState('idle');
+        const errorMsg = err?.message || (lang === 'ar' ? 'فشل إتمام الحجز' : 'Failed to complete booking');
+        showToast('error', errorMsg);
       });
   };
 

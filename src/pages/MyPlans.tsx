@@ -33,20 +33,23 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback, i
           const serverList = res.data.reservations;
           if (Array.isArray(serverList) && serverList.length > 0) {
             serverList.forEach((r: any) => {
-              dispatch({
-                type: 'ADD_RESERVATION',
-                payload: {
-                  id: r.id,
-                  participantId: r.participant_id || 'user-1',
-                  planId: r.experience_id,
-                  state: r.state,
-                  createdAt: r.created_at,
-                  confirmedAt: r.confirmed_at,
-                  paymentState: r.payment_state || 'captured',
-                  paymentId: r.payment_id,
-                  idempotencyKey: r.idempotency_key || `idem-${r.id}`,
-                },
-              });
+              const alreadyExists = state.reservations.some(item => item.id === r.id);
+              if (!alreadyExists) {
+                dispatch({
+                  type: 'ADD_RESERVATION',
+                  payload: {
+                    id: r.id,
+                    participantId: r.participant_id || 'user-1',
+                    planId: r.experience_id,
+                    state: r.state,
+                    createdAt: r.created_at,
+                    confirmedAt: r.confirmed_at,
+                    paymentState: r.payment_state || 'captured',
+                    paymentId: r.payment_id,
+                    idempotencyKey: r.idempotency_key || `idem-${r.id}`,
+                  },
+                });
+              }
             });
           }
         }
@@ -87,9 +90,17 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback, i
         return {
           label: t('plans.reconfirm', lang),
           action: () => {
+            const prevState = reservation.state;
             dispatch({ type: 'RECONFIRM_RESERVATION', payload: reservation.id });
-            api.reservations.reconfirm(reservation.id).catch(() => {});
-            showToast('success', lang === 'ar' ? 'تم تأكيد حضورك' : 'Attendance confirmed');
+            api.reservations
+              .reconfirm(reservation.id)
+              .then(() => {
+                showToast('success', lang === 'ar' ? 'تم تأكيد حضورك' : 'Attendance confirmed');
+              })
+              .catch((err: any) => {
+                dispatch({ type: 'UPDATE_RESERVATION', payload: { id: reservation.id, state: prevState } });
+                showToast('error', err?.message || (lang === 'ar' ? 'فشل تأكيد الحضور' : 'Failed to confirm attendance'));
+              });
           }
         };
       case 'confirmed':
@@ -220,10 +231,22 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback, i
         onClose={() => setCancelDialog(null)}
         onConfirm={() => {
           if (cancelDialog) {
-            dispatch({ type: 'CANCEL_RESERVATION', payload: cancelDialog });
-            api.reservations.cancel(cancelDialog).catch(() => {});
-            showToast('success', lang === 'ar' ? 'تم إلغاء الحجز' : 'Booking cancelled');
+            const targetId = cancelDialog;
+            const originalReservation = state.reservations.find(r => r.id === targetId);
+            const originalState = originalReservation?.state;
+            dispatch({ type: 'CANCEL_RESERVATION', payload: targetId });
             setCancelDialog(null);
+            api.reservations
+              .cancel(targetId)
+              .then(() => {
+                showToast('success', lang === 'ar' ? 'تم إلغاء الحجز' : 'Booking cancelled');
+              })
+              .catch((err: any) => {
+                if (originalState) {
+                  dispatch({ type: 'UPDATE_RESERVATION', payload: { id: targetId, state: originalState } });
+                }
+                showToast('error', err?.message || (lang === 'ar' ? 'فشل إلغاء الحجز' : 'Failed to cancel booking'));
+              });
           }
         }}
         title={t('plans.cancelPlan', lang)}

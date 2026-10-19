@@ -21,12 +21,12 @@ export const createReservation = async (req: AuthRequest, res: Response) => {
     }
 
     const { experience_id } = req.body;
-    if (!experience_id) {
+    if (!experience_id || typeof experience_id !== 'string' || experience_id.trim().length === 0) {
       return res.status(400).json({
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: 'experience_id is required',
+          message: 'Valid experience_id is required',
         },
       });
     }
