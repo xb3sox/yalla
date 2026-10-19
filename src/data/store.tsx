@@ -34,11 +34,13 @@ export type Action =
   | { type: 'ADD_RESERVATION'; payload: Reservation }
   | { type: 'UPDATE_RESERVATION'; payload: { id: string; state: Reservation['state'] } }
   | { type: 'ADD_FEEDBACK'; payload: Feedback }
+  | { type: 'SET_FEEDBACKS'; payload: Feedback[] }
   | { type: 'ADD_SUPPORT_REQUEST'; payload: SupportRequest }
   | { type: 'SET_VIEW'; payload: string }
   | { type: 'CLEAR_NOTIFICATIONS' }
   | { type: 'CLEAR_RESERVATIONS' }
   | { type: 'RECONFIRM_RESERVATION'; payload: string }
+  | { type: 'CHECK_IN_RESERVATION'; payload: string }
   | { type: 'CANCEL_RESERVATION'; payload: string }
   | { type: 'ADD_FAVORITE'; payload: string }
   | { type: 'REMOVE_FAVORITE'; payload: string }
@@ -130,6 +132,21 @@ export function reducer(state: AppState, action: Action): AppState {
         ),
       };
     }
+    case 'CHECK_IN_RESERVATION': {
+      const reservation = state.reservations.find(r => r.id === action.payload);
+      
+      // Only allow check in if in valid state
+      if (!reservation || !['confirmed', 'reconfirmed', 'checked_in'].includes(reservation.state)) {
+        return state;
+      }
+      
+      return {
+        ...state,
+        reservations: state.reservations.map(r =>
+          r.id === action.payload ? { ...r, state: 'attended' as const, checkedInAt: new Date().toISOString() } : r
+        ),
+      };
+    }
     case 'CANCEL_RESERVATION':
       return {
         ...state,
@@ -139,6 +156,8 @@ export function reducer(state: AppState, action: Action): AppState {
       };
     case 'ADD_FEEDBACK':
       return { ...state, feedbacks: [...state.feedbacks, action.payload] };
+    case 'SET_FEEDBACKS':
+      return { ...state, feedbacks: action.payload };
     case 'ADD_SUPPORT_REQUEST':
       return { ...state, supportRequests: [...state.supportRequests, action.payload] };
     case 'SET_VIEW':

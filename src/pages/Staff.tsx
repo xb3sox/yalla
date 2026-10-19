@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useApp } from '../data/store';
 import { t } from '../i18n';
 import { Button, StatusBadge, Dialog, Select, Input } from '../components/DesignSystem';
-import { ArrowLeft, Layout, Users, MapPin, ClipboardList, Clock, CheckSquare, Bell, Wrench, Shield, FileText, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Layout, Users, MapPin, ClipboardList, Clock, CheckSquare, Bell, Wrench, Shield, FileText, BarChart3, Download } from 'lucide-react';
 import type { Experience, Reservation, Notification } from '../types';
+import { api } from '../services/api';
 
 interface StaffPageProps {
   onBack: () => void;
@@ -527,17 +528,58 @@ function RecoverySection({ lang }: { lang: 'en' | 'ar' }) {
 }
 
 function MetricsSection({ lang, state }: { lang: 'en' | 'ar'; state: ReturnType<typeof useApp>['state'] }) {
+  const [exportingCsv, setExportingCsv] = useState(false);
+  const [exportingExcel, setExportingExcel] = useState(false);
+
   const totalPlans = state.experiences.length;
   const totalBookings = state.reservations.length;
   const confirmed = state.reservations.filter((r: Reservation) => ['confirmed', 'reconfirmed'].includes(r.state)).length;
+
+  const handleExport = async (format: 'csv' | 'excel') => {
+    try {
+      if (format === 'csv') setExportingCsv(true);
+      else setExportingExcel(true);
+
+      const blob = await (format === 'csv' ? api.staff.exportCsv() : api.staff.exportExcel());
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `reservations.${format === 'excel' ? 'xlsx' : 'csv'}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error(`Failed to export ${format}:`, error);
+      alert(`Failed to export ${format}`);
+    } finally {
+      if (format === 'csv') setExportingCsv(false);
+      else setExportingExcel(false);
+    }
+  };
+
   return (
-    <div className="bg-surface-raised rounded-xl border border-border p-5">
-      <p className="text-xs text-text-tertiary mb-4">{lang === 'ar' ? 'مقاييس تجريبية' : 'Pilot metrics'}</p>
-      <div className="grid grid-cols-2 gap-6">
-        <Metric value={totalPlans} label={lang === 'ar' ? 'خطط منشورة' : 'Published plans'} />
-        <Metric value={totalBookings} label={lang === 'ar' ? 'إجمالي الحجوزات' : 'Total reservations'} />
-        <Metric value={confirmed} label={lang === 'ar' ? 'مؤكد' : 'Confirmed'} highlight />
-        <Metric value={`${totalPlans > 0 ? Math.round((confirmed / Math.max(totalBookings, 1)) * 100) : 0}%`} label={lang === 'ar' ? `معدل التأكيد (${confirmed}/${totalBookings})` : `Confirmation (${confirmed}/${totalBookings})`} />
+    <div className="bg-surface-raised rounded-xl border border-border p-5 space-y-6">
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-xs text-text-tertiary">{lang === 'ar' ? 'مقاييس تجريبية' : 'Pilot metrics'}</p>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm" onClick={() => handleExport('csv')} loading={exportingCsv} disabled={exportingExcel}>
+              <Download className="w-4 h-4 mr-1" />
+              {t('staff.exportCsv', lang)}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => handleExport('excel')} loading={exportingExcel} disabled={exportingCsv}>
+              <Download className="w-4 h-4 mr-1" />
+              {t('staff.exportExcel', lang)}
+            </Button>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-6">
+          <Metric value={totalPlans} label={lang === 'ar' ? 'خطط منشورة' : 'Published plans'} />
+          <Metric value={totalBookings} label={lang === 'ar' ? 'إجمالي الحجوزات' : 'Total reservations'} />
+          <Metric value={confirmed} label={lang === 'ar' ? 'مؤكد' : 'Confirmed'} highlight />
+          <Metric value={`${totalPlans > 0 ? Math.round((confirmed / Math.max(totalBookings, 1)) * 100) : 0}%`} label={lang === 'ar' ? `معدل التأكيد (${confirmed}/${totalBookings})` : `Confirmation (${confirmed}/${totalBookings})`} />
+        </div>
       </div>
     </div>
   );

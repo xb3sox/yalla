@@ -1,7 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { ArrivalModePage } from './ArrivalMode';
+import { api } from '../services/api';
 import { renderWithProviders } from '../test/utils';
+
+vi.mock('../services/api', () => ({
+  api: {
+    reservations: {
+      checkIn: vi.fn().mockResolvedValue({ success: true })
+    }
+  }
+}));
 
 vi.mock('../components/Toast', () => ({
   useToast: () => ({
@@ -132,5 +141,26 @@ describe('ArrivalModePage', () => {
     );
 
     expect(screen.getByText(/تفاصيل المكان الدقيق متاحة فقط/i)).toBeTruthy();
+  });
+
+  it('calls checkIn API when I am here action is clicked', async () => {
+    renderWithProviders(
+      <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
+    );
+
+    // Click "I'm Here" button
+    const hereButton = screen.getByText(/I'm Here/i);
+    fireEvent.click(hereButton);
+
+    // Verify dialog opens and "Submit" is available
+    const submitButton = screen.getByRole('button', { name: /Submit/i });
+    expect(submitButton).toBeTruthy();
+
+    // Click submit
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(api.reservations.checkIn).toHaveBeenCalled();
+    });
   });
 });

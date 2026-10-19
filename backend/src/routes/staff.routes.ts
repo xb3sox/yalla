@@ -46,6 +46,27 @@ router.put('/users/:id/role', authorize('admin'), updateUserRole);
 router.get('/reservations/export', exportReservations);
 
 /**
+ * @route   GET /api/v1/staff/export/csv
+ * @desc    Export all reservations as CSV
+ * @access  Private (Staff)
+ */
+router.get('/export/csv', (req, res, next) => {
+  req.query.format = 'csv';
+  next();
+}, exportReservations);
+
+/**
+ * @route   GET /api/v1/staff/export/excel
+ * @desc    Export all reservations as Excel
+ * @access  Private (Staff)
+ */
+router.get('/export/excel', (req, res, next) => {
+  req.query.format = 'excel';
+  next();
+}, exportReservations);
+
+
+/**
  * @route   GET /api/v1/staff/reservations
  * @desc    Get all reservations
  * @access  Private (Staff)

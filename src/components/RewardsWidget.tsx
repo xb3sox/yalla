@@ -1,19 +1,44 @@
+import { useEffect, useState } from 'react';
 import { useApp } from '../data/store';
 import { t } from '../i18n';
 import { getPointsTier, getNextTierProgress } from '../application/useCases/rewardsUseCase';
 import { ProgressBar } from './ProgressBar';
 import { Award } from 'lucide-react';
+import { api } from '../services/api';
 
 export function RewardsWidget() {
   const { state } = useApp();
   const lang = state.language;
+  const [lifetimePoints, setLifetimePoints] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRewards = async () => {
+      if (!state.user) return;
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await api.rewards.get();
+        if (response.success && response.data) {
+          // Calculate lifetime points from transactions
+          const transactions = response.data.transactions || [];
+          const lifetime = transactions
+            .filter((t: any) => t.type === 'earn')
+            .reduce((sum: number, t: any) => sum + t.points, 0);
+          setLifetimePoints(lifetime);
+        }
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch rewards');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRewards();
+  }, [state.user]);
 
   if (!state.user) return null;
-
-  // Mock lifetime points for demo (in real app, this would come from backend)
-  const lifetimePoints = state.reservations.filter(r => 
-    r.state === 'attended' || r.state === 'completed'
-  ).length * 30 + state.feedbacks.length * 5;
 
   const tier = getPointsTier(lifetimePoints);
   const progress = getNextTierProgress(lifetimePoints);
@@ -29,7 +54,11 @@ export function RewardsWidget() {
             </h3>
           </div>
           <p className="text-3xl font-bold text-brand-600 tabular-nums">
-            {lifetimePoints}
+            {loading ? (
+              <span className="animate-pulse">...</span>
+            ) : (
+              lifetimePoints
+            )}
           </p>
           <p className="text-xs text-text-secondary mt-1">
             {lang === 'ar' ? 'نقطة' : 'points'}

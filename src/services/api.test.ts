@@ -217,6 +217,11 @@ describe('API Client', () => {
       expect(api.favorites.remove).toBeDefined();
     });
 
+    it('should have all feedback endpoints', () => {
+      expect(api.feedbacks.create).toBeDefined();
+      expect(api.feedbacks.getByExperience).toBeDefined();
+    });
+
     it('should have all block endpoints', () => {
       expect(api.blocks.add).toBeDefined();
       expect(api.blocks.list).toBeDefined();

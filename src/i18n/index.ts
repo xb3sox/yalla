@@ -202,6 +202,8 @@ type TranslationKeys = {
   'staff.safetyCases': string;
   'staff.audit': string;
   'staff.metrics': string;
+  'staff.exportCsv': string;
+  'staff.exportExcel': string;
   'staff.assignHost': string;
   'staff.assignVenue': string;
   'staff.setCapacity': string;
@@ -426,6 +428,8 @@ const en: TranslationKeys = {
   'staff.safetyCases': 'Safety Cases',
   'staff.audit': 'Audit Log',
   'staff.metrics': 'Metrics',
+  'staff.exportCsv': 'Export CSV',
+  'staff.exportExcel': 'Export Excel',
   'staff.assignHost': 'Assign Host',
   'staff.assignVenue': 'Assign Venue',
   'staff.setCapacity': 'Set Capacity',
@@ -648,6 +652,8 @@ const ar: TranslationKeys = {
   'staff.safetyCases': 'حالات السلامة',
   'staff.audit': 'سجل التدقيق',
   'staff.metrics': 'المقاييس',
+  'staff.exportCsv': 'تصدير CSV',
+  'staff.exportExcel': 'تصدير Excel',
   'staff.assignHost': 'تعيين مضيف',
   'staff.assignVenue': 'تعيين مكان',
   'staff.setCapacity': 'تعيين السعة',

@@ -220,6 +220,34 @@ class ApiClient {
   /**
    * Make POST request with retry logic
    */
+
+  /**
+   * Make GET request that expects a Blob response
+   */
+  async getBlob(endpoint: string, params?: Record<string, any>): Promise<Blob> {
+    const url = new URL(`${API_BASE_URL}${endpoint}`);
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: this.getHeaders(),
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+
+    return response.blob();
+  }
+
   async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
     const response = await this.retryRequest(async () => {
       const execute = async () => {
@@ -326,6 +354,7 @@ export const api = {
   experiences: {
     list: (params?: any) => apiClient.get('/experiences', params),
     search: (params: any) => apiClient.get('/experiences/search', params),
+    getRecommendations: <T = { experiences: any[] }>(params?: any) => apiClient.get<T>('/experiences/recommendations', params),
     get: (id: string) => apiClient.get(`/experiences/${id}`),
     create: (data: any) => apiClient.post('/experiences', data),
     update: (id: string, data: any) => apiClient.put(`/experiences/${id}`, data),
@@ -338,6 +367,7 @@ export const api = {
     list: () => apiClient.get('/reservations'),
     get: (id: string) => apiClient.get(`/reservations/${id}`),
     reconfirm: (id: string) => apiClient.post(`/reservations/${id}/reconfirm`),
+    checkIn: (id: string) => apiClient.post(`/reservations/${id}/check-in`),
     cancel: (id: string) => apiClient.post(`/reservations/${id}/cancel`),
     getByExperience: (experienceId: string) => apiClient.get(`/reservations/experience/${experienceId}`),
     getWaitlist: (experienceId: string) => apiClient.get(`/reservations/experience/${experienceId}/waitlist`),
@@ -359,6 +389,12 @@ export const api = {
     getUnreadCount: () => apiClient.get('/notifications/unread-count'),
     get: (id: string) => apiClient.get(`/notifications/${id}`),
     markAsRead: (id: string) => apiClient.post(`/notifications/${id}/read`),
+  },
+
+  // Feedbacks
+  feedbacks: {
+    create: (data: any) => apiClient.post('/feedbacks', data),
+    getByExperience: (experienceId: string) => apiClient.get(`/feedbacks/experience/${experienceId}`),
   },
 
   // Favorites
@@ -401,6 +437,8 @@ export const api = {
     getUsers: (params?: any) => apiClient.get('/staff/users', params),
     updateUserRole: (id: string, role: string) => apiClient.put(`/staff/users/${id}/role`, { role }),
     getReservations: (params?: any) => apiClient.get('/staff/reservations', params),
+    exportCsv: () => apiClient.getBlob('/staff/export/csv'),
+    exportExcel: () => apiClient.getBlob('/staff/export/excel'),
     updateReservationState: (id: string, state: string) => apiClient.put(`/staff/reservations/${id}/state`, { state }),
     updateExperienceState: (id: string, state: string) => apiClient.put(`/staff/experiences/${id}/state`, { state }),
     assignHost: (id: string, data: any) => apiClient.post(`/staff/experiences/${id}/assign-host`, data),
@@ -413,6 +451,12 @@ export const api = {
     getByResource: (resourceType: string, resourceId: string) => apiClient.get(`/audit/resource/${resourceType}/${resourceId}`),
     getByActor: (actorId: string, limit?: number) => apiClient.get(`/audit/actor/${actorId}`, { limit }),
     create: (data: any) => apiClient.post('/audit', data),
+  },
+
+  // Rewards
+  rewards: {
+    get: () => apiClient.get<{balance: number, transactions: any[]}>('/rewards'),
+    redeem: (data: any) => apiClient.post<any>('/rewards/redeem', data),
   },
 
   // Health
