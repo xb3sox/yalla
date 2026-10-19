@@ -25,9 +25,9 @@ export function Button({ variant = 'primary', size = 'md', loading, children, cl
     danger: 'bg-accent-600 text-white hover:bg-accent-700 active:bg-accent-700',
   };
   const sizes = {
-    sm: 'px-3.5 py-2 text-sm gap-1.5 rounded-lg min-h-[36px]',
-    md: 'px-5 py-2.5 text-[15px] gap-2 rounded-xl min-h-[44px]',
-    lg: 'px-6 py-3.5 text-base gap-2.5 rounded-xl min-h-[52px]',
+    sm: 'px-3.5 py-2 text-sm gap-1.5 rounded-lg min-h-[44px] min-w-[44px]',
+    md: 'px-5 py-2.5 text-[15px] gap-2 rounded-xl min-h-[44px] min-w-[44px]',
+    lg: 'px-6 py-3.5 text-base gap-2.5 rounded-xl min-h-[52px] min-w-[44px]',
   };
   return (
     <button
@@ -171,11 +171,11 @@ export const ExperienceCard = memo(function ExperienceCard({ experience, onPress
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="absolute top-3 end-3 flex items-center gap-2">
           {isFull ? (
-            <span className="flex items-center justify-center bg-black/40 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1.5 rounded-full min-h-[28px]">
+            <span className="flex items-center justify-center bg-black/40 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1.5 rounded-full min-h-[44px] min-w-[44px]">
               {t('explore.full', lang)}
             </span>
           ) : (
-            <span className="flex items-center justify-center bg-white/20 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1.5 rounded-full min-h-[28px]">
+            <span className="flex items-center justify-center bg-white/20 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1.5 rounded-full min-h-[44px] min-w-[44px]">
               {t('explore.spotsLeft', lang, { count: spotsLeft })}
             </span>
           )}
@@ -336,7 +336,7 @@ export function Input({ label, error, hint, id, className = '', ...props }: Inpu
       <label htmlFor={inputId} className="block text-sm font-medium text-text-primary">{label}</label>
       <input
         id={inputId}
-        className={`w-full px-4 py-3 rounded-xl bg-surface-raised border text-text-primary placeholder:text-text-tertiary transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 min-h-[44px] ${error ? 'border-error' : 'border-border'} ${className}`}
+        className={`w-full px-4 py-3 rounded-xl bg-surface-raised border text-text-primary placeholder:text-text-tertiary transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 min-h-[44px] min-w-[44px] ${error ? 'border-error' : 'border-border'} ${className}`}
         aria-invalid={!!error}
         aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
         {...props}
@@ -360,7 +360,7 @@ export function Select({ label, options, error, id, className = '', ...props }: 
       <label htmlFor={selectId} className="block text-sm font-medium text-text-primary">{label}</label>
       <select
         id={selectId}
-        className={`w-full px-4 py-3 rounded-xl bg-surface-raised border text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 min-h-[44px] appearance-none ${error ? 'border-error' : 'border-border'} ${className}`}
+        className={`w-full px-4 py-3 rounded-xl bg-surface-raised border text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 min-h-[44px] min-w-[44px] appearance-none ${error ? 'border-error' : 'border-border'} ${className}`}
         aria-invalid={!!error}
         {...props}
       >
@@ -385,7 +385,7 @@ export function Textarea({ label, error, id, className = '', ...props }: Textare
       <label htmlFor={textareaId} className="block text-sm font-medium text-text-primary">{label}</label>
       <textarea
         id={textareaId}
-        className={`w-full px-4 py-3 rounded-xl bg-surface-raised border text-text-primary placeholder:text-text-tertiary transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 min-h-[100px] resize-y ${error ? 'border-error' : 'border-border'} ${className}`}
+        className={`w-full px-4 py-3 rounded-xl bg-surface-raised border text-text-primary placeholder:text-text-tertiary transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 min-h-[100px] min-w-[44px] resize-y ${error ? 'border-error' : 'border-border'} ${className}`}
         aria-invalid={!!error}
         {...props}
       />
@@ -593,7 +593,7 @@ export function ArrivalAction({ icon, label, onClick, variant = 'secondary' }: A
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-colors min-h-[52px] ${base}`}
+      className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-colors min-h-[52px] min-w-[44px] ${base}`}
     >
       {icon}
       <span className="font-medium text-[15px]">{label}</span>

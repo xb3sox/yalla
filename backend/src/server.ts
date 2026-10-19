@@ -26,6 +26,9 @@ import safetyCaseRoutes from './routes/safety_case.routes';
 import supportRoutes from './routes/support.routes';
 import favoritesRoutes from './routes/favorites.routes';
 import blocksRoutes from './routes/blocks.routes';
+import feedbackRoutes from './routes/feedback.routes';
+import hostRoutes from './routes/host.routes';
+import rewardRoutes from './routes/reward.routes';
 
 const app = express();
 
@@ -74,6 +77,9 @@ app.use(`/api/${config.apiVersion}/safety-cases`, safetyCaseRoutes);
 app.use(`/api/${config.apiVersion}/support-requests`, supportRoutes);
 app.use(`/api/${config.apiVersion}/favorites`, favoritesRoutes);
 app.use(`/api/${config.apiVersion}/blocks`, blocksRoutes);
+app.use(`/api/${config.apiVersion}/feedbacks`, feedbackRoutes);
+app.use(`/api/${config.apiVersion}/host`, hostRoutes);
+app.use(`/api/${config.apiVersion}/rewards`, rewardRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

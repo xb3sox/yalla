@@ -236,6 +236,56 @@ class ExperienceModel {
   }
 
   /**
+   * Staff search experiences (multi-field search)
+   */
+  async staffSearch(filters: {
+    searchQuery?: string;
+    city?: string;
+    status?: string;
+    minSpots?: number;
+    maxPrice?: number;
+  }): Promise<Experience[]> {
+    let query = 'SELECT * FROM experiences WHERE 1=1';
+    const values: any[] = [];
+    let paramCount = 1;
+    
+    if (filters.searchQuery) {
+      query += ` AND (title ILIKE $${paramCount} OR description ILIKE $${paramCount} OR title_ar ILIKE $${paramCount} OR description_ar ILIKE $${paramCount})`;
+      values.push(`%${filters.searchQuery}%`);
+      paramCount++;
+    }
+    
+    if (filters.city) {
+      query += ` AND (area ILIKE $${paramCount} OR area_ar ILIKE $${paramCount})`;
+      values.push(`%${filters.city}%`);
+      paramCount++;
+    }
+
+    if (filters.status) {
+      query += ` AND plan_state = $${paramCount}`;
+      values.push(filters.status);
+      paramCount++;
+    }
+    
+    if (filters.minSpots !== undefined) {
+      query += ` AND (capacity - booked) >= $${paramCount}`;
+      values.push(filters.minSpots);
+      paramCount++;
+    }
+    
+    if (filters.maxPrice !== undefined) {
+      query += ` AND price <= $${paramCount}`;
+      values.push(filters.maxPrice);
+      paramCount++;
+    }
+    
+    query += ' ORDER BY created_at DESC';
+    
+    const result = await pool.query(query, values);
+    return result.rows;
+  }
+
+  /**
    * Update experience
    */
   async update(id: string, updates: Partial<CreateExperienceInput> | Record<string, any>): Promise<Experience> {

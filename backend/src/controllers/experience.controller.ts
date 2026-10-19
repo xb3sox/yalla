@@ -104,6 +104,40 @@ export const searchExperiences = async (req: Request, res: Response) => {
 };
 
 /**
+ * Staff operations search experiences
+ */
+export const staffSearchExperiences = async (req: Request, res: Response) => {
+  try {
+    const { searchQuery, city, status, minSpots, maxPrice } = req.query;
+    
+    const experiences = await experienceModel.staffSearch({
+      searchQuery: searchQuery as string,
+      city: city as string,
+      status: status as string,
+      minSpots: minSpots ? parseInt(minSpots as string) : undefined,
+      maxPrice: maxPrice ? parseInt(maxPrice as string) : undefined,
+    });
+    
+    res.json({
+      success: true,
+      data: { experiences },
+      meta: {
+        count: experiences.length,
+      },
+    });
+  } catch (error: any) {
+    logger.error('Staff search experiences failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'STAFF_SEARCH_FAILED',
+        message: 'Failed to search experiences for staff operations',
+      },
+    });
+  }
+};
+
+/**
  * Create experience (staff only)
  */
 export const createExperience = async (req: Request, res: Response) => {

@@ -2,6 +2,7 @@ import Stripe from 'stripe';
 import config from '../config';
 import logger from '../utils/logger';
 import pool from '../config/database';
+import reservationModel from './reservation.model';
 
 // Initialize Stripe
 const stripe = new Stripe(config.stripe.secretKey, {
@@ -16,6 +17,7 @@ export interface Payment {
   status: string;
   stripe_payment_id?: string;
   stripe_client_secret?: string;
+  receipt_url?: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -84,11 +86,74 @@ class PaymentModel {
       if (paymentIntent.status !== 'succeeded') {
         throw new Error(`Payment not succeeded: ${paymentIntent.status}`);
       }
+      
+      // Get receipt URL from the latest charge
+      let receiptUrl: string | undefined;
+      if (paymentIntent.latest_charge) {
+        try {
+          const chargeId = typeof paymentIntent.latest_charge === 'string' 
+            ? paymentIntent.latest_charge 
+            : paymentIntent.latest_charge.id;
+            
+          const charge = await stripe.charges.retrieve(chargeId);
+          receiptUrl = charge.receipt_url || undefined;
+        } catch (chargeErr: any) {
+          logger.warn('Could not retrieve charge for receipt_url', { error: chargeErr.message });
+        }
+      }
 
       // Update database
       const query = `
         UPDATE payments
-        SET status = 'completed', updated_at = CURRENT_TIMESTAMP
+        SET status = 'completed', receipt_url = $2, updated_at = CURRENT_TIMESTAMP
+        WHERE stripe_payment_id = $1
+        RETURNING *
+      `;
+      
+      const result = await pool.query(query, [stripePaymentId, receiptUrl || null]);
+      
+      if (result.rows.length === 0) {
+        throw new Error('Payment not found');
+      }
+      
+      const payment = result.rows[0];
+      
+      // Update reservation state using reservationModel
+      try {
+        await reservationModel.updateState(payment.reservation_id, 'confirmed', {
+          payment_state: 'paid',
+          payment_id: payment.id
+        });
+        logger.info('Reservation updated upon payment confirmation', {
+          reservationId: payment.reservation_id,
+          paymentId: payment.id
+        });
+      } catch (resErr: any) {
+        logger.error('Failed to update reservation upon payment confirmation', { error: resErr.message });
+      }
+      
+      logger.info('Payment confirmed', { 
+        stripePaymentId,
+        paymentId: payment.id,
+        receiptUrl: receiptUrl || 'not_available'
+      });
+      
+      return payment;
+    } catch (error: any) {
+      logger.error('Confirm payment failed', { error: error.message });
+      throw error;
+    }
+  }
+
+  /**
+   * Fail payment
+   */
+  async failPayment(stripePaymentId: string): Promise<Payment> {
+    try {
+      // Update database
+      const query = `
+        UPDATE payments
+        SET status = 'failed', updated_at = CURRENT_TIMESTAMP
         WHERE stripe_payment_id = $1
         RETURNING *
       `;
@@ -99,14 +164,75 @@ class PaymentModel {
         throw new Error('Payment not found');
       }
       
-      logger.info('Payment confirmed', { 
+      const payment = result.rows[0];
+      
+      // Update reservation state using reservationModel
+      try {
+        await reservationModel.updateState(payment.reservation_id, 'failed', {
+          payment_state: 'failed'
+        });
+        logger.info('Reservation updated upon payment failure', {
+          reservationId: payment.reservation_id,
+          paymentId: payment.id
+        });
+      } catch (resErr: any) {
+        logger.error('Failed to update reservation upon payment failure', { error: resErr.message });
+      }
+      
+      logger.info('Payment failed', { 
         stripePaymentId,
-        paymentId: result.rows[0].id 
+        paymentId: payment.id 
       });
       
-      return result.rows[0];
+      return payment;
     } catch (error: any) {
-      logger.error('Confirm payment failed', { error: error.message });
+      logger.error('Fail payment process failed', { error: error.message });
+      throw error;
+    }
+  }
+
+  /**
+   * Mark payment as refunded (used by webhook)
+   */
+  async markRefunded(stripePaymentId: string): Promise<Payment> {
+    try {
+      // Update database
+      const query = `
+        UPDATE payments
+        SET status = 'refunded', updated_at = CURRENT_TIMESTAMP
+        WHERE stripe_payment_id = $1
+        RETURNING *
+      `;
+      
+      const result = await pool.query(query, [stripePaymentId]);
+      
+      if (result.rows.length === 0) {
+        throw new Error('Payment not found');
+      }
+      
+      const payment = result.rows[0];
+      
+      // Update reservation state using reservationModel
+      try {
+        await reservationModel.updateState(payment.reservation_id, 'refunded', {
+          payment_state: 'refunded'
+        });
+        logger.info('Reservation updated upon refund webhook', {
+          reservationId: payment.reservation_id,
+          paymentId: payment.id
+        });
+      } catch (resErr: any) {
+        logger.error('Failed to update reservation upon refund webhook', { error: resErr.message });
+      }
+      
+      logger.info('Payment marked as refunded', { 
+        stripePaymentId,
+        paymentId: payment.id 
+      });
+      
+      return payment;
+    } catch (error: any) {
+      logger.error('Mark refunded failed', { error: error.message });
       throw error;
     }
   }
@@ -234,13 +360,12 @@ class PaymentModel {
         break;
       
       case 'payment_intent.payment_failed':
-        logger.warn('Payment failed', { 
-          stripePaymentId: (event.data.object as any).id 
-        });
+        await this.failPayment((event.data.object as any).id);
         break;
       
       case 'charge.refunded':
-        await this.processRefund((event.data.object as any).payment_intent);
+        // A charge refund is tied to a payment intent
+        await this.markRefunded((event.data.object as any).payment_intent);
         break;
       
       default:
