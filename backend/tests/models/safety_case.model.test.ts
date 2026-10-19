@@ -1,6 +1,6 @@
-import safetyCaseModel from '../src/models/safety_case.model';
-import userModel from '../src/models/user.model';
-import pool from '../src/config/database';
+import safetyCaseModel from '../../src/models/safety_case.model';
+import userModel from '../../src/models/user.model';
+import pool from '../../src/config/database';
 
 describe('Safety Case Model', () => {
   let testReporterId: string;

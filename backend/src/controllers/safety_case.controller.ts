@@ -295,6 +295,17 @@ export const addActionToSafetyCase = async (req: AuthRequest, res: Response) => 
       });
     }
 
+    const validActionTypes = ['warn', 'restrict', 'dismiss', 'escalate'];
+    if (!validActionTypes.includes(action_type)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_ACTION_TYPE',
+          message: `Invalid action_type. Must be one of: ${validActionTypes.join(', ')}`,
+        },
+      });
+    }
+
     const safetyCase = await safetyCaseModel.findById(id);
 
     if (!safetyCase) {
@@ -449,6 +460,96 @@ export const deleteSafetyCase = async (req: AuthRequest, res: Response) => {
       error: {
         code: 'DELETE_SAFETY_CASE_FAILED',
         message: 'Failed to delete safety case',
+      },
+    });
+  }
+};
+
+/**
+ * Upload evidence to safety case
+ */
+export const uploadSafetyCaseEvidence = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required',
+        },
+      });
+    }
+
+    const { id } = req.params;
+    const evidence = req.body;
+
+    if (!evidence || Object.keys(evidence).length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'MISSING_EVIDENCE',
+          message: 'Evidence object is required in request body',
+        },
+      });
+    }
+
+    const safetyCase = await safetyCaseModel.findById(id);
+
+    if (!safetyCase) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'SAFETY_CASE_NOT_FOUND',
+          message: 'Safety case not found',
+        },
+      });
+    }
+    
+    const canUpload =
+      safetyCase.reporter_id === req.user.userId ||
+      req.user.role === 'trust_safety' ||
+      req.user.role === 'admin';
+      
+    if (!canUpload) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to modify this safety case',
+        },
+      });
+    }
+
+    const updated = await safetyCaseModel.addEvidence(id, evidence);
+
+    // Log audit event
+    await auditModel.create({
+      actor_id: req.user.userId,
+      actor_role: req.user.role,
+      action: 'safety_case_evidence_added',
+      resource_type: 'safety_case',
+      resource_id: id,
+      details: { evidence },
+      classification: 'restricted',
+    });
+
+    logger.info('Evidence added to safety case', {
+      caseId: id,
+      userId: req.user.userId,
+    });
+
+    res.json({
+      success: true,
+      data: { safetyCase: updated },
+      message: 'Evidence uploaded successfully',
+    });
+  } catch (error: any) {
+    logger.error('Upload evidence to safety case failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'UPLOAD_EVIDENCE_FAILED',
+        message: 'Failed to upload evidence to safety case',
       },
     });
   }
