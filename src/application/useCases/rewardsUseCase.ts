@@ -8,6 +8,7 @@
  */
 
 import type { Reservation, Feedback } from '../../domain/entities';
+import { api } from '../../services/api';
 
 export interface RewardTransaction {
   id: string;
@@ -112,6 +113,23 @@ export function calculateLifetimePoints(transactions: RewardTransaction[]): numb
 /**
  * Get user rewards summary
  */
+export async function fetchUserRewardsSummary(): Promise<UserRewards | null> {
+  try {
+    const response = await api.rewards.get();
+    if (response.success && response.data) {
+      return {
+        userId: "current",
+        totalPoints: response.data.balance || 0,
+        lifetimePoints: calculateLifetimePoints(response.data.transactions || []),
+        transactions: response.data.transactions || [],
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching rewards summary:", error);
+  }
+  return null;
+}
+
 export function getUserRewardsSummary(
   userId: string,
   reservations: Reservation[],

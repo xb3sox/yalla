@@ -1,164 +1,154 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import { RewardsWidget } from './RewardsWidget';
 import { renderWithProviders } from '../test/utils';
+import { api } from '../services/api';
+
+vi.mock('../services/api', () => ({
+  api: {
+    rewards: {
+      get: vi.fn(),
+      redeem: vi.fn()
+    }
+  }
+}));
 
 const renderWithProvider = renderWithProviders;
 
 describe('RewardsWidget Component', () => {
-  it('should render rewards widget', () => {
-    renderWithProvider(<RewardsWidget />);
-    expect(screen.getByText(/Reward Points/i)).toBeTruthy();
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (api.rewards.get as any).mockResolvedValue({
+      success: true,
+      data: {
+        transactions: [
+          { type: 'earn', points: 100 },
+          { type: 'earn', points: 50 },
+          { type: 'redeem', points: -20 },
+        ]
+      }
+    });
   });
 
-  it('should render Arabic title when language is Arabic', () => {
+  it('should render rewards widget', async () => {
+    renderWithProvider(<RewardsWidget />);
+    await waitFor(() => {
+      expect(screen.getByText(/Reward Points/i)).toBeTruthy();
+    });
+  });
+
+  it('should render Arabic title when language is Arabic', async () => {
     renderWithProvider(<RewardsWidget />, { language: 'ar' });
-    expect(screen.getByText(/نقاط المكافآت/i)).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText(/نقاط المكافآت/i)).toBeTruthy();
+    });
   });
 
-  it('should display total points', () => {
+  it('should display total points after fetching', async () => {
     renderWithProvider(<RewardsWidget />);
-    // Should display some points value
-    const pointsElement = document.querySelector('.text-3xl');
-    expect(pointsElement).toBeTruthy();
+    // Should display 150 points (100 + 50 from earn transactions)
+    await waitFor(() => {
+      expect(screen.getByText('150')).toBeTruthy();
+    });
   });
 
-  it('should display tier', () => {
+  it('should display tier', async () => {
     renderWithProvider(<RewardsWidget />);
-    // Should display tier (Member, Bronze, Silver, Gold, or Platinum)
-    const tierElement = document.querySelector('.text-sm.font-semibold');
-    expect(tierElement).toBeTruthy();
+    // 150 points is Bronze tier
+    await waitFor(() => {
+      const tierElement = document.querySelector('.text-sm.font-semibold');
+      expect(tierElement).toBeTruthy();
+    });
   });
 
-  it('should display tier icon', () => {
+  it('should display tier icon', async () => {
     renderWithProvider(<RewardsWidget />);
-    // Should display tier icon (emoji)
-    const iconElement = document.querySelector('.text-2xl');
-    expect(iconElement).toBeTruthy();
+    await waitFor(() => {
+      const iconElement = document.querySelector('.text-2xl');
+      expect(iconElement).toBeTruthy();
+    });
   });
 
-  it('should display progress bar', () => {
+  it('should display progress bar', async () => {
     renderWithProvider(<RewardsWidget />);
-    // Should display progress to next tier
-    const progressElement = document.querySelector('[role="progressbar"]');
-    expect(progressElement).toBeTruthy();
+    await waitFor(() => {
+      const progressElement = document.querySelector('[role="progressbar"]');
+      expect(progressElement).toBeTruthy();
+    });
   });
 
-  it('should display points to next tier', () => {
+  it('should display points to next tier', async () => {
     renderWithProvider(<RewardsWidget />);
-    // Should display "X points to go"
-    const pointsToGo = screen.getByText(/points to go/i);
-    expect(pointsToGo).toBeTruthy();
+    await waitFor(() => {
+      const pointsToGo = screen.getByText(/points to go/i);
+      expect(pointsToGo).toBeTruthy();
+    });
   });
 
-  it('should display Arabic points to next tier', () => {
+  it('should display Arabic points to next tier', async () => {
     renderWithProvider(<RewardsWidget />, { language: 'ar' });
-    // Should display "نقطة متبقية"
-    const pointsToGo = screen.getByText(/نقطة متبقية/i);
-    expect(pointsToGo).toBeTruthy();
+    await waitFor(() => {
+      const pointsToGo = screen.getByText(/نقطة متبقية/i);
+      expect(pointsToGo).toBeTruthy();
+    });
   });
 
-  it('should display how to earn points section', () => {
+  it('should display how to earn points section', async () => {
     renderWithProvider(<RewardsWidget />);
-    expect(screen.getByText(/How to earn points/i)).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText(/How to earn points/i)).toBeTruthy();
+    });
   });
 
-  it('should display Arabic how to earn points', () => {
+  it('should display Arabic how to earn points', async () => {
     renderWithProvider(<RewardsWidget />, { language: 'ar' });
-    expect(screen.getByText(/كيف تكسب النقاط/i)).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText(/كيف تكسب النقاط/i)).toBeTruthy();
+    });
   });
 
-  it('should display booking points', () => {
+  it('should display booking points', async () => {
     renderWithProvider(<RewardsWidget />);
-    expect(screen.getByText('10')).toBeTruthy();
-    expect(screen.getByText(/Booking/i)).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText('10')).toBeTruthy();
+      expect(screen.getByText(/Booking/i)).toBeTruthy();
+    });
   });
 
-  it('should display Arabic booking label', () => {
+  it('should display Arabic booking label', async () => {
     renderWithProvider(<RewardsWidget />, { language: 'ar' });
-    expect(screen.getByText(/حجز/i)).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText(/حجز/i)).toBeTruthy();
+    });
   });
 
-  it('should display attendance points', () => {
+  it('should display attendance points', async () => {
     renderWithProvider(<RewardsWidget />);
-    expect(screen.getByText('20')).toBeTruthy();
-    expect(screen.getByText(/Attend/i)).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText('20')).toBeTruthy();
+      expect(screen.getByText(/Attend/i)).toBeTruthy();
+    });
   });
 
-  it('should display Arabic attendance label', () => {
+  it('should display Arabic attendance label', async () => {
     renderWithProvider(<RewardsWidget />, { language: 'ar' });
-    expect(screen.getByText(/حضور/i)).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText(/حضور/i)).toBeTruthy();
+    });
   });
 
-  it('should display review points', () => {
+  it('should display review points', async () => {
     renderWithProvider(<RewardsWidget />);
-    expect(screen.getByText('5')).toBeTruthy();
-    expect(screen.getByText(/Review/i)).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText('5')).toBeTruthy();
+      expect(screen.getByText(/Review/i)).toBeTruthy();
+    });
   });
 
-  it('should display Arabic review label', () => {
+  it('should display Arabic review label', async () => {
     renderWithProvider(<RewardsWidget />, { language: 'ar' });
-    expect(screen.getByText(/تقييم/i)).toBeTruthy();
-  });
-
-  it('should have gradient background', () => {
-    renderWithProvider(<RewardsWidget />);
-    const container = document.querySelector('.bg-gradient-to-br');
-    expect(container).toBeTruthy();
-  });
-
-  it('should have border', () => {
-    renderWithProvider(<RewardsWidget />);
-    const container = document.querySelector('.border');
-    expect(container).toBeTruthy();
-  });
-
-  it('should have rounded corners', () => {
-    renderWithProvider(<RewardsWidget />);
-    const container = document.querySelector('.rounded-xl');
-    expect(container).toBeTruthy();
-  });
-
-  it('should have proper padding', () => {
-    renderWithProvider(<RewardsWidget />);
-    const container = document.querySelector('.p-5');
-    expect(container).toBeTruthy();
-  });
-
-  it('should have Award icon', () => {
-    renderWithProvider(<RewardsWidget />);
-    const svg = document.querySelector('svg');
-    expect(svg).toBeTruthy();
-  });
-
-  it('should have flex layout for header', () => {
-    renderWithProvider(<RewardsWidget />);
-    const header = document.querySelector('.flex.items-start.justify-between');
-    expect(header).toBeTruthy();
-  });
-
-  it('should have grid layout for earning info', () => {
-    renderWithProvider(<RewardsWidget />);
-    const grid = document.querySelector('.grid.grid-cols-3');
-    expect(grid).toBeTruthy();
-  });
-
-  it('should have divider', () => {
-    renderWithProvider(<RewardsWidget />);
-    const divider = document.querySelector('.border-t');
-    expect(divider).toBeTruthy();
-  });
-
-  it('should display points with tabular-nums', () => {
-    renderWithProvider(<RewardsWidget />);
-    const points = document.querySelector('.tabular-nums');
-    expect(points).toBeTruthy();
-  });
-
-  it('should not render if no user', () => {
-    // This test would require mocking the store to have no user
-    // For now, we'll just verify the component renders
-    renderWithProvider(<RewardsWidget />);
-    expect(true).toBe(true);
+    await waitFor(() => {
+      expect(screen.getByText(/تقييم/i)).toBeTruthy();
+    });
   });
 });

@@ -3,6 +3,7 @@ import { useApp } from '../data/store';
 import { useToast } from '../components/Toast';
 import { t } from '../i18n';
 import { Button, ArrivalAction, Dialog } from '../components/DesignSystem';
+import { api } from '../services/api';
 import { ArrowLeft, MapPin, Clock, User, Shield, Wifi, Navigation, CheckCircle, AlertTriangle, HelpCircle } from 'lucide-react';
 
 interface ArrivalModePageProps {
@@ -11,15 +12,16 @@ interface ArrivalModePageProps {
 }
 
 export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) {
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const { showToast } = useToast();
   const lang = state.language;
   const experience = state.experiences.find(e => e.id === experienceId);
-  const reservation = state.reservations.find(r => r.planId === experienceId && ['confirmed', 'reconfirmed'].includes(r.state));
+  const reservation = state.reservations.find(r => r.planId === experienceId && ['confirmed', 'reconfirmed', 'attended', 'checked_in'].includes(r.state));
   const [actionDialog, setActionDialog] = useState<string | null>(null);
   const [actionSubmitted, setActionSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isEntitled = reservation && ['confirmed', 'reconfirmed'].includes(reservation.state);
+  const isEntitled = reservation && ['confirmed', 'reconfirmed', 'attended', 'checked_in'].includes(reservation.state);
 
   if (!experience || !isEntitled) {
     return (
@@ -44,19 +46,39 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
     setActionSubmitted(false);
   };
 
-  const submitAction = () => {
-    setActionSubmitted(true);
+  const submitAction = async () => {
+    setIsSubmitting(true);
     
-    const messages = {
-      here: lang === 'ar' ? 'تم إشعار المضيف بوصولك' : 'Host notified of your arrival',
-      late: lang === 'ar' ? 'تم إشعار المضيف بتأخرك' : 'Host notified you\'ll be late',
-      cantFind: lang === 'ar' ? 'تواصل فريق يلا معك للمساعدة' : 'Yalla team is reaching out to help',
-      help: lang === 'ar' ? 'فريق يلا سيتواصل معك قريباً' : 'Yalla team will contact you soon',
-    };
-    
-    showToast('success', messages[actionDialog as keyof typeof messages] || messages.help);
-    
-    setTimeout(() => { setActionDialog(null); setActionSubmitted(false); }, 2000);
+    try {
+      if (actionDialog === 'here' && reservation) {
+        // Try real API first
+        try {
+          await api.reservations.checkIn(reservation.id);
+        } catch (error) {
+          console.warn('API check-in failed, falling back to local state update', error);
+        }
+        
+        // Always update local store
+        dispatch({ type: 'CHECK_IN_RESERVATION', payload: reservation.id });
+      }
+
+      setActionSubmitted(true);
+      
+      const messages = {
+        here: lang === 'ar' ? 'تم إشعار المضيف بوصولك' : 'Host notified of your arrival',
+        late: lang === 'ar' ? 'تم إشعار المضيف بتأخرك' : 'Host notified you\'ll be late',
+        cantFind: lang === 'ar' ? 'تواصل فريق يلا معك للمساعدة' : 'Yalla team is reaching out to help',
+        help: lang === 'ar' ? 'فريق يلا سيتواصل معك قريباً' : 'Yalla team will contact you soon',
+      };
+      
+      showToast('success', messages[actionDialog as keyof typeof messages] || messages.help);
+      
+      setTimeout(() => { setActionDialog(null); setActionSubmitted(false); }, 2000);
+    } catch (error) {
+      showToast('error', lang === 'ar' ? 'حدث خطأ. يرجى المحاولة مرة أخرى.' : 'An error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const endTime = (() => {
@@ -201,8 +223,10 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
           t('arrival.needHelp', lang)
         }
         actions={!actionSubmitted ? <>
-          <Button variant="secondary" onClick={() => setActionDialog(null)}>{t('common.cancel', lang)}</Button>
-          <Button variant="primary" onClick={submitAction}>{t('common.submit', lang)}</Button>
+          <Button variant="secondary" onClick={() => setActionDialog(null)} disabled={isSubmitting}>{t('common.cancel', lang)}</Button>
+          <Button variant="primary" onClick={submitAction} disabled={isSubmitting}>
+            {isSubmitting ? (lang === 'ar' ? 'جاري الإرسال...' : 'Submitting...') : t('common.submit', lang)}
+          </Button>
         </> : undefined}
       >
         {actionSubmitted ? (

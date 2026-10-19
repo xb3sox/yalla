@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../data/store';
 import { useToast } from '../components/Toast';
 import { t } from '../i18n';
 import { Button, Textarea } from '../components/DesignSystem';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { api } from '../services/api';
 
 interface FeedbackPageProps {
   reservationId: string;
@@ -23,6 +24,37 @@ export function FeedbackPage({ reservationId, onBack, onBookAnother }: FeedbackP
   const [comfortableOrganized, setComfortableOrganized] = useState<boolean | null>(null);
   const [comment, setComment] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  useEffect(() => {
+    async function loadFeedbackHistory() {
+      if (!experience?.id) return;
+      setIsLoadingHistory(true);
+      try {
+        const res = await api.feedbacks.getByExperience(experience.id);
+        if (res.success && res.data) {
+          dispatch({
+            type: 'SET_FEEDBACKS',
+            payload: Array.isArray(res.data) ? res.data : [res.data] as any,
+          });
+
+          // Check if user already submitted feedback for this reservation
+          const hasExisting = (Array.isArray(res.data) ? res.data : [res.data] as any).some(
+            (f: any) => f.reservationId === reservationId
+          );
+          if (hasExisting) {
+            setSubmitted(true);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load feedback history', error);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    }
+
+    loadFeedbackHistory();
+  }, [experience?.id, reservationId, dispatch]);
 
   if (!experience) {
     return (
@@ -32,10 +64,12 @@ export function FeedbackPage({ reservationId, onBack, onBookAnother }: FeedbackP
     );
   }
 
-  const canSubmit = worthTime > 0 && descriptionAccurate !== null && comfortableOrganized !== null;
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
-    if (!canSubmit) return;
+  const canSubmit = worthTime > 0 && descriptionAccurate !== null && comfortableOrganized !== null && !isSubmitting;
+
+  const handleSubmit = async () => {
+    if (!canSubmit || !state.user) return;
     
     // Check if feedback already exists for this reservation
     const hasExistingFeedback = state.feedbacks.some(
@@ -47,25 +81,43 @@ export function FeedbackPage({ reservationId, onBack, onBookAnother }: FeedbackP
       return;
     }
     
-    dispatch({
-      type: 'ADD_FEEDBACK',
-      payload: {
-        id: `fb-${Date.now()}`,
+    setIsSubmitting(true);
+
+    try {
+      const response = await api.feedbacks.create({
         reservationId,
-        participantId: 'user-1',
         planId: experience.id,
         worthTime,
         descriptionAccurate,
         comfortableOrganized,
         comment: comment || undefined,
-        createdAt: new Date().toISOString(),
-      },
-    });
-    showToast('success', lang === 'ar' ? 'شكراً لملاحظاتك!' : 'Thank you for your feedback!');
-    setSubmitted(true);
+      });
+
+      if (response.success && response.data) {
+        dispatch({
+          type: 'ADD_FEEDBACK',
+          payload: response.data as any,
+        });
+        showToast('success', lang === 'ar' ? 'شكراً لملاحظاتك!' : 'Thank you for your feedback!');
+        setSubmitted(true);
+      } else {
+        throw new Error(response.error?.message || 'Failed to submit feedback');
+      }
+    } catch (error: any) {
+      showToast('error', error.message || (lang === 'ar' ? 'حدث خطأ أثناء إرسال الملاحظات' : 'Error submitting feedback'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  if (submitted) {
+  if (submitted || isLoadingHistory) {
+    if (isLoadingHistory) {
+      return (
+        <div className="min-h-screen bg-surface flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6 text-center">
         <div className="w-40 h-40 mb-4 flex items-center justify-center" aria-hidden="true">
@@ -152,7 +204,14 @@ export function FeedbackPage({ reservationId, onBack, onBookAnother }: FeedbackP
         {/* Submit */}
         <div className="pt-2">
           <Button variant="primary" size="lg" className="w-full" disabled={!canSubmit} onClick={handleSubmit}>
-            {t('feedback.submit', lang)}
+            {isSubmitting ? (
+              <div className="flex items-center justify-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>{lang === 'ar' ? 'جاري الإرسال...' : 'Submitting...'}</span>
+              </div>
+            ) : (
+              t('feedback.submit', lang)
+            )}
           </Button>
         </div>
       </div>
