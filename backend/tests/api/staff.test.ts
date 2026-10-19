@@ -1,6 +1,6 @@
 import request from 'supertest';
-import app from '../src/server';
-import pool from '../src/config/database';
+import app from '../../src/server';
+import pool from '../../src/config/database';
 
 describe('Staff Operations API', () => {
   let staffToken: string;
@@ -241,6 +241,42 @@ describe('Staff Operations API', () => {
 
       // Clean up
       await pool.query("DELETE FROM users WHERE phone = '+966502222222'");
+    });
+  });
+
+  describe('GET /api/v1/staff/reservations/export', () => {
+    it('should export all reservations as CSV', async () => {
+      const response = await request(app)
+        .get('/api/v1/staff/reservations/export')
+        .set('Authorization', `Bearer ${staffToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toBe('text/csv; charset=utf-8');
+      expect(response.headers['content-disposition']).toBe('attachment; filename=reservations.csv');
+      expect(response.text).toContain('id');
+      expect(response.text).toContain(testReservationId);
+    });
+
+    it('should export all reservations as Excel', async () => {
+      const response = await request(app)
+        .get('/api/v1/staff/reservations/export')
+        .query({ format: 'excel' })
+        .set('Authorization', `Bearer ${staffToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      expect(response.headers['content-disposition']).toBe('attachment; filename=reservations.xlsx');
+    });
+
+    it('should filter exported reservations by status', async () => {
+      const response = await request(app)
+        .get('/api/v1/staff/reservations/export')
+        .query({ status: 'confirmed' })
+        .set('Authorization', `Bearer ${staffToken}`);
+
+      expect(response.status).toBe(200);
+      // It might be empty if there are no confirmed reservations, but it should still return a CSV header
+      expect(response.text).toContain('id');
     });
   });
 

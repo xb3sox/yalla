@@ -3,6 +3,8 @@ import { AuthRequest } from '../middleware/auth.middleware';
 import experienceModel from '../models/experience.model';
 import reservationModel from '../models/reservation.model';
 import auditModel from '../models/audit.model';
+import { Parser } from 'json2csv';
+import ExcelJS from 'exceljs';
 import logger from '../utils/logger';
 
 /**
@@ -225,6 +227,106 @@ export const updateReservationState = async (req: AuthRequest, res: Response) =>
       error: {
         code: 'UPDATE_RESERVATION_STATE_FAILED',
         message: 'Failed to update reservation state',
+      },
+    });
+  }
+};
+
+/**
+ * Get all reservations (staff)
+ */
+export const exportReservations = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required',
+        },
+      });
+    }
+
+    const { status, experienceId, startDate, endDate, format = 'csv' } = req.query;
+
+    let query = `
+      SELECT r.id, r.state as status, r.created_at, r.payment_state,
+             u.display_name as participant_name, u.phone as participant_phone,
+             e.title as experience_title
+      FROM reservations r
+      JOIN users u ON r.participant_id = u.id
+      JOIN experiences e ON r.experience_id = e.id
+      WHERE 1=1
+    `;
+
+    const values: any[] = [];
+    let paramCount = 1;
+
+    if (status) {
+      query += ` AND r.state = $${paramCount}`;
+      values.push(status);
+      paramCount++;
+    }
+
+    if (experienceId) {
+      query += ` AND r.experience_id = $${paramCount}`;
+      values.push(experienceId);
+      paramCount++;
+    }
+
+    if (startDate) {
+      query += ` AND r.created_at >= $${paramCount}`;
+      values.push(startDate);
+      paramCount++;
+    }
+
+    if (endDate) {
+      query += ` AND r.created_at <= $${paramCount}`;
+      values.push(endDate);
+      paramCount++;
+    }
+
+    query += ` ORDER BY r.created_at DESC`;
+
+    const pool = await import('../config/database').then(m => m.default);
+    const result = await pool.query(query, values);
+
+    if (format === 'excel') {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Reservations');
+
+      worksheet.columns = [
+        { header: 'ID', key: 'id', width: 36 },
+        { header: 'Status', key: 'status', width: 20 },
+        { header: 'Created At', key: 'created_at', width: 25 },
+        { header: 'Payment State', key: 'payment_state', width: 20 },
+        { header: 'Participant Name', key: 'participant_name', width: 30 },
+        { header: 'Participant Phone', key: 'participant_phone', width: 20 },
+        { header: 'Experience Title', key: 'experience_title', width: 40 },
+      ];
+
+      worksheet.addRows(result.rows);
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename=reservations.xlsx');
+
+      await workbook.xlsx.write(res);
+      return res.end();
+    } else {
+      const json2csvParser = new Parser();
+      const csv = json2csvParser.parse(result.rows);
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=reservations.csv');
+      return res.status(200).send(csv);
+    }
+  } catch (error: any) {
+    logger.error('Export reservations failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'EXPORT_RESERVATIONS_FAILED',
+        message: 'Failed to export reservations',
       },
     });
   }

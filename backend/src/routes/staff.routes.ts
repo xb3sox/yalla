@@ -4,6 +4,7 @@ import {
   assignHost,
   updateReservationState,
   getAllReservations,
+  exportReservations,
   getDashboardStatistics,
   getAllUsers,
   updateUserRole,
@@ -36,6 +37,13 @@ router.get('/users', getAllUsers);
  * @access  Private (Admin)
  */
 router.put('/users/:id/role', authorize('admin'), updateUserRole);
+
+/**
+ * @route   GET /api/v1/staff/reservations/export
+ * @desc    Export all reservations
+ * @access  Private (Staff)
+ */
+router.get('/reservations/export', exportReservations);
 
 /**
  * @route   GET /api/v1/staff/reservations
