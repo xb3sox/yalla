@@ -21,6 +21,15 @@ export const createReservation = async (req: AuthRequest, res: Response) => {
     }
 
     const { experience_id } = req.body;
+    if (!experience_id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'experience_id is required',
+        },
+      });
+    }
     const idempotency_key = req.body.idempotency_key || uuidv4();
 
     // Validate experience exists and is published

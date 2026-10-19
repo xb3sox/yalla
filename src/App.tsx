@@ -118,6 +118,9 @@ function AppContent() {
   // Participant view
   return (
     <div className="min-h-screen bg-surface max-w-lg mx-auto relative">
+      {/* Skip to content link (accessibility: must be first focusable element) */}
+      <SkipToContent />
+
       {/* Minimal header */}
       <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-border">
         <div className="flex items-center justify-between px-5 h-14">
@@ -232,9 +235,6 @@ function AppContent() {
 
       {/* Session timeout warning */}
       <SessionTimeoutWarning />
-
-      {/* Skip to content link (accessibility) */}
-      <SkipToContent />
     </div>
   );
 }

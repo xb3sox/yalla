@@ -6,7 +6,9 @@ const poolConfig: PoolConfig = {
   connectionString: config.database.url,
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 5000,
+  statement_timeout: 10000,
+  query_timeout: 10000,
   ssl: config.env === 'production' && !config.database.url.includes('localhost') ? { rejectUnauthorized: false } : undefined,
 };
 

@@ -31,9 +31,14 @@ class ApiClient {
   private readonly RETRY_DELAY = 1000; // 1 second
 
   constructor() {
-    // Load tokens from localStorage
-    this.token = localStorage.getItem('yalla_access_token');
-    this.refreshToken = localStorage.getItem('yalla_refresh_token');
+    // Load tokens from localStorage safely
+    try {
+      this.token = typeof localStorage !== 'undefined' ? localStorage.getItem('yalla_access_token') : null;
+      this.refreshToken = typeof localStorage !== 'undefined' ? localStorage.getItem('yalla_refresh_token') : null;
+    } catch {
+      this.token = null;
+      this.refreshToken = null;
+    }
   }
 
   /**
@@ -93,8 +98,12 @@ class ApiClient {
   setTokens(accessToken: string, refreshToken: string) {
     this.token = accessToken;
     this.refreshToken = refreshToken;
-    localStorage.setItem('yalla_access_token', accessToken);
-    localStorage.setItem('yalla_refresh_token', refreshToken);
+    try {
+      localStorage.setItem('yalla_access_token', accessToken);
+      localStorage.setItem('yalla_refresh_token', refreshToken);
+    } catch {
+      // Ignored in restricted/sandboxed storage
+    }
   }
 
   /**
@@ -103,8 +112,12 @@ class ApiClient {
   clearTokens() {
     this.token = null;
     this.refreshToken = null;
-    localStorage.removeItem('yalla_access_token');
-    localStorage.removeItem('yalla_refresh_token');
+    try {
+      localStorage.removeItem('yalla_access_token');
+      localStorage.removeItem('yalla_refresh_token');
+    } catch {
+      // Ignored in restricted/sandboxed storage
+    }
   }
 
   /**
@@ -130,7 +143,15 @@ class ApiClient {
     retryFn?: () => Promise<ApiResponse<T>>,
     isRetry = false
   ): Promise<ApiResponse<T>> {
-    const data = await response.json();
+    let data: any;
+    try {
+      data = await response.json();
+    } catch {
+      data = {
+        success: false,
+        error: { message: `HTTP ${response.status}: ${response.statusText || 'Request failed'}` },
+      };
+    }
 
     if (!response.ok) {
       // Try to refresh token if unauthorized and retry callback is available
@@ -141,7 +162,7 @@ class ApiClient {
         }
       }
 
-      throw new Error(data.error?.message || 'API request failed');
+      throw new Error(data?.error?.message || `API request failed with status ${response.status}`);
     }
 
     return data;

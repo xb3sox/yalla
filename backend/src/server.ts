@@ -57,8 +57,8 @@ app.use(requestLogger);
 app.use('/api/', apiLimiter);
 
 // Rate limiting - authentication endpoints (stricter)
-app.use('/api/v1/auth/login', authLimiter);
-app.use('/api/v1/auth/register', authLimiter);
+app.use(`/api/${config.apiVersion}/auth/login`, authLimiter);
+app.use(`/api/${config.apiVersion}/auth/register`, authLimiter);
 
 // Health check endpoint
 app.get('/health', healthCheck);
@@ -120,5 +120,15 @@ const shutdown = (signal: string) => {
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
+
+process.on('unhandledRejection', (reason: any) => {
+  logger.error('Unhandled Rejection detected', { reason: reason?.stack || reason });
+  shutdown('unhandledRejection');
+});
+
+process.on('uncaughtException', (error: Error) => {
+  logger.error('Uncaught Exception detected', { error: error.message, stack: error.stack });
+  shutdown('uncaughtException');
+});
 
 export default app;

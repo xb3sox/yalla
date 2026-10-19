@@ -689,7 +689,7 @@ const ar: TranslationKeys = {
 const translations: Record<Language, TranslationKeys> = { en, ar };
 
 export function t(key: keyof TranslationKeys, lang: Language, params?: Record<string, string | number>): string {
-  let text = translations[lang][key] || translations.en[key] || key;
+  let text = translations[lang]?.[key] || translations.en?.[key] || key;
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
       text = text.replace(`{${k}}`, String(v));
