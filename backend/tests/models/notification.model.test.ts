@@ -1,6 +1,6 @@
-import notificationModel from '../src/models/notification.model';
-import userModel from '../src/models/user.model';
-import pool from '../src/config/database';
+import notificationModel from '../../src/models/notification.model';
+import userModel from '../../src/models/user.model';
+import pool from '../../src/config/database';
 
 describe('Notification Model', () => {
   let testUserId: string;

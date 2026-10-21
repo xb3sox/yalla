@@ -1,7 +1,7 @@
-import reservationModel, { stateMachine } from '../src/models/reservation.model';
-import experienceModel from '../src/models/experience.model';
-import userModel from '../src/models/user.model';
-import pool from '../src/config/database';
+import reservationModel, { stateMachine } from '../../src/models/reservation.model';
+import experienceModel from '../../src/models/experience.model';
+import userModel from '../../src/models/user.model';
+import pool from '../../src/config/database';
 
 describe('Reservation Model', () => {
   let testUserId: string;

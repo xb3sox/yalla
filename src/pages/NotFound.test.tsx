@@ -1,20 +1,18 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { screen, fireEvent } from '@testing-library/react';
 import { NotFoundPage } from './NotFound';
-import { AppProvider } from '../data/store';
 import { renderWithProviders } from '../test/utils';
+import { useApp } from '../data/store';
 
-// Mock useNavigate
-const mockNavigate = vi.fn();
-vi.mock('react-router-dom', () => ({
-  useNavigate: () => mockNavigate,
-}));
+// Mirrors App.tsx view switching: renders NotFoundPage only while the store's
+// currentView is 'notfound', so SET_VIEW dispatches visibly swap the UI.
+function Shell() {
+  const { state } = useApp();
+  if (state.currentView !== 'notfound') return <div>navigated-away</div>;
+  return <NotFoundPage />;
+}
 
 describe('NotFoundPage', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('renders 404 error code', () => {
     renderWithProviders(<NotFoundPage />);
 
@@ -84,31 +82,31 @@ describe('NotFoundPage', () => {
     expect(backButton).toBeTruthy();
   });
 
-  it('navigates to home when Go Home is clicked', () => {
-    renderWithProviders(<NotFoundPage />);
+  it('switches to dashboard view when Go Home is clicked', () => {
+    renderWithProviders(<Shell />, { view: 'notfound' });
 
-    const homeButton = screen.getByText(/Go Home/i);
-    fireEvent.click(homeButton);
+    fireEvent.click(screen.getByText(/Go Home/i));
 
-    expect(mockNavigate).toHaveBeenCalledWith('/');
+    expect(screen.queryByText('404')).toBeNull();
+    expect(screen.getByText('navigated-away')).toBeTruthy();
   });
 
-  it('navigates to explore when Explore is clicked', () => {
-    renderWithProviders(<NotFoundPage />);
+  it('switches to explore view when Explore is clicked', () => {
+    renderWithProviders(<Shell />, { view: 'notfound' });
 
-    const exploreButton = screen.getByText(/Explore/i);
-    fireEvent.click(exploreButton);
+    fireEvent.click(screen.getByRole('button', { name: /Explore/i }));
 
-    expect(mockNavigate).toHaveBeenCalledWith('/explore');
+    expect(screen.queryByText('404')).toBeNull();
+    expect(screen.getByText('navigated-away')).toBeTruthy();
   });
 
-  it('navigates back when Go Back is clicked', () => {
-    renderWithProviders(<NotFoundPage />);
+  it('switches away from 404 when Go Back is clicked', () => {
+    renderWithProviders(<Shell />, { view: 'notfound' });
 
-    const backButton = screen.getByText(/Go Back/i);
-    fireEvent.click(backButton);
+    fireEvent.click(screen.getByText(/Go Back/i));
 
-    expect(mockNavigate).toHaveBeenCalledWith(-1);
+    expect(screen.queryByText('404')).toBeNull();
+    expect(screen.getByText('navigated-away')).toBeTruthy();
   });
 
   it('has contact support link', () => {
@@ -125,13 +123,13 @@ describe('NotFoundPage', () => {
     expect(supportLink).toBeTruthy();
   });
 
-  it('navigates to support when contact support is clicked', () => {
-    renderWithProviders(<NotFoundPage />);
+  it('switches to support view when contact support is clicked', () => {
+    renderWithProviders(<Shell />, { view: 'notfound' });
 
-    const supportLink = screen.getByText(/contact support/i);
-    fireEvent.click(supportLink);
+    fireEvent.click(screen.getByText(/contact support/i));
 
-    expect(mockNavigate).toHaveBeenCalledWith('/support');
+    expect(screen.queryByText('404')).toBeNull();
+    expect(screen.getByText('navigated-away')).toBeTruthy();
   });
 
   it('has proper layout structure', () => {

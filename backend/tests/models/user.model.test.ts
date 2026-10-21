@@ -1,5 +1,5 @@
-import userModel from '../src/models/user.model';
-import pool from '../src/config/database';
+import userModel from '../../src/models/user.model';
+import pool from '../../src/config/database';
 
 describe('User Model', () => {
   const testPhone = '+966501234567';

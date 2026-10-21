@@ -14,11 +14,6 @@ vi.mock('../hooks/useAuth', () => ({
   }),
 }));
 
-// Mock useNavigate
-vi.mock('react-router-dom', () => ({
-  useNavigate: () => vi.fn(),
-}));
-
 describe('LoginPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();

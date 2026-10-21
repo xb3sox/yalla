@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../services/api';
 import { useApp } from '../data/store';
@@ -34,15 +33,14 @@ interface DashboardPageProps {
 
 export function DashboardPage({ onNavigate, onOpenNotifications }: DashboardPageProps = {}) {
   const { user: authUser, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const lang = state.language;
-  const navigate = useNavigate();
   
-  const handleNav = (path: string, view: AppView) => {
+  const handleNav = (_path: string, view: AppView) => {
     if (onNavigate) {
       onNavigate(view);
     } else {
-      navigate(path);
+      dispatch({ type: 'SET_VIEW', payload: view });
     }
   };
 
@@ -280,7 +278,7 @@ export function DashboardPage({ onNavigate, onOpenNotifications }: DashboardPage
                 {lang === 'ar' ? 'الحجوزات الأخيرة' : 'Recent Reservations'}
               </h2>
               <button
-                onClick={() => navigate('/my-plans')}
+                onClick={() => handleNav('/my-plans', 'plans')}
                 className="text-sm text-brand-600 hover:text-brand-700 font-medium"
               >
                 {lang === 'ar' ? 'عرض الكل' : 'View all'}
@@ -294,7 +292,7 @@ export function DashboardPage({ onNavigate, onOpenNotifications }: DashboardPage
                   {lang === 'ar' ? 'لا توجد حجوزات بعد' : 'No reservations yet'}
                 </p>
                 <button
-                  onClick={() => navigate('/explore')}
+                  onClick={() => handleNav('/explore', 'explore')}
                   className="mt-4 text-brand-600 hover:text-brand-700 font-medium"
                 >
                   {lang === 'ar' ? 'استكشف التجارب →' : 'Explore experiences →'}
@@ -306,7 +304,7 @@ export function DashboardPage({ onNavigate, onOpenNotifications }: DashboardPage
                   <div
                     key={reservation.id}
                     className="flex items-center justify-between p-3 bg-surface-sunken rounded-lg hover:bg-border transition-colors cursor-pointer"
-                    onClick={() => navigate(`/reservations/${reservation.id}`)}
+                    onClick={() => handleNav(`/reservations/${reservation.id}`, 'details')}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-2 h-2 rounded-full ${
@@ -345,7 +343,7 @@ export function DashboardPage({ onNavigate, onOpenNotifications }: DashboardPage
                 {lang === 'ar' ? 'الإشعارات الأخيرة' : 'Recent Notifications'}
               </h2>
               <button
-                onClick={() => navigate('/notifications')}
+                onClick={() => handleNav('/notifications', 'plans')}
                 className="text-sm text-brand-600 hover:text-brand-700 font-medium"
               >
                 {lang === 'ar' ? 'عرض الكل' : 'View all'}

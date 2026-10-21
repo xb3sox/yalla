@@ -1,6 +1,6 @@
 import request from 'supertest';
-import app from '../src/server';
-import pool from '../src/config/database';
+import app from '../../src/server';
+import pool from '../../src/config/database';
 
 describe('Complete User Journey - Participant', () => {
   let participantToken: string;

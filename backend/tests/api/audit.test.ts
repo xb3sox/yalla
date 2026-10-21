@@ -1,6 +1,6 @@
 import request from 'supertest';
-import app from '../src/server';
-import pool from '../src/config/database';
+import app from '../../src/server';
+import pool from '../../src/config/database';
 
 describe('Audit API', () => {
   let staffToken: string;

@@ -14,7 +14,7 @@ Yalla: React 18 + Vite 6 frontend at repo root (`yalla-frontend`), Express + Typ
 ## Commands
 
 Frontend (repo root):
-- `npm run dev` — Vite on port 3000 (`strictPort`, host `0.0.0.0`)
+- `npm run dev` — Vite on port 5173 (`strictPort`, host `0.0.0.0`)
 - `npm run typecheck` — `tsc --noEmit`, covers `src/` only
 - `npx vitest run <path>` — single/focused test. Bare `npm test` starts vitest **watch mode**; always add `run`.
 - `npm run test:coverage` — what CI runs
@@ -39,11 +39,11 @@ Before a PR: frontend `typecheck` + `vitest run`, backend `lint` + `typecheck` +
 
 ## Gotchas
 
-- **Port collision:** both Vite dev server and backend default to port 3000. Run one at a time or override `PORT` (backend) — backend `CORS_ORIGIN` defaults to `http://localhost:5173`.
+- **Ports:** Vite dev server runs on 5173; backend defaults to 3000 (override via `PORT`). Backend `CORS_ORIGIN` defaults to `http://localhost:5173`.
 - **Docker Compose:** `docker-compose.yml` runs dev frontend via `Dockerfile.dev` (`5173:3000`) with `VITE_API_URL: http://localhost:3000/api/v1`, and backend on `3000:3000`. Root `Dockerfile` produces a multi-stage Nginx production container on port 80 with SPA fallback routing via `nginx.conf`.
 - Vitest `exclude`s `backend/**`, `dist/**`, `tests/e2e/**` — root test runs never touch the backend.
 - Backend `tests/setup.ts` truncates tables with `session_replication_role = replica`; needs a Postgres role with permission to do so.
-- No frontend lint script; backend eslint warns (not errors) on `any` and unused vars.
+- No frontend lint script; backend eslint errors on unused vars (`^_` prefix allowed); `no-explicit-any` is off (142 legacy usages — fix opportunistically, do not mass-refactor).
 - Bilingual UI (en/ar, RTL) — keep new strings in `src/i18n/` translation keys, not hardcoded; safe dictionary fallback with optional chaining (`translations[lang]?.[key]`); project targets WCAG 2.2 AA.
 
 ## Hard-earned rules (from `.jules/`)

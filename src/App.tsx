@@ -34,7 +34,10 @@ type View = AppView;
 function AppContent() {
   const { state, dispatch } = useApp();
   const lang = state.language;
-  const [currentView, setCurrentView] = useState<View>('dashboard');
+  // Single source of truth for navigation: store.currentView (SET_VIEW action).
+  // Pages dispatch SET_VIEW directly; this setter keeps App-internal callsites working.
+  const currentView = state.currentView as View;
+  const setCurrentView = (v: View) => dispatch({ type: 'SET_VIEW', payload: v });
   const [selectedExperienceId, setSelectedExperienceId] = useState('');
   const [selectedReservationId, setSelectedReservationId] = useState('');
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);

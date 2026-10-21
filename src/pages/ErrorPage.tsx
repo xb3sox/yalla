@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { useApp } from '../data/store';
 import { Button } from '../components/DesignSystem';
 import { Home, RefreshCw, AlertTriangle } from 'lucide-react';
@@ -9,8 +8,8 @@ interface ErrorPageProps {
 }
 
 export function ErrorPage({ error, resetErrorBoundary }: ErrorPageProps) {
-  const navigate = useNavigate();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
+  const go = (view: string) => dispatch({ type: 'SET_VIEW', payload: view });
   const lang = state.language;
 
   const handleRetry = () => {
@@ -77,7 +76,7 @@ export function ErrorPage({ error, resetErrorBoundary }: ErrorPageProps) {
 
           <Button
             variant="secondary"
-            onClick={() => navigate('/')}
+            onClick={() => go('dashboard')}
             className="flex items-center justify-center gap-2"
           >
             <Home className="w-4 h-4" />
@@ -93,7 +92,7 @@ export function ErrorPage({ error, resetErrorBoundary }: ErrorPageProps) {
               : 'If the problem persists, please'}
           </p>
           <button
-            onClick={() => navigate('/support')}
+            onClick={() => go('support')}
             className="text-brand-600 hover:text-brand-700 font-medium underline text-sm"
           >
             {lang === 'ar' ? 'التواصل مع فريق الدعم' : 'contact our support team'}

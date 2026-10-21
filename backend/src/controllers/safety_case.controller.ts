@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import safetyCaseModel, { SAFETY_CASE_TRANSITIONS } from '../models/safety_case.model';
 import auditModel from '../models/audit.model';

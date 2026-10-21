@@ -3,12 +3,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { ErrorPage } from './ErrorPage';
 import { AppProvider } from '../data/store';
 
-// Mock useNavigate
-const mockNavigate = vi.fn();
-vi.mock('react-router-dom', () => ({
-  useNavigate: () => mockNavigate,
-}));
-
 describe('ErrorPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
