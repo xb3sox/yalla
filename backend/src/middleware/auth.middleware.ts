@@ -120,33 +120,3 @@ export const optionalAuth = async (req: AuthRequest, res: Response, next: NextFu
     next();
   }
 };
-
-/**
- * Ownership check - ensures user can only access their own data
- */
-export const checkOwnership = (resourceIdParam: string = 'id') => {
-  return async (req: AuthRequest, res: Response, next: NextFunction) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required',
-          },
-        });
-      }
-      
-      // Admin and staff can access any resource
-      if (['admin', 'operations', 'support', 'trust_safety'].includes(req.user.role)) {
-        return next();
-      }
-      
-      // For participants, check ownership
-      // This is a generic middleware, specific ownership checks should be in controllers
-      next();
-    } catch (error) {
-      next(error);
-    }
-  };
-};

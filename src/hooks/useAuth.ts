@@ -37,7 +37,7 @@ export function useAuth() {
       const response = await api.auth.login({ phone, password }) as any;
       
       if (response.success && response.data) {
-        apiClient.setTokens(response.data.tokens.accessToken, response.data.tokens.refreshToken);
+        apiClient.setTokens(response.data.tokens.accessToken); // refresh token stays in HttpOnly cookie
         
         // Fetch user data
         const userResponse = await api.auth.me() as any;
@@ -82,7 +82,7 @@ export function useAuth() {
       const response = await api.auth.register(data) as any;
       
       if (response.success && response.data) {
-        apiClient.setTokens(response.data.tokens.accessToken, response.data.tokens.refreshToken);
+        apiClient.setTokens(response.data.tokens.accessToken); // refresh token stays in HttpOnly cookie
         
         // Fetch user data
         const userResponse = await api.auth.me() as any;

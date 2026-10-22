@@ -1,9 +1,9 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import reservationModel from '../models/reservation.model';
 import experienceModel from '../models/experience.model';
 import logger from '../utils/logger';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 /**
  * Create a new reservation
@@ -30,7 +30,7 @@ export const createReservation = async (req: AuthRequest, res: Response) => {
         },
       });
     }
-    const idempotency_key = req.body.idempotency_key || uuidv4();
+    const idempotency_key = req.body.idempotency_key || randomUUID();
 
     const { reservation, isWaitlisted, experience } = await reservationModel.createWithCapacityCheck({
       participant_id: req.user.userId,

@@ -24,22 +24,13 @@ interface ApiResponse<T> {
 
 class ApiClient {
   private token: string | null = null;
-  private refreshToken: string | null = null;
+  // Optimistic flag: a session may exist (HttpOnly cookie is unreadable by JS).
+  // Set on successful login/refresh, cleared when a refresh definitively fails.
+  private sessionPossible = true;
   private cache: Map<string, { data: any; timestamp: number }> = new Map();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY = 1000; // 1 second
-
-  constructor() {
-    // Load tokens from localStorage safely
-    try {
-      this.token = typeof localStorage !== 'undefined' ? localStorage.getItem('yalla_access_token') : null;
-      this.refreshToken = typeof localStorage !== 'undefined' ? localStorage.getItem('yalla_refresh_token') : null;
-    } catch {
-      this.token = null;
-      this.refreshToken = null;
-    }
-  }
 
   /**
    * Get cached data if valid
@@ -93,31 +84,31 @@ class ApiClient {
   }
 
   /**
-   * Set authentication tokens
+   * Set the in-memory access token. Refresh tokens are stored by the backend
+   * in HttpOnly cookies and are never handled by client JavaScript.
    */
-  setTokens(accessToken: string, refreshToken: string) {
+  setTokens(accessToken: string) {
     this.token = accessToken;
-    this.refreshToken = refreshToken;
-    try {
-      localStorage.setItem('yalla_access_token', accessToken);
-      localStorage.setItem('yalla_refresh_token', refreshToken);
-    } catch {
-      // Ignored in restricted/sandboxed storage
-    }
+    this.sessionPossible = true;
   }
 
   /**
-   * Clear authentication tokens
+   * Clear authentication state for the current tab/session (the HttpOnly
+   * refresh cookie is cleared server-side via /auth/logout).
    */
   clearTokens() {
     this.token = null;
-    this.refreshToken = null;
-    try {
-      localStorage.removeItem('yalla_access_token');
-      localStorage.removeItem('yalla_refresh_token');
-    } catch {
-      // Ignored in restricted/sandboxed storage
-    }
+    this.sessionPossible = false;
+  }
+
+  /**
+   * Whether an authenticated session may exist. The HttpOnly refresh cookie is
+   * invisible to JavaScript, so after a page reload we optimistically report
+   * "maybe" and let the first authenticated request (or its silent refresh)
+   * decide. A failed refresh calls clearTokens(), which flips this to false.
+   */
+  isAuthenticated(): boolean {
+    return !!this.token || this.sessionPossible;
   }
 
   /**
@@ -169,7 +160,8 @@ class ApiClient {
   }
 
   /**
-   * Refresh access token
+   * Refresh access token using the HttpOnly refresh cookie (credentials: 'include').
+   * The client never reads or stores the refresh token itself.
    */
   private async refreshAccessToken(): Promise<boolean> {
     try {
@@ -177,14 +169,14 @@ class ApiClient {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: this.refreshToken ? JSON.stringify({ refreshToken: this.refreshToken }) : undefined,
       });
 
       const data = await response.json();
 
       if (data.success) {
-        if (data.data?.tokens) {
-          this.setTokens(data.data.tokens.accessToken, data.data.tokens.refreshToken);
+        this.sessionPossible = true;
+        if (data.data?.tokens?.accessToken) {
+          this.setTokens(data.data.tokens.accessToken);
         }
         return true;
       }
@@ -343,13 +335,6 @@ class ApiClient {
     }
 
     return response;
-  }
-
-  /**
-   * Check if user is authenticated
-   */
-  isAuthenticated(): boolean {
-    return !!this.token;
   }
 
   /**

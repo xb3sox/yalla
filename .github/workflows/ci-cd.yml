@@ -194,12 +194,12 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Run npm audit on frontend
-        run: npm audit --audit-level=moderate || echo "Frontend audit completed with warnings"
+      - name: Run npm audit on frontend (blocking: production deps, high+)
+        run: npm audit --omit=dev --audit-level=high
 
-      - name: Run npm audit on backend
+      - name: Run npm audit on backend (blocking: production deps, high+)
         working-directory: ./backend
-        run: npm audit --audit-level=moderate || echo "Backend audit completed with warnings"
+        run: npm audit --omit=dev --audit-level=high
 
   # Build Summary
   summary:

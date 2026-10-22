@@ -1,6 +1,6 @@
-import auditModel from '../src/models/audit.model';
-import userModel from '../src/models/user.model';
-import pool from '../src/config/database';
+import auditModel from '../../src/models/audit.model';
+import userModel from '../../src/models/user.model';
+import pool from '../../src/config/database';
 
 describe('Audit Model', () => {
   let testUserId: string;

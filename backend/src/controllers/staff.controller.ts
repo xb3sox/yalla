@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import experienceModel, { EXPERIENCE_TRANSITIONS } from '../models/experience.model';
 import reservationModel from '../models/reservation.model';

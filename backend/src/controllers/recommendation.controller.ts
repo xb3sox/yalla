@@ -103,7 +103,7 @@ export const getRecommendations = async (req: Request, res: Response) => {
       .slice(0, limit);
 
     // Remove the 'score' property before sending
-    const finalRecommendations = recommendations.map(({ score, ...rest }) => rest);
+    const finalRecommendations = recommendations.map(({ score: _score, ...rest }) => rest);
 
     res.json({
       success: true,

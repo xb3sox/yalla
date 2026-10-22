@@ -1,6 +1,6 @@
 import pool, { transaction } from '../config/database';
 import logger from '../utils/logger';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 export interface Reservation {
   id: string;
@@ -117,7 +117,7 @@ class ReservationModel {
       const isWaitlisted = experience.booked >= experience.capacity;
       const targetState = isWaitlisted ? 'waitlisted' : 'confirmed';
       const paymentState = isWaitlisted ? 'initiated' : 'captured';
-      const paymentId = isWaitlisted ? null : `pay_${uuidv4()}`;
+      const paymentId = isWaitlisted ? null : `pay_${randomUUID()}`;
 
       // 5. Insert reservation
       const insertRes = await client.query(

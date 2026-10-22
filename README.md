@@ -40,7 +40,7 @@ For complete technical specifications, see:
 - 🏛️ **[Architecture Guide](./docs/ARCHITECTURE.md)** — Clean Architecture, Domain-Driven Design, Reservation State Machine.
 - 📡 **[API Reference](./docs/API.md)** — 53 REST API endpoints, schemas, headers, status codes.
 - 🗄️ **[Database Specification](./docs/DATABASE.md)** — PostgreSQL tables, ER diagram, migrations.
-- 📋 **[Product Requirements Document (PRD)](./PRD.md)** — Functional requirements (FR-001 to FR-045) in Arabic.
+- 📋 **[Product Requirements Document (PRD, archived)](./docs/archive/PRD.md)** — Functional requirements (FR-001 to FR-045) in Arabic.
 - 🤖 **[Agent Instructions (AGENTS.md)](./AGENTS.md)** / **[CLAUDE.md](./CLAUDE.md)** — Operational commands and AI agent guardrails.
 
 ---
@@ -74,7 +74,7 @@ cp backend/.env.example backend/.env
 ### 3. Running Locally
 
 ```bash
-# Terminal 1: Run Frontend (http://localhost:3000)
+# Terminal 1: Run Frontend (http://localhost:5173)
 npm run dev
 
 # Terminal 2: Run Backend (http://localhost:3000 or override PORT=3001)

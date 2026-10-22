@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Button, Input } from '../components/DesignSystem';
 import { t } from '../i18n';
 import { useApp } from '../data/store';
 
-export function LoginPage() {
+interface LoginPageProps {
+  onLoginSuccess?: () => void;
+}
+
+export function LoginPage({ onLoginSuccess }: LoginPageProps = {}) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -14,10 +17,16 @@ export function LoginPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   
   const { login, register, isLoading, error, clearError } = useAuth();
-  const { dispatch } = useApp();
-  const { state } = useApp();
+  const { dispatch, state } = useApp();
   const lang = state.language;
-  const navigate = useNavigate();
+
+  const handleLoginSuccess = () => {
+    if (onLoginSuccess) {
+      onLoginSuccess();
+    } else {
+      dispatch({ type: 'SET_VIEW', payload: 'explore' });
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +34,7 @@ export function LoginPage() {
     
     const success = await login(phone, password);
     if (success) {
-      navigate('/explore');
+      handleLoginSuccess();
     }
   };
 
@@ -42,7 +51,7 @@ export function LoginPage() {
     });
     
     if (success) {
-      navigate('/explore');
+      handleLoginSuccess();
     }
   };
 

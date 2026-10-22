@@ -12,28 +12,30 @@ describe('API Client', () => {
   });
 
   describe('Authentication', () => {
-    it('should set tokens', () => {
-      apiClient.setTokens('access-token', 'refresh-token');
-      
-      expect(localStorage.getItem('yalla_access_token')).toBe('access-token');
-      expect(localStorage.getItem('yalla_refresh_token')).toBe('refresh-token');
+    it('should set access token in memory only (cookie-based refresh)', () => {
+      apiClient.setTokens('access-token');
+
+      // Security requirement: tokens must never be persisted to localStorage.
+      expect(localStorage.getItem('yalla_access_token')).toBeNull();
+      expect(localStorage.getItem('yalla_refresh_token')).toBeNull();
+      expect(apiClient.getToken()).toBe('access-token');
       expect(apiClient.isAuthenticated()).toBe(true);
     });
 
     it('should clear tokens', () => {
-      apiClient.setTokens('access-token', 'refresh-token');
+      apiClient.setTokens('access-token');
       apiClient.clearTokens();
-      
-      expect(localStorage.getItem('yalla_access_token')).toBeNull();
-      expect(localStorage.getItem('yalla_refresh_token')).toBeNull();
+
+      expect(apiClient.getToken()).toBeNull();
       expect(apiClient.isAuthenticated()).toBe(false);
     });
 
-    it('should load tokens from localStorage', () => {
+    it('should not load tokens from localStorage after reload', () => {
       localStorage.setItem('yalla_access_token', 'stored-token');
-      
+
       const newClient = new (apiClient.constructor as any)();
-      expect(newClient.getToken()).toBe('stored-token');
+      // Cookie-only auth: JS never reads persisted tokens.
+      expect(newClient.getToken()).toBeNull();
     });
   });
 
@@ -144,7 +146,7 @@ describe('API Client', () => {
     });
 
     it('should include authorization header when authenticated', async () => {
-      apiClient.setTokens('test-token', 'refresh-token');
+      apiClient.setTokens('test-token');
       
       const mockResponse = { success: true, data: {} };
       mockFetch.mockResolvedValueOnce({

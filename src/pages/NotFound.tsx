@@ -1,12 +1,11 @@
-import { useNavigate } from 'react-router-dom';
 import { useApp } from '../data/store';
 import { t } from '../i18n';
 import { Button } from '../components/DesignSystem';
 import { Home, Search, ArrowLeft } from 'lucide-react';
 
 export function NotFoundPage() {
-  const navigate = useNavigate();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
+  const go = (view: string) => dispatch({ type: 'SET_VIEW', payload: view });
   const lang = state.language;
 
   return (
@@ -59,7 +58,7 @@ export function NotFoundPage() {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button
             variant="primary"
-            onClick={() => navigate('/')}
+            onClick={() => go('dashboard')}
             className="flex items-center justify-center gap-2"
           >
             <Home className="w-4 h-4" />
@@ -68,7 +67,7 @@ export function NotFoundPage() {
 
           <Button
             variant="secondary"
-            onClick={() => navigate('/explore')}
+            onClick={() => go('explore')}
             className="flex items-center justify-center gap-2"
           >
             <Search className="w-4 h-4" />
@@ -77,7 +76,7 @@ export function NotFoundPage() {
 
           <Button
             variant="ghost"
-            onClick={() => navigate(-1)}
+            onClick={() => go('explore')}
             className="flex items-center justify-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -92,7 +91,7 @@ export function NotFoundPage() {
               ? 'إذا كنت تعتقد أن هذا خطأ، يرجى '
               : "If you believe this is a mistake, please "}
             <button
-              onClick={() => navigate('/support')}
+              onClick={() => go('support')}
               className="text-brand-600 hover:text-brand-700 font-medium underline"
             >
               {lang === 'ar' ? 'التواصل مع الدعم' : 'contact support'}

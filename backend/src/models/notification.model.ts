@@ -1,4 +1,4 @@
-import pool, { transaction } from '../config/database';
+import pool from '../config/database';
 import logger from '../utils/logger';
 
 export interface Notification {
