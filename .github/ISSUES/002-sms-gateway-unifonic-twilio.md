@@ -1,6 +1,6 @@
 # [Jules] Phase 3: Production SMS Gateway Integration (Twilio / Unifonic) for Arrival Alerts
 
-**Labels**: `backlog`, `phase-3`, `communications`, `sms`, `backend`
+**Labels**: `backlog`, `phase-3`, `communications`, `sms`, `backend`, `jules`
 **Milestone**: Phase 3: Real-Time & Communications (Q1 2027)
 
 ---

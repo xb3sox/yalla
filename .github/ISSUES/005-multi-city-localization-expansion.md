@@ -1,6 +1,6 @@
 # [Jules] Phase 4: Multi-City Location & Saudi Regional Expansion (Riyadh, Jeddah, Al-Khobar)
 
-**Labels**: `backlog`, `phase-4`, `localization`, `multi-city`, `backend`, `frontend`
+**Labels**: `backlog`, `phase-4`, `localization`, `multi-city`, `backend`, `frontend`, `jules`
 **Milestone**: Phase 4: Expansion & Scale (Q2 2027)
 
 ---

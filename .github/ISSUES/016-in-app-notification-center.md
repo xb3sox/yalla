@@ -1,6 +1,6 @@
 # [Jules] Platform: In-App Notification Center & User Preference Matrix
 
-**Labels**: `backlog`, `platform`, `notifications`, `frontend`, `backend`
+**Labels**: `backlog`, `platform`, `notifications`, `frontend`, `backend`, `jules`
 **Milestone**: Platform Engineering & User Experience
 
 ---

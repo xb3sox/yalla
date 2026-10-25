@@ -1,6 +1,6 @@
 # [Jules] Phase 5: Apple Pay & Saudi Mada Native Payment SDK Integration
 
-**Labels**: `backlog`, `phase-5`, `payments`, `apple-pay`, `mada`, `frontend`, `backend`
+**Labels**: `backlog`, `phase-5`, `payments`, `apple-pay`, `mada`, `frontend`, `backend`, `jules`
 **Milestone**: Phase 5: Mobile Applications (Q3 2027)
 
 ---

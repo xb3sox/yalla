@@ -1,6 +1,6 @@
 # [Jules] Platform: Saudi PDPL & GDPR Privacy Compliance (Data Export, Data Correction, Account Deletion)
 
-**Labels**: `backlog`, `platform`, `privacy`, `pdpl`, `gdpr`, `security`, `backend`, `frontend`
+**Labels**: `backlog`, `platform`, `privacy`, `pdpl`, `gdpr`, `security`, `backend`, `frontend`, `jules`
 **Milestone**: Platform Engineering & Operational Excellence
 
 ---

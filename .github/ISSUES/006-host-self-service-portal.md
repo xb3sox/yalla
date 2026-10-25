@@ -1,6 +1,6 @@
 # [Jules] Phase 4: Host Self-Service Portal & Calendar Slot Management
 
-**Labels**: `backlog`, `phase-4`, `host-portal`, `frontend`, `backend`
+**Labels**: `backlog`, `phase-4`, `host-portal`, `frontend`, `backend`, `jules`
 **Milestone**: Phase 4: Expansion & Scale (Q2 2027)
 
 ---

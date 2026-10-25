@@ -1,6 +1,6 @@
 # [Jules] Phase 3: Automated Attendee Cancellation & Partial/Full Refund Policy Engine
 
-**Labels**: `backlog`, `phase-3`, `payments`, `stripe`, `backend`
+**Labels**: `backlog`, `phase-3`, `payments`, `stripe`, `backend`, `jules`
 **Milestone**: Phase 3: Real-Time & Communications (Q1 2027)
 
 ---

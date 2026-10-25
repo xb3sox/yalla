@@ -1,6 +1,6 @@
 # [Jules] Phase 3: Web Push Notification Service Workers & VAPID Keys for Mobile PWA
 
-**Labels**: `backlog`, `phase-3`, `notifications`, `pwa`, `frontend`, `backend`
+**Labels**: `backlog`, `phase-3`, `notifications`, `pwa`, `frontend`, `backend`, `jules`
 **Milestone**: Phase 3: Real-Time & Communications (Q1 2027)
 
 ---

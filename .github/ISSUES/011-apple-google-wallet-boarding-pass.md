@@ -1,6 +1,6 @@
 # [Jules] Phase 5: Offline Boarding Pass & Apple/Google Wallet Pass Generation
 
-**Labels**: `backlog`, `phase-5`, `wallet`, `mobile`, `backend`, `frontend`
+**Labels**: `backlog`, `phase-5`, `wallet`, `mobile`, `backend`, `frontend`, `jules`
 **Milestone**: Phase 5: Mobile Applications (Q3 2027)
 
 ---

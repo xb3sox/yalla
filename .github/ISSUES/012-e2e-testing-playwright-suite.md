@@ -1,6 +1,6 @@
 # [Jules] Platform: Comprehensive End-to-End E2E Playwright Test Suite
 
-**Labels**: `backlog`, `platform`, `testing`, `playwright`, `e2e`, `ci`
+**Labels**: `backlog`, `platform`, `testing`, `playwright`, `e2e`, `ci`, `jules`
 **Milestone**: Platform Engineering & Quality Assurance
 
 ---

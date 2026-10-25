@@ -1,6 +1,6 @@
 # [Jules] Phase 5: Cross-Platform Capacitor Mobile Application Wrapper & Native Plugins
 
-**Labels**: `backlog`, `phase-5`, `mobile`, `capacitor`, `frontend`
+**Labels**: `backlog`, `phase-5`, `mobile`, `capacitor`, `frontend`, `jules`
 **Milestone**: Phase 5: Mobile Applications (Q3 2027)
 
 ---

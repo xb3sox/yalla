@@ -1,6 +1,6 @@
 # [Jules] Phase 4: Read-Replica PostgreSQL DB Clustering & Reporting Query Routing
 
-**Labels**: `backlog`, `phase-4`, `database`, `postgresql`, `performance`, `backend`
+**Labels**: `backlog`, `phase-4`, `database`, `postgresql`, `performance`, `backend`, `jules`
 **Milestone**: Phase 4: Expansion & Scale (Q2 2027)
 
 ---

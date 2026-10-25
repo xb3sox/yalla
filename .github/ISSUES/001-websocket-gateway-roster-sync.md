@@ -1,6 +1,6 @@
 # [Jules] Phase 3: Real-Time WebSocket Gateway for Instant Host Check-In Roster Sync
 
-**Labels**: `backlog`, `phase-3`, `realtime`, `websocket`, `backend`, `frontend`
+**Labels**: `backlog`, `phase-3`, `realtime`, `websocket`, `backend`, `frontend`, `jules`
 **Milestone**: Phase 3: Real-Time & Communications (Q1 2027)
 
 ---

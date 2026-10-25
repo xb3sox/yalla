@@ -1,6 +1,6 @@
 # [Jules] Platform: Distributed Redis Rate-Limiting & High-Performance Response Cache
 
-**Labels**: `backlog`, `platform`, `redis`, `cache`, `security`, `performance`, `backend`
+**Labels**: `backlog`, `platform`, `redis`, `cache`, `security`, `performance`, `backend`, `jules`
 **Milestone**: Platform Engineering & Operational Excellence
 
 ---

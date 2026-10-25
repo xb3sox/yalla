@@ -1,6 +1,6 @@
 # [Jules] Platform: Distributed Tracing & APM Observability with OpenTelemetry and Sentry
 
-**Labels**: `backlog`, `platform`, `observability`, `sentry`, `opentelemetry`, `backend`, `frontend`
+**Labels**: `backlog`, `platform`, `observability`, `sentry`, `opentelemetry`, `backend`, `frontend`, `jules`
 **Milestone**: Platform Engineering & Operational Excellence
 
 ---

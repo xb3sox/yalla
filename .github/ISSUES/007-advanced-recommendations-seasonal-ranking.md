@@ -1,6 +1,6 @@
 # [Jules] Phase 4: Advanced Recommendation Engine with Seasonal & Collaborative Filtering
 
-**Labels**: `backlog`, `phase-4`, `recommendations`, `machine-learning`, `backend`
+**Labels**: `backlog`, `phase-4`, `recommendations`, `machine-learning`, `backend`, `jules`
 **Milestone**: Phase 4: Expansion & Scale (Q2 2027)
 
 ---
