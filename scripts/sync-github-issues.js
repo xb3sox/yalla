@@ -88,7 +88,7 @@ async function runSync() {
 
   if (isDryRun) {
     console.log('✅ Dry-run check completed successfully.');
-    console.log('ℹ️ All 14 issues are validated and formatted according to best practices.');
+    console.log(`ℹ️ All ${parsedIssues.length} issues are validated and formatted according to best practices.`);
     console.log('ℹ️ To create live issues on GitHub, set GH_TOKEN and run: node scripts/sync-github-issues.js');
     process.exit(0);
   }
