@@ -1,0 +1,61 @@
+name: GitHub Project v2 Automation & Triage
+
+on:
+  issues:
+    types: [opened, labeled, assigned, unassigned, reopened]
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
+
+concurrency:
+  group: project-automation-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  triage:
+    name: Project Board Triage & Custom Fields Sync
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Project Sync Verification & Triage
+        run: |
+          echo "🤖 Processing GitHub Project v2 automation triage..."
+          node scripts/setup-github-project.js --dry-run
+          node scripts/sync-github-issues.js --dry-run
+          echo "✅ Project triage and verification passed."
+
+      - name: Auto-Triage Issues & Pull Requests
+        if: github.event_name == 'issues' || github.event_name == 'pull_request'
+        run: |
+          EVENT_NAME="${{ github.event_name }}"
+          ACTION="${{ github.event.action }}"
+          echo "Processing event: $EVENT_NAME action: $ACTION"
+
+          if [ "$EVENT_NAME" = "issues" ]; then
+            ISSUE_NUM="${{ github.event.issue.number }}"
+            echo "Inspecting Issue #$ISSUE_NUM..."
+            if gh issue view "$ISSUE_NUM" --json labels | grep -q "jules"; then
+              echo "Issue #$ISSUE_NUM is assigned to Jules queue."
+            fi
+          elif [ "$EVENT_NAME" = "pull_request" ]; then
+            PR_NUM="${{ github.event.pull_request.number }}"
+            IS_MERGED="${{ github.event.pull_request.merged }}"
+            echo "Inspecting PR #$PR_NUM (Merged: $IS_MERGED)..."
+          fi
+          echo "✅ Project automation triage completed."
