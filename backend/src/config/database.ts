@@ -46,21 +46,44 @@ const originalPoolQuery = pool.query.bind(pool);
 };
 
 const originalConnect = pool.connect.bind(pool);
-(pool as any).connect = async function(...args: any[]) {
-  const client = await (originalConnect as any)(...args);
-  const origClientQuery = client.query.bind(client);
-  client.query = async function(...qArgs: any[]) {
-    const res = await (origClientQuery as any)(...qArgs);
-    if (res && Array.isArray(res.rows)) {
-      for (let i = 0; i < res.rows.length; i++) {
-        attachCamelCaseAliases(res.rows[i]);
+(pool as any).connect = function(...args: any[]) {
+  if (typeof args[0] === 'function') {
+    const cb = args[0];
+    return (originalConnect as any)((err: any, client: any, release: any) => {
+      if (client && typeof client.query === 'function' && !(client as any).__camelCaseWrapped) {
+        (client as any).__camelCaseWrapped = true;
+        const origClientQuery = client.query.bind(client);
+        client.query = async function(...qArgs: any[]) {
+          const res = await (origClientQuery as any)(...qArgs);
+          if (res && Array.isArray(res.rows)) {
+            for (let i = 0; i < res.rows.length; i++) {
+              attachCamelCaseAliases(res.rows[i]);
+            }
+          }
+          return res;
+        };
       }
-    }
-    return res;
-  };
-  return client;
-};
+      return cb(err, client, release);
+    });
+  }
 
+  return (originalConnect as any)(...args).then((client: any) => {
+    if (client && typeof client.query === 'function' && !(client as any).__camelCaseWrapped) {
+      (client as any).__camelCaseWrapped = true;
+      const origClientQuery = client.query.bind(client);
+      client.query = async function(...qArgs: any[]) {
+        const res = await (origClientQuery as any)(...qArgs);
+        if (res && Array.isArray(res.rows)) {
+          for (let i = 0; i < res.rows.length; i++) {
+            attachCamelCaseAliases(res.rows[i]);
+          }
+        }
+        return res;
+      };
+    }
+    return client;
+  });
+};
 
 // Test connection
 pool.on('connect', () => {
