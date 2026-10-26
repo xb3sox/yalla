@@ -17,6 +17,15 @@ Currently, experience hosts rely on Yalla staff operations to schedule upcoming 
 
 ---
 
+## Subtasks & Implementation Phases
+This 13-point epic is decomposed into 4 discrete deliverables:
+- [ ] **Subtask 46.1: Host RBAC & API Endpoints (3 pts)** — Implement `/api/v1/host/dashboard/summary`, `/experiences`, and `/sessions` with `requireRole(['host', 'admin'])`.
+- [ ] **Subtask 46.2: Calendar Slot Management & Capacity Locks (3 pts)** — Add session scheduling, preventing capacity reductions below confirmed attendee counts.
+- [ ] **Subtask 46.3: Frontend Host Console UI (5 pts)** — Build `src/pages/HostPortal.tsx` with tabs: Overview, Calendar, Attendees, Earnings.
+- [ ] **Subtask 46.4: Payout Statements & Stripe Transfer Reconciliation (2 pts)** — Implement host payout history and platform commission fee deductions.
+
+---
+
 ## Technical Architecture & Scope
 
 ### 1. Host Dashboard Routes & RBAC (`backend/src/routes/host_portal.routes.ts`)

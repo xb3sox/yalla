@@ -1,0 +1,60 @@
+name: Feature Request
+description: Propose a new capability, user flow, or architectural enhancement
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a feature for Yalla. Follow the structure below to align with AI-Native SDLC requirements.
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "p0-critical"
+        - "p1-high"
+        - "p2-medium"
+        - "p3-low"
+    validations:
+      required: true
+  - type: dropdown
+    id: module
+    attributes:
+      label: Architecture Module
+      options:
+        - "Realtime & Comms"
+        - "Discovery & Booking"
+        - "Location & Multi-City"
+        - "Host Portal"
+        - "Recommendations"
+        - "Mobile & Wallet"
+        - "Security & Privacy"
+        - "Testing & Quality"
+        - "Platform & Infrastructure"
+    validations:
+      required: true
+  - type: textarea
+    id: user_story
+    attributes:
+      label: User Story
+      placeholder: "As a [user type], I want [feature] so that [benefit]..."
+    validations:
+      required: true
+  - type: textarea
+    id: technical_solution
+    attributes:
+      label: Proposed Solution & Technical Details
+      description: Include any proposed API changes, database schemas, or frontend components.
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria (DoD)
+      placeholder: |
+        - [ ] Functional requirement 1
+        - [ ] Functional requirement 2
+        - [ ] Unit & regression tests added
+    validations:
+      required: true

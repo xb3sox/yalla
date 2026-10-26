@@ -1,18 +1,55 @@
 name: Jules Task
 description: Create a task for the Google Jules autonomous coding agent queue
 title: "[Jules] "
-labels: ["backlog"]
+labels: ["backlog", "jules"]
 body:
   - type: markdown
     attributes:
       value: |
         This task will be queued under `backlog` and picked up autonomously by the Google Jules queue.
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Execution urgency
+      options:
+        - "p0-critical"
+        - "p1-high"
+        - "p2-medium"
+        - "p3-low"
+    validations:
+      required: true
+  - type: dropdown
+    id: module
+    attributes:
+      label: Architecture Module / Pillar
+      description: Functional domain for this task
+      options:
+        - "Realtime & Comms"
+        - "Discovery & Booking"
+        - "Location & Multi-City"
+        - "Host Portal"
+        - "Recommendations"
+        - "Mobile & Wallet"
+        - "Security & Privacy"
+        - "Testing & Quality"
+        - "Platform & Infrastructure"
+    validations:
+      required: true
+  - type: input
+    id: estimate
+    attributes:
+      label: Story Point Estimate (Fibonacci)
+      description: Estimated complexity (1, 2, 3, 5, 8, 13)
+      placeholder: "5"
+    validations:
+      required: true
   - type: textarea
     id: problem
     attributes:
       label: Problem & Context
       description: What needs to be built or fixed?
-      placeholder: Describe the context and objective clearly...
+      placeholder: Describe the context, user story, and architectural scope clearly...
     validations:
       required: true
   - type: textarea
@@ -28,10 +65,11 @@ body:
   - type: textarea
     id: testing_requirements
     attributes:
-      label: Testing Requirements
-      description: What tests must be added or run?
+      label: Testing & Invariant Requirements
+      description: What tests and invariants must be added or run?
       value: |
         - [ ] Add unit tests covering the new functionality
-        - [ ] Verify test suite passes cleanly
+        - [ ] Verify test suite passes cleanly (`npm test`, `npm run typecheck`, `node evals/check.js`)
+        - [ ] Preserve repository invariants (capacity locking, input sanitization, generic error messages)
     validations:
       required: true

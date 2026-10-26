@@ -17,6 +17,15 @@ To expand distribution across the Apple App Store and Google Play Store, Yalla r
 
 ---
 
+## Subtasks & Implementation Phases
+This 13-point epic is decomposed into 4 discrete deliverables:
+- [ ] **Subtask 49.1: Capacitor Core & Native Platform Scaffolding (3 pts)** — Install Capacitor, configure `capacitor.config.ts`, generate `ios/` and `android/` projects.
+- [ ] **Subtask 49.2: Biometrics Plugin & Secure Storage (3 pts)** — Implement `@capgo/capacitor-native-biometric` with Face ID fallback to PIN.
+- [ ] **Subtask 49.3: Deep Linking & Native Push Notifications (3 pts)** — Configure `@capacitor/app` universal links and `@capacitor/push-notifications`.
+- [ ] **Subtask 49.4: Mobile Shell, Haptics & Native Polish (4 pts)** — Implement haptic feedback, status bar theming, and splash screen styling.
+
+---
+
 ## Technical Architecture & Scope
 
 ### 1. Capacitor Integration (`yalla-frontend`)
