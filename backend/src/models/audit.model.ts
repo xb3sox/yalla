@@ -1,4 +1,4 @@
-import pool from '../config/database';
+import pool, { db } from '../config/database';
 import logger from '../utils/logger';
 
 export interface AuditEvent {
@@ -131,7 +131,7 @@ class AuditModel {
       paramCount++;
     }
 
-    const result = await pool.query(query, values);
+    const result = await db.queryReplica(query, values);
     
     return result.rows;
   }
@@ -145,7 +145,7 @@ class AuditModel {
       WHERE resource_type = $1 AND resource_id = $2
       ORDER BY timestamp DESC
     `;
-    const result = await pool.query(query, [resourceType, resourceId]);
+    const result = await db.queryReplica(query, [resourceType, resourceId]);
     
     return result.rows;
   }
@@ -160,7 +160,7 @@ class AuditModel {
       ORDER BY timestamp DESC
       LIMIT $2
     `;
-    const result = await pool.query(query, [actorId, limit]);
+    const result = await db.queryReplica(query, [actorId, limit]);
     
     return result.rows;
   }
@@ -345,7 +345,7 @@ class AuditModel {
 
     query += ' GROUP BY action ORDER BY count DESC';
 
-    const result = await pool.query(query, values);
+    const result = await db.queryReplica(query, values);
     
     return result.rows;
   }

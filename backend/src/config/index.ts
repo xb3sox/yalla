@@ -46,6 +46,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     // Database
     database: {
       url: env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/yalla',
+      replicaUrl: env.DATABASE_REPLICA_URL || env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/yalla',
       host: env.DB_HOST || 'localhost',
       port: parseInt(env.DB_PORT || '5432', 10),
       name: env.DB_NAME || 'yalla',

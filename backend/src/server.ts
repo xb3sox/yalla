@@ -2,8 +2,9 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import config from './config';
-import pool from './config/database';
+import pool, { closePools } from './config/database';
 import logger from './utils/logger';
+import { databaseRoutingMiddleware } from './middleware/databaseRouting.middleware';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import {
   apiLimiter,
@@ -49,6 +50,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Input sanitization (now inspects populated req.body/params/query)
 app.use(sanitizeInput);
+
+// Database session routing and write-pinning
+app.use(databaseRoutingMiddleware);
 
 // Request logging
 app.use(requestLogger);
@@ -105,11 +109,11 @@ if (config.env !== 'test' && process.env.NODE_ENV !== 'test') {
     server.close(async () => {
       logger.info('HTTP server closed.');
       try {
-        await pool.end();
-        logger.info('PostgreSQL pool drained.');
+        await closePools();
+        logger.info('PostgreSQL pools (primary and replica) drained.');
         process.exit(0);
       } catch (err) {
-        logger.error('Error closing database pool', err);
+        logger.error('Error closing database pools', err);
         process.exit(1);
       }
     });
