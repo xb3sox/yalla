@@ -236,6 +236,30 @@ class ApiClient {
   }
 
   /**
+   * Make PATCH request with retry logic
+   */
+  async patch<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    const response = await this.retryRequest(async () => {
+      const execute = async (isRetry = false): Promise<ApiResponse<T>> => {
+        const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+          method: 'PATCH',
+          headers: this.getHeaders(),
+          credentials: 'include',
+          body: data ? JSON.stringify(data) : undefined,
+        });
+        return this.handleResponse<T>(res, () => execute(true), isRetry);
+      };
+      return execute();
+    });
+
+    if (response.success) {
+      this.clearCache();
+    }
+
+    return response;
+  }
+
+  /**
    * Make POST request with retry logic
    */
 
@@ -468,6 +492,17 @@ export const api = {
   rewards: {
     get: () => apiClient.get<{balance: number, transactions: any[]}>('/rewards'),
     redeem: (data: any) => apiClient.post<any>('/rewards/redeem', data),
+  },
+
+  // Host Portal
+  host: {
+    getSummary: () => apiClient.get<{ overallRating: number; totalEarnings: number; upcomingSessions: number; totalAttendeesServed: number; platformCommissionRate: number }>('/host/dashboard/summary'),
+    getExperiences: () => apiClient.get<any[]>('/host/experiences'),
+    scheduleSession: (data: any) => apiClient.post('/host/sessions', data),
+    patchSession: (id: string, data: any) => apiClient.patch(`/host/sessions/${id}`, data),
+    getPayouts: () => apiClient.get<{ pendingBalance: number; totalPaidOut: number; payouts: any[] }>('/host/payouts'),
+    getRoster: (id: string) => apiClient.get(`/host/experiences/${id}/roster`),
+    verifyPin: (id: string, pin: string) => apiClient.post(`/host/experiences/${id}/verify-pin`, { pin }),
   },
 
   // Health

@@ -24,6 +24,14 @@ export function RoleSwitcher({ isOpen, onClose }: RoleSwitcherProps) {
       descriptionAr: 'اكتشف واحجز التجارب',
     },
     {
+      value: 'host',
+      label: 'Experience Host',
+      labelAr: 'مضيف التجربة',
+      icon: <Briefcase className="w-5 h-5" />,
+      description: 'Manage availability, slots & earnings',
+      descriptionAr: 'إدارة المواعيد والجلسات والأرباح',
+    },
+    {
       value: 'operations',
       label: 'Operations',
       labelAr: 'العمليات',

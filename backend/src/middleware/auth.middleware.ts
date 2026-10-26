@@ -91,6 +91,11 @@ export const authorize = (...allowedRoles: string[]) => {
 };
 
 /**
+ * Helper RBAC middleware matching requireRole(['host', 'admin']) interface
+ */
+export const requireRole = (allowedRoles: string[]) => authorize(...allowedRoles);
+
+/**
  * Optional authentication - doesn't fail if no token
  */
 export const optionalAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
