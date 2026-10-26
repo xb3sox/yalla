@@ -8,10 +8,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,7 +44,7 @@ function parseIssueFile(filePath) {
 
   // Extract Milestone
   const milestoneMatch = content.match(/\*\*Milestone\*\*:\s*([^\n\r]+)/i);
-  const milestone = milestoneMatch ? milestoneMatch[1].trim() : null;
+  const milestone = milestoneMatch ? milestoneMatch[1].replace(/`/g, '').trim() : null;
 
   return {
     file: path.basename(filePath),
@@ -93,18 +93,68 @@ async function runSync() {
     process.exit(0);
   }
 
-  // Live Sync logic using gh CLI
+  // Live Sync logic using gh CLI with execFile
   console.log('🚀 Syncing issues with GitHub repository...');
+
+  // Fetch existing issues for idempotency check
+  let existingTitles = new Set();
+  try {
+    const { stdout } = await execFileAsync(
+      'gh',
+      ['issue', 'list', '--state', 'all', '--limit', '1000', '--json', 'title'],
+      { cwd: rootDir }
+    );
+    const existingIssues = JSON.parse(stdout || '[]');
+    existingTitles = new Set(existingIssues.map(i => i.title.trim()));
+    console.log(`ℹ️ Found ${existingTitles.size} existing issue(s) in repository.\n`);
+  } catch (err) {
+    console.warn(`⚠️ Warning: Could not fetch existing issues via gh CLI (${err.message}). Proceeding without pre-cached issue list.`);
+  }
+
+  const failedIssues = [];
+
   for (const issue of parsedIssues) {
+    if (existingTitles.has(issue.title)) {
+      console.log(`⏩ Issue already exists, skipping: "${issue.title}"`);
+      continue;
+    }
+
     try {
-      const labelFlags = issue.labels.map(l => `--label "${l}"`).join(' ');
-      const command = `gh issue create --title "${issue.title}" --body-file "${path.join(issuesDir, issue.file)}" ${labelFlags}`;
-      const { stdout } = await execAsync(command, { cwd: rootDir });
+      const args = [
+        'issue',
+        'create',
+        '--title',
+        issue.title,
+        '--body-file',
+        path.join(issuesDir, issue.file)
+      ];
+
+      for (const label of issue.labels) {
+        args.push('--label', label);
+      }
+
+      if (issue.milestone) {
+        args.push('--milestone', issue.milestone);
+      }
+
+      const { stdout } = await execFileAsync('gh', args, { cwd: rootDir });
       console.log(`✅ Created issue: ${stdout.trim()}`);
+      existingTitles.add(issue.title);
     } catch (err) {
       console.error(`❌ Failed to create issue '${issue.title}':`, err.message);
+      failedIssues.push({ issue: issue.title, error: err.message });
     }
   }
+
+  if (failedIssues.length > 0) {
+    console.error(`\n❌ Issue creation completed with ${failedIssues.length} failure(s):`);
+    for (const fail of failedIssues) {
+      console.error(`  - "${fail.issue}": ${fail.error}`);
+    }
+    process.exit(1);
+  }
+
+  console.log('\n🎉 All issues synchronized successfully.');
 }
 
 runSync().catch(err => {

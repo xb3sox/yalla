@@ -1,7 +1,8 @@
 # [Jules] Phase 4: Read-Replica PostgreSQL DB Clustering & Reporting Query Routing
 
-**Labels**: `backlog`, `phase-4`, `database`, `postgresql`, `performance`, `backend`, `jules`
+**Labels**: `backlog`, `phase-4`, `database`, `postgresql`, `performance`, `backend`, `platform-infrastructure`, `jules`
 **Milestone**: Phase 4: Expansion & Scale (Q2 2027)
+**Module / Pillar**: `Platform & Infrastructure`
 
 ---
 
@@ -40,11 +41,17 @@ export const db = {
 };
 ```
 
-### 3. Model Query Refactoring
+### 3. Read-Your-Own-Writes Session Pinning (`backend/src/middleware/databaseRouting.middleware.ts`)
+- To prevent replication lag anomalies where a user performs a mutation and immediately reads stale data from a replica:
+  - User session is pinned to the primary database pool for 5 seconds after mutations (booking, cancel, state changes via POST, PUT, PATCH, DELETE).
+  - Pinning state is tracked per user session (via Redis key `session:pinned:<userId>` with 5-second TTL or authenticated request context).
+  - Any subsequent read queries within the 5-second window execute via `db.queryPrimary` before reverting to `db.queryReplica`.
+
+### 4. Model Query Refactoring
 - Update models (`experience.model.ts`, `feedback.model.ts`, `audit.model.ts`) to route read-only lists and detail fetches to `db.queryReplica`.
 - Keep reservation intake, user profile updates, payment confirmations, and capacity updates on `db.queryPrimary`.
 
-### 4. Replica Failover & Health Checks
+### 5. Replica Failover & Health Checks
 - If `queryReplica` experiences a network timeout or connection refusal, automatically fallback to `primaryPool` and log a warning metric.
 
 ---
@@ -53,6 +60,7 @@ export const db = {
 - [ ] Dual pool setup initialized cleanly in `database.ts`.
 - [ ] Read-only GET model methods (`findAllPublished`, `getExperienceDetails`, `getSystemMetrics`) route queries to `replicaPool`.
 - [ ] Transactional booking methods (`createWithCapacityCheck`, `confirmAttendance`) remain strictly bound to `primaryPool`.
+- [ ] Read-your-own-writes session pinning: user session is pinned to primary database pool for 5 seconds after mutations (booking, cancel, state changes).
 - [ ] Replica connection drop triggers automatic fallback to primary pool without throwing 500 errors to end users.
 - [ ] Graceful shutdown drains both `primaryPool` and `replicaPool` during process termination signals (`SIGTERM`, `SIGINT`).
 - [ ] Automated tests verify primary/replica selection logic and failover handling.

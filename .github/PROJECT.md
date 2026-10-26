@@ -19,7 +19,7 @@ This specification defines the GitHub Projects v2 board architecture for Yalla. 
 | **Status** | Single Select | `📋 Backlog`<br>`🔍 Intent/Spec (SDLC 1-2)`<br>`🏗️ In Progress (Jules)`<br>`👀 In Review (PR)`<br>`✅ Done` | State machine governing task lifecycle |
 | **Phase** | Single Select | `Phase 1-2 (Baseline V2)`<br>`Phase 3 (Real-Time)`<br>`Phase 4 (Expansion)`<br>`Phase 5 (Mobile)`<br>`Platform Engineering` | Product milestone alignment |
 | **Priority** | Single Select | `P0 - Critical`<br>`P1 - High`<br>`P2 - Medium`<br>`P3 - Low` | Execution urgency |
-| **Module / Pillar** | Single Select | `Realtime & Comms`<br>`Discovery & Booking`<br>`Location & Multi-City`<br>`Host Portal`<br>`Recommendations`<br>`Mobile & Wallet`<br>`Security & Privacy`<br>`Testing & Quality` | Functional architecture domain |
+| **Module / Pillar** | Single Select | `Realtime & Comms`<br>`Discovery & Booking`<br>`Location & Multi-City`<br>`Host Portal`<br>`Recommendations`<br>`Mobile & Wallet`<br>`Security & Privacy`<br>`Testing & Quality`<br>`Platform & Infrastructure` | Functional architecture domain |
 | **SDLC Stage** | Single Select | `Stage 1: Intent`<br>`Stage 2: Spec`<br>`Stage 3: Plan/Build`<br>`Stage 4: Test/Evals`<br>`Stage 5: Deploy`<br>`Stage 6: Maintenance` | AI-Native SDLC lifecycle stage |
 | **Estimate** | Number | `1, 2, 3, 5, 8, 13` | Story points effort estimation |
 
@@ -49,7 +49,7 @@ This specification defines the GitHub Projects v2 board architecture for Yalla. 
 - **Layout**: Table View
 - **Group By**: `Module / Pillar`
 - **Columns**: `Title`, `Status`, `Phase`, `Priority`, `Estimate`, `SDLC Stage`, `Assignees`
-- **Purpose**: Full database view for engineering planning and workload balancing.
+- **Purpose**: Full database view for engineering planning and workload balancing across all 9 architectural pillars (including `Platform & Infrastructure`).
 
 ### View 5: ⚡ Active Sprint Board (Board)
 - **Layout**: Kanban Board
@@ -85,7 +85,7 @@ graph TD
 
 ## 5. Synchronizer Integration (`scripts/setup-github-project.js`)
 
-Run the automated setup script to provision fields, configure views, and sync all 16 repository issues:
+Run the automated setup script to provision fields, configure views, and sync repository issues:
 ```bash
 node scripts/setup-github-project.js --dry-run
 ```

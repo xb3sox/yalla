@@ -63,6 +63,8 @@ Relying solely on email for time-sensitive 24-hour arrival notifications leads t
 - [ ] `SmsProvider` interface implemented with clean separation for Twilio, Unifonic, and Mock providers.
 - [ ] Phone numbers sanitized and validated against E.164 international format before sending.
 - [ ] 24-hour reconfirmation cron/worker dispatches SMS alerts using localized templates (Arabic / English based on user preferred language).
+- [ ] Saudi CITC carrier compliance enforced: Sender ID configured as one-way alphanumeric (`Yalla`).
+- [ ] Opt-out management handled strictly via authenticated web account profile settings or direct shortlinks (`https://yalla.app/opt-out`), not inbound 'STOP' SMS replies.
 - [ ] Every sent SMS records an entry in `sms_logs` with provider response status and latency.
 - [ ] Webhook endpoint `/api/v1/webhooks/sms/status` receives delivery reports (DLR) from Twilio/Unifonic and updates `sms_logs.status`.
 - [ ] Sensitive SMS credentials (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `UNIFONIC_APPSID`) loaded securely via environment variables.
@@ -78,5 +80,5 @@ Relying solely on email for time-sensitive 24-hour arrival notifications leads t
 ---
 
 ## SDLC & Security Guardrails
-- **Privacy & Compliance**: Respect opt-out settings (`users.marketing_sms_opt_out`); transactional arrival alerts are exempt from marketing opt-out but must support reply `STOP`.
+- **Privacy & Saudi CITC Compliance**: Respect user notification preferences (`marketing_consent`). Under Saudi CITC carrier compliance rules, the registered Sender ID is one-way alphanumeric (`Yalla`); mobile carriers do not support inbound two-way SMS replies on alphanumeric IDs. Opt-out and communication preferences must be managed exclusively via the user's web account profile or dedicated shortlink (`https://yalla.app/opt-out`), not via inbound 'STOP' SMS replies. Transactional arrival and security alerts remain mandatory for safety.
 - **Rate-Limiting**: Enforce a maximum of 3 SMS dispatches per phone number per hour to prevent abuse or SMS flooding attacks.

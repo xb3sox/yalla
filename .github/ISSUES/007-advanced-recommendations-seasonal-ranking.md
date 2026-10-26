@@ -33,8 +33,9 @@ Where:
 - $R$: Normalized experience average rating $[0, 1]$.
 - $D$: Recency decay factor (penalty for experiences the user viewed or booked recently).
 
-### 2. Precomputed Lookup Caches
+### 2. Precomputed Lookup Caches & Resilient Set Fallback
 - Maintain precomputed $O(1)$ Set lookups for user booking history and tag vectors in Redis (`user:<id>:tags`, `exp:tags`).
+- Recommendation scoring MUST provide an in-memory `Set` precomputation fallback (`new Set(...)`) outside iteration loops if Redis is unavailable or disconnected, preserving $O(N)$ linear complexity and strict compliance with `eval-003`.
 - Cache seasonal metadata dictionary (`SEASONAL_WEIGHTS`) refreshed weekly.
 
 ### 3. API Response Payload (`GET /api/v1/recommendations`)
@@ -60,7 +61,7 @@ Return structured match score and human-readable explanation tokens in both Arab
 
 ## Acceptance Criteria
 - [ ] Recommendation scoring algorithm incorporates category match, tag overlap, seasonal weight, collaborative weight, and recency penalty.
-- [ ] Scoring computational complexity remains $O(N)$ with zero nested loop database calls (precomputed Redis / memory lookup Sets).
+- [ ] Scoring computational complexity remains $O(N)$ with zero nested loop database calls; recommendation scoring MUST provide an in-memory `Set` precomputation fallback if Redis is unavailable/disconnected, preserving $O(N)$ complexity and strict compliance with `eval-003`.
 - [ ] API output includes bilingual `reasons` tokens matching client explanation parity.
 - [ ] Experiences already booked or attended by user are filtered out ($S(e, u) = -\infty$).
 - [ ] Benchmark test confirms execution time remains <15ms for 500 candidate experiences.
@@ -76,4 +77,4 @@ Return structured match score and human-readable explanation tokens in both Arab
 ---
 
 ## SDLC & Security Guardrails
-- **Performance Guardrail**: Never perform SQL `SELECT *` inside recommendation scoring loops; fetch all required candidate attributes in a single initial SQL batch query or read from Redis cache.
+- **Performance Guardrail**: Never perform SQL `SELECT *` or nested `.filter()` calls inside recommendation scoring loops; fetch all required candidate attributes in a single initial SQL batch query or read from Redis cache. Recommendation scoring MUST provide an in-memory `Set` precomputation fallback if Redis is unavailable/disconnected, ensuring Set lookups are computed outside the scoring loop to preserve $O(N)$ complexity and satisfy `eval-003`.

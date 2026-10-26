@@ -42,7 +42,7 @@ To expand distribution across the Apple App Store and Google Play Store, Yalla r
   ```
 
 ### 2. Native Plugins Integration
-- **Biometrics** (`@native-biometrics/biometrics`): Unlock venue arrival PIN and pass with Face ID / fingerprint.
+- **Biometrics** (`@capgo/capacitor-native-biometric`): Unlock venue arrival PIN and pass with Face ID / fingerprint.
 - **Haptics** (`@capacitor/haptics`): Provide light haptic vibration feedback on successful check-in or booking confirmation.
 - **App Deep Links** (`@capacitor/app`): Handle custom scheme `yalla://arrival/:reservationId` and universal links (`https://yalla.app/arrival/:reservationId`).
 - **StatusBar & SplashScreen** (`@capacitor/status-bar`, `@capacitor/splash-screen`): Native iOS/Android theme alignment.
@@ -74,4 +74,4 @@ To expand distribution across the Apple App Store and Google Play Store, Yalla r
 ---
 
 ## SDLC & Security Guardrails
-- **Security**: Store biometric authentication flags securely in Capacitor Secure Storage (`@capacitor-community/secure-storage`); never log sensitive tokens or private user data to native console logs.
+- **Security**: Store biometric authentication flags securely in Capacitor Secure Storage (`@capgo/capacitor-secure-storage`); never log sensitive tokens or private user data to native console logs.

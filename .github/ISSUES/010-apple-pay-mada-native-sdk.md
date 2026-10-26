@@ -30,7 +30,7 @@ In Saudi Arabia, over 80% of digital e-commerce transactions occur via Mada debi
   const paymentIntent = await stripe.paymentIntents.create({
     amount: Math.round(amount * 100), // SAR in halalas
     currency: 'sar',
-    payment_method_types: ['card', 'apple_pay'],
+    payment_method_types: ['card'],
     payment_method_options: {
       card: {
         request_three_d_secure: 'any' // Enforce 3DS2 for Mada compliance
@@ -41,7 +41,7 @@ In Saudi Arabia, over 80% of digital e-commerce transactions occur via Mada debi
   ```
 
 ### 3. Native Stripe Mobile SDK Integration (`src/services/stripeNative.ts`)
-- Integrate `@stripe/stripe-react-native` or Capacitor Stripe plugin for native iOS/Android Apple Pay sheet invocation.
+- Integrate `@capacitor-community/stripe` for native iOS/Android Apple Pay sheet invocation, maintaining consistency with the Capacitor architecture in Issue 009.
 
 ---
 
@@ -49,7 +49,8 @@ In Saudi Arabia, over 80% of digital e-commerce transactions occur via Mada debi
 - [ ] Apple Pay merchant domain verified and merchant certificate linked in Stripe Dashboard.
 - [ ] Checkout page displays native Apple Pay sheet on supported iOS devices and Apple Pay web browsers.
 - [ ] Mada debit cards automatically trigger 3DS2 challenge modal during payment intent confirmation.
-- [ ] Backend PaymentIntent creation enforces SAR currency (`sar`) and 3DS2 options.
+- [ ] Backend PaymentIntent creation enforces SAR currency (`sar`) and `payment_method_types: ['card']` configured with 3D Secure for Saudi Mada debit cards.
+- [ ] Native mobile Apple Pay sheet invoked via `@capacitor-community/stripe` plugin on iOS and Android devices.
 - [ ] Stripe Webhook `/api/v1/webhooks/stripe` handles `payment_intent.succeeded` for Apple Pay transactions idempotently.
 - [ ] Automated tests verify Mada 3DS2 parameters and Apple Pay payment intent payloads.
 

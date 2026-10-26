@@ -15,6 +15,7 @@ permissions:
   issues: write
   pull-requests: write
   contents: read
+  repository-projects: write
 
 jobs:
   triage:
@@ -42,20 +43,21 @@ jobs:
 
       - name: Auto-Triage Issues & Pull Requests
         if: github.event_name == 'issues' || github.event_name == 'pull_request'
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ACTION: ${{ github.event.action }}
+          ISSUE_NUM: ${{ github.event.issue.number }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+          IS_MERGED: ${{ github.event.pull_request.merged }}
         run: |
-          EVENT_NAME="${{ github.event_name }}"
-          ACTION="${{ github.event.action }}"
           echo "Processing event: $EVENT_NAME action: $ACTION"
 
           if [ "$EVENT_NAME" = "issues" ]; then
-            ISSUE_NUM="${{ github.event.issue.number }}"
             echo "Inspecting Issue #$ISSUE_NUM..."
-            if gh issue view "$ISSUE_NUM" --json labels | grep -q "jules"; then
+            if [ -n "$ISSUE_NUM" ] && gh issue view "$ISSUE_NUM" --json labels | grep -q "jules"; then
               echo "Issue #$ISSUE_NUM is assigned to Jules queue."
             fi
           elif [ "$EVENT_NAME" = "pull_request" ]; then
-            PR_NUM="${{ github.event.pull_request.number }}"
-            IS_MERGED="${{ github.event.pull_request.merged }}"
             echo "Inspecting PR #$PR_NUM (Merged: $IS_MERGED)..."
           fi
           echo "✅ Project automation triage completed."

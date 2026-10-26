@@ -28,6 +28,7 @@ Integrating OpenTelemetry (OTel) for distributed tracing and Sentry for error tr
 
 ### 2. Backend OpenTelemetry & Sentry Tracing (`backend/src/config/tracing.ts`)
 - Install `@sentry/node`, `@opentelemetry/sdk-trace-node`, `@opentelemetry/instrumentation-express`, `@opentelemetry/instrumentation-pg`.
+- **Node.js Preload Requirement**: Document Node.js preload requirement: start backend with `node --require ./dist/config/tracing.js dist/server.js` so auto-instrumentation intercepts Express and `pg` modules before ESM/TS hoisting.
 - Initialize OpenTelemetry NodeSDK before app startup in `backend/src/server.ts`.
 - Instrument Express routes and PostgreSQL `pg` pool queries with W3C `traceparent` context propagation headers.
 
@@ -39,7 +40,7 @@ Integrating OpenTelemetry (OTel) for distributed tracing and Sentry for error tr
 
 ## Acceptance Criteria
 - [ ] Sentry SDK initialized in frontend with custom Error Boundary component.
-- [ ] Backend OpenTelemetry auto-instrumentation captures Express route durations and PostgreSQL SQL query execution spans.
+- [ ] Backend OpenTelemetry auto-instrumentation captures Express route durations and PostgreSQL SQL query execution spans (with documented Node.js preload requirement: `node --require ./dist/config/tracing.js dist/server.js` before ESM/TS hoisting).
 - [ ] HTTP responses include standard W3C tracing header `traceresponse` / `traceparent`.
 - [ ] Sensitive parameters (passwords, tokens, payment credentials) automatically redacted from logs and Sentry event payloads.
 - [ ] Health check (`/health`) and metrics (`/metrics`) endpoints remain lean and excluded from trace sampling to prevent log noise.

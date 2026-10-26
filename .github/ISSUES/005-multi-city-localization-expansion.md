@@ -15,7 +15,7 @@ Currently, city filtering is partially hardcoded. To support regional expansion,
 ## User Story
 **As a** user in Riyadh, Jeddah, or Eastern Province,
 **I want** to select my current city and neighborhood,
-**So that** I see relevant curated local experiences, accurate district venue directions, and local currency (SAR / ﷼) pricing formatted natively in Arabic or English.
+**So that** I see relevant curated local experiences, accurate district venue directions, and local currency pricing formatted natively in Arabic or English using standard UI tokens (`'common.sar': 'ر.س'` / `'SAR'`) rather than the raw `﷼` symbol.
 
 ---
 
@@ -44,6 +44,9 @@ CREATE TABLE districts (
 
 ALTER TABLE experiences ADD COLUMN city_id VARCHAR(50) REFERENCES cities(id);
 ALTER TABLE experiences ADD COLUMN district_id VARCHAR(50) REFERENCES districts(id);
+
+-- Migration backfill for existing experiences
+UPDATE experiences SET city_id = 'riyadh' WHERE city_id IS NULL;
 ```
 
 ### 2. Location API Endpoints (`backend/src/routes/location.routes.ts`)
@@ -53,16 +56,17 @@ ALTER TABLE experiences ADD COLUMN district_id VARCHAR(50) REFERENCES districts(
 ### 3. Frontend Location Selector (`src/components/CitySelector.tsx`)
 - Persistent user city preference stored in `localStorage` and synchronized with user profile.
 - Automatic experience list filtering by selected `city_id` and optional `district_id`.
-- Currency and date formatting using `Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR' })` and `Intl.DateTimeFormat('ar-SA', { timeZone: 'Asia/Riyadh' })`.
+- Currency and date formatting using standard UI translation tokens (`'common.sar': 'ر.س'` / `'SAR'`) and `Intl.DateTimeFormat('ar-SA', { timeZone: 'Asia/Riyadh' })`.
 
 ---
 
 ## Acceptance Criteria
 - [ ] Database migration seeds initial cities (Riyadh, Jeddah, Al-Khobar, Dammam) and primary districts (e.g., Al-Olaya, Diriyah, Al-Hamra, Al-Shati).
+- [ ] Database migration backfill executes: `UPDATE experiences SET city_id = 'riyadh' WHERE city_id IS NULL;`.
 - [ ] `GET /api/v1/experiences` accepts `city_id` and `district_id` query params and filters SQL query efficiently.
 - [ ] Header UI includes a city switcher component supporting instant catalog switching without full page refresh.
 - [ ] Arabic and English localized names rendered based on active UI language state (`ar` / `en`).
-- [ ] Experience price tags format natively with `SAR` / `ر.س`.
+- [ ] Experience price tags format natively using standard UI tokens (`'common.sar': 'ر.س'` / `'SAR'`) rather than the raw `﷼` symbol.
 - [ ] Unit tests verify location routes, database queries, and i18n formatting functions.
 
 ---

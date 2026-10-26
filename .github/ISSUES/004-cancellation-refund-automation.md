@@ -30,11 +30,15 @@ An automated, rule-based cancellation and refund engine is required to enforce Y
 ### 2. Core Service (`backend/src/services/cancellation.service.ts`)
 - `calculateRefundAmount(reservation, eventStartTime)`: Determines eligible refund amount and policy tier.
 - `executeCancellation(reservationId, canceledBy, reason)`:
-  1. Executes PostgreSQL transaction: transitions `reservations.status` to `canceled`.
-  2. Calls Stripe API `stripe.refunds.create({ payment_intent, amount })` for Stripe payments or updates points balance for synthetic/reward redemptions.
-  3. Records entry in `refunds` table with `refund_id`, `amount`, `status`, `tier`.
+  1. Executes PostgreSQL transaction adhering to `ReservationStateMachine.ts` and `reservation.model.ts`:
+     - Updates `reservations.state` (not `status`) to `cancelled_by_participant` or `cancelled_by_yalla` via `ReservationModel.cancel(reservationId, canceledBy)`.
+  2. If refund eligibility is > 0%:
+     - Advances reservation `state` from `cancelled_by_participant` / `cancelled_by_yalla` to `refund_pending`.
+     - Calls Stripe API `stripe.refunds.create({ payment_intent, amount })` for card payments or updates points balance for reward redemptions.
+     - On successful refund confirmation, advances reservation `state` from `refund_pending` to `refunded`.
+  3. Records entry in `refunds` table with `refund_id`, `amount`, `state`, `tier`.
   4. Triggers waitlist auto-promotion pipeline (`WaitlistService.promoteNext()`).
-  5. Emits cancellation audit log and dispatches SMS/Email receipt to user.
+  5. Writes immutable audit record to `audit_events` (not `audit_logs`) and dispatches localized SMS/notification receipt to user.
 
 ### 3. API Endpoint (`POST /api/v1/reservations/:id/cancel`)
 - Endpoint schema validation using Zod.
@@ -43,22 +47,24 @@ An automated, rule-based cancellation and refund engine is required to enforce Y
 ---
 
 ## Acceptance Criteria
-- [ ] Cancellation endpoint enforces role authorization and validates reservation state (`confirmed` or `reconfirmed`).
+- [ ] Cancellation endpoint enforces role authorization and validates current reservation state (`confirmed` or `reconfirmed`).
+- [ ] State lifecycle strictly adheres to `ReservationStateMachine.ts` and `reservation.model.ts`: column is `state` (not `status`).
+- [ ] Valid cancellation transitions follow: `cancelled_by_participant` or `cancelled_by_yalla` -> `refund_pending` -> `refunded`.
 - [ ] Refund tiers (>48h = 100%, 24-48h = 50%, <24h = 0%) calculated accurately based on ISO timestamps.
 - [ ] Stripe API refund issued via `stripe.refunds.create` with appropriate metadata (`reservation_id`, `tier`).
 - [ ] Waitlist queue automatically evaluates highest-priority waitlisted user and issues time-limited 2-hour booking invite.
-- [ ] Database transaction ensures atomic state transition of reservation, refund record, and audit log.
+- [ ] Database transaction ensures atomic state transition of reservation, refund record, and audit entry in `audit_events`.
 - [ ] Complete unit test coverage for all time windows and edge cases (e.g. Stripe webhook reconciliation).
 
 ---
 
 ## Testing Requirements
-- [ ] Add unit tests in `backend/tests/unit/services/cancellation.service.test.ts` testing time-based refund calculations and Stripe mocks.
+- [ ] Add unit tests in `backend/tests/unit/services/cancellation.service.test.ts` testing time-based refund calculations, state transitions (`cancelled_by_participant`/`cancelled_by_yalla` -> `refund_pending` -> `refunded`), and Stripe mocks.
 - [ ] Add integration test in `backend/tests/unit/routes/cancellation.routes.test.ts`.
-- [ ] Verify test suite passes: `npm run typecheck` and `npm test -- tests/unit`.
+- [ ] Verify test suite passes: `npm run typecheck`, `npm test -- tests/unit`, and `node evals/check.js`.
 
 ---
 
 ## SDLC & Security Guardrails
 - **Financial Invariants**: Never issue duplicate refunds for the same `payment_intent_id`; enforce database constraint `UNIQUE(reservation_id, stripe_refund_id)`.
-- **Auditability**: Every cancellation and refund event must write an immutable record to `audit_logs` capturing `user_id`, `refund_amount`, `stripe_refund_id`, and `ip_address`.
+- **Auditability**: Every cancellation and refund event must write an immutable record to `audit_events` (strictly appending to `audit_events`, not `audit_logs`) capturing `actor_id`, `event_type`, `resource_id`, `metadata` (refund amount, tier, IP address), and timestamp.
