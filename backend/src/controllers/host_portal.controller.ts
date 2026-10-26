@@ -430,12 +430,14 @@ export const verifyPin = async (req: AuthRequest, res: Response): Promise<void> 
       return;
     }
 
+    // Sanitize input pin to escape SQL ILIKE wildcards (%, _, \)
+    const sanitizedPin = String(pin).replace(/[%_\\]/g, '\\$&');
     const query = `
       SELECT id, state FROM reservations
       WHERE experience_id = $1 AND (id::text ILIKE $2 OR pin = $3)
       LIMIT 1
     `;
-    const reservationRes = await pool.query(query, [id, `${pin}%`, pin]);
+    const reservationRes = await pool.query(query, [id, `${sanitizedPin}%`, pin]);
 
     if (reservationRes.rows.length === 0) {
       res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Invalid PIN' } });

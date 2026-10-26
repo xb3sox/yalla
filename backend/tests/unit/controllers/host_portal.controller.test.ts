@@ -319,5 +319,21 @@ describe('Host Portal Controller', () => {
         message: 'Check-in successful',
       });
     });
+
+    it('should sanitize wildcard characters in pin to prevent bypass', async () => {
+      mockReq.params = { id: 'exp-1' };
+      mockReq.body = { pin: '%_\\' };
+
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({ rows: [{ id: 'exp-1' }] })
+        .mockResolvedValueOnce({ rows: [] });
+
+      await verifyPin(mockReq as AuthRequest, mockRes as Response);
+
+      expect(pool.query).toHaveBeenLastCalledWith(
+        expect.stringContaining('ILIKE'),
+        ['exp-1', '\\%\\_\\\\%', '%_\\']
+      );
+    });
   });
 });

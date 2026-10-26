@@ -164,6 +164,19 @@ describe('Host Controller', () => {
       });
     });
 
+    it('should sanitize wildcard characters in pin to prevent bypass', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ id: 'exp-1' }] });
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+
+      mockReq.body = { pin: '%_\\' };
+      await verifyPin(mockReq as AuthRequest, mockRes as Response);
+
+      expect(pool.query).toHaveBeenLastCalledWith(
+        expect.stringContaining('ILIKE'),
+        ['exp-1', '\\%\\_\\\\%']
+      );
+    });
+
     it('should return 400 if state transition is invalid', async () => {
       (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ id: 'exp-1' }] });
       (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ id: 'res-1', state: 'cancelled' }] });

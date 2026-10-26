@@ -86,13 +86,15 @@ export const verifyPin = async (req: AuthRequest, res: Response): Promise<void> 
     }
 
     // Using the first 8 characters of the reservation id as a PIN
+    // Sanitize input pin to escape SQL ILIKE wildcards (%, _, \)
+    const sanitizedPin = String(pin).replace(/[%_\\]/g, '\\$&');
     const query = `
       SELECT id, state FROM reservations 
       WHERE experience_id = $1 AND id::text ILIKE $2
       LIMIT 1
     `;
     
-    const reservationResult = await pool.query(query, [id, `${pin}%`]);
+    const reservationResult = await pool.query(query, [id, `${sanitizedPin}%`]);
     
     if (reservationResult.rows.length === 0) {
       res.status(404).json({ error: 'Invalid PIN' });
