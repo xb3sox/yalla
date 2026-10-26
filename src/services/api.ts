@@ -470,6 +470,14 @@ export const api = {
     redeem: (data: any) => apiClient.post<any>('/rewards/redeem', data),
   },
 
+  // User & Privacy
+  user: {
+    exportData: () => apiClient.get('/user/export-data'),
+    deleteAccount: (data: { password?: string; confirmPassword?: string; confirm?: boolean }) =>
+      apiClient.post('/user/delete-account', data),
+    updatePreferences: (data: any) => apiClient.put('/auth/preferences', data),
+  },
+
   // Health
   health: {
     check: () => apiClient.get('/health'),

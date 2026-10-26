@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import userModel, { CreateUserInput, LoginInput } from '../models/user.model';
+import privacyService from '../services/privacy.service';
 import { AuthRequest } from '../middleware/auth.middleware';
 import logger from '../utils/logger';
 
@@ -361,7 +362,7 @@ export const exportData = async (req: AuthRequest, res: Response) => {
       });
     }
     
-    const data = await userModel.exportData(req.user.userId);
+    const data = await privacyService.exportUserData(req.user.userId);
     
     logger.info('User data exported', { userId: req.user.userId });
     
@@ -396,7 +397,7 @@ export const deleteAccount = async (req: AuthRequest, res: Response) => {
       });
     }
     
-    await userModel.delete(req.user.userId);
+    await privacyService.anonymizeAndDeleteAccount(req.user.userId, req.ip, req.user.role);
     
     logger.info('User account deleted', { userId: req.user.userId });
     
