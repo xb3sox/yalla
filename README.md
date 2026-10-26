@@ -79,6 +79,11 @@ npm run dev
 
 # Terminal 2: Run Backend (http://localhost:3000 or override PORT=3001)
 cd backend && npm run dev
+
+> **Note (Production Node.js Preload Requirement)**:
+> In production environments, start the compiled backend with the OpenTelemetry preload flag:
+> `node --require ./dist/config/tracing.js dist/server.js`
+> This ensures Express and PostgreSQL auto-instrumentation intercepts modules before ESM/TS hoisting.
 ```
 
 ### 4. Running with Docker Compose

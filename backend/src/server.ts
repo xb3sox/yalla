@@ -1,3 +1,4 @@
+import './config/tracing';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -9,13 +10,13 @@ import {
   apiLimiter,
   authLimiter,
   securityHeaders,
-  requestLogger,
   corsOptions,
   sanitizeInput,
   requestSizeLimiter,
   healthCheck,
   metrics,
 } from './middleware/security.middleware';
+import { structuredLogger } from './middleware/logging.middleware';
 import authRoutes from './routes/auth.routes';
 import experienceRoutes from './routes/experience.routes';
 import reservationRoutes from './routes/reservation.routes';
@@ -50,8 +51,8 @@ app.use(express.urlencoded({ extended: true }));
 // Input sanitization (now inspects populated req.body/params/query)
 app.use(sanitizeInput);
 
-// Request logging
-app.use(requestLogger);
+// Structured request logging with trace context propagation & data masking
+app.use(structuredLogger);
 
 // Rate limiting - general API
 app.use('/api/', apiLimiter);
