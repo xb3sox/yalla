@@ -93,6 +93,10 @@ export function ShareExperience({ experienceId, title }: ShareExperienceProps) {
                 variant="secondary"
                 onClick={handleCopy}
                 className="px-4"
+                aria-label={copied
+                  ? (lang === 'ar' ? 'تم نسخ الرابط' : 'Link copied')
+                  : (lang === 'ar' ? 'نسخ الرابط' : 'Copy link')
+                }
               >
                 {copied ? (
                   <Check className="w-4 h-4 text-success" />
