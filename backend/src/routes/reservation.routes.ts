@@ -5,14 +5,18 @@ import {
   getReservationById,
   reconfirmReservation,
   checkInReservation,
-  cancelReservation,
   getExperienceReservations,
   getWaitlist,
   offerSeatFromWaitlist,
   getRequiringReconfirmation,
   getStatistics,
 } from '../controllers/reservation.controller';
+import {
+  cancelReservationSchema,
+  cancelReservationHandler,
+} from '../controllers/cancellation.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
+import { validate } from '../middleware/validation.middleware';
 
 const router = Router();
 
@@ -78,9 +82,14 @@ router.post('/:id/check-in', authenticate, checkInReservation);
 /**
  * @route   POST /api/v1/reservations/:id/cancel
  * @desc    Cancel reservation
- * @access  Private (Participants)
+ * @access  Private
  */
-router.post('/:id/cancel', authenticate, cancelReservation);
+router.post(
+  '/:id/cancel',
+  authenticate,
+  validate(cancelReservationSchema),
+  cancelReservationHandler
+);
 
 /**
  * @route   GET /api/v1/reservations/experience/:experienceId
