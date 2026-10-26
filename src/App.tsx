@@ -13,6 +13,7 @@ import { RoleSwitcher } from './components/RoleSwitcher';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { SessionTimeoutWarning } from './components/SessionTimeoutWarning';
 import { SkipToContent } from './components/SkipToContent';
+import { initializeNativeApp, setupDeepLinks } from './services/nativePlugins';
 
 // Lazy load pages for better performance
 const ExplorePage = lazy(() => import('./pages/Explore').then(m => ({ default: m.ExplorePage })));
@@ -42,6 +43,22 @@ function AppContent() {
   const [selectedReservationId, setSelectedReservationId] = useState('');
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  // Initialize native app (StatusBar, SplashScreen, DeepLinks)
+  useEffect(() => {
+    initializeNativeApp();
+    const cleanupDeepLinks = setupDeepLinks(({ route, params }) => {
+      if (route === 'arrival' && params.reservationId) {
+        // Find experience ID or reservation ID to navigate
+        setSelectedExperienceId(params.reservationId);
+        setCurrentView('arrival');
+      }
+    });
+
+    return () => {
+      cleanupDeepLinks();
+    };
+  }, []);
 
   // Apply RTL/LTR
   useEffect(() => {

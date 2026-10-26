@@ -8,6 +8,7 @@ import { t } from '../i18n';
 import { Button, PriceSummary, Timeline, Dialog, SyntheticPaymentLabel } from '../components/DesignSystem';
 import { ArrowLeft, Clock, MapPin, Users, Globe, Shield, CheckCircle, ChevronDown } from 'lucide-react';
 import { api } from '../services/api';
+import { triggerHaptic } from '../services/nativePlugins';
 
 interface ExperienceDetailsPageProps {
   experienceId: string;
@@ -95,6 +96,8 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
         }
 
         dispatch({ type: 'ADD_RESERVATION', payload: createdRes });
+
+        triggerHaptic();
 
         if (waitlisted) {
           showToast('info', lang === 'ar' ? 'تم إضافتك إلى قائمة الانتظار' : "You've been added to the waitlist");

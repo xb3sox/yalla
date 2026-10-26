@@ -4,7 +4,9 @@ import { useToast } from '../components/Toast';
 import { t } from '../i18n';
 import { Button, ArrivalAction, Dialog } from '../components/DesignSystem';
 import { api } from '../services/api';
-import { ArrowLeft, MapPin, Clock, User, Shield, Wifi, Navigation, CheckCircle, AlertTriangle, HelpCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, User, Shield, Wifi, Navigation, CheckCircle, AlertTriangle, HelpCircle, Lock } from 'lucide-react';
+import { BiometricAuthPrompt } from '../components/BiometricAuthPrompt';
+import { triggerHaptic } from '../services/nativePlugins';
 
 interface ArrivalModePageProps {
   experienceId: string;
@@ -20,6 +22,8 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
   const [actionDialog, setActionDialog] = useState<string | null>(null);
   const [actionSubmitted, setActionSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
+  const [isPassUnlocked, setIsPassUnlocked] = useState(false);
 
   const isEntitled = reservation && ['confirmed', 'reconfirmed', 'attended', 'checked_in'].includes(reservation.state);
 
@@ -60,6 +64,9 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
         
         // Always update local store
         dispatch({ type: 'CHECK_IN_RESERVATION', payload: reservation.id });
+        await triggerHaptic();
+      } else {
+        await triggerHaptic();
       }
 
       setActionSubmitted(true);
@@ -123,6 +130,34 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
       </div>
 
       <div className="px-5 py-6 space-y-4">
+        {/* Pass / Biometric Unlock Card */}
+        <section className="bg-surface-raised rounded-xl border border-border p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-semibold text-text-primary">
+              {lang === 'ar' ? 'تصريح الدخول والرمز PIN' : 'Venue Pass & Access PIN'}
+            </h2>
+            <button
+              onClick={() => setShowBiometricPrompt(true)}
+              className="text-xs text-brand-600 font-medium hover:underline flex items-center gap-1"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              {isPassUnlocked ? (lang === 'ar' ? 'مقفول / إعادة التحقق' : 'Unlocked (Re-verify)') : (lang === 'ar' ? 'فتح مع Face ID / PIN' : 'Unlock with Face ID / PIN')}
+            </button>
+          </div>
+          {isPassUnlocked ? (
+            <div className="bg-brand-50 border border-brand-200 rounded-lg p-3 text-center space-y-1">
+              <p className="text-xs text-brand-700">{lang === 'ar' ? 'رمز الدخول الخاص بك:' : 'Your Arrival PIN:'}</p>
+              <p className="text-2xl font-mono font-bold tracking-widest text-brand-800">8 4 9 2</p>
+            </div>
+          ) : (
+            <div className="bg-surface-sunken border border-border rounded-lg p-3 text-center">
+              <p className="text-xs text-text-tertiary">
+                {lang === 'ar' ? 'استخدم البصمة أو PIN لإظهار رمز الدخول الخاص بالمنشأة' : 'Unlock using biometrics or PIN to reveal pass'}
+              </p>
+            </div>
+          )}
+        </section>
+
         {/* Venue */}
         <section className="bg-surface-raised rounded-xl border border-border p-4">
           <div className="flex items-start gap-3">
@@ -247,6 +282,18 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
           </p>
         )}
       </Dialog>
+
+      {/* Biometric / PIN Auth Prompt */}
+      <BiometricAuthPrompt
+        isOpen={showBiometricPrompt}
+        onSuccess={() => {
+          setShowBiometricPrompt(false);
+          setIsPassUnlocked(true);
+          triggerHaptic();
+          showToast('success', lang === 'ar' ? 'تم فتح تصريح الدخول بنجاح' : 'Venue pass unlocked successfully');
+        }}
+        onCancel={() => setShowBiometricPrompt(false)}
+      />
     </div>
   );
 }
