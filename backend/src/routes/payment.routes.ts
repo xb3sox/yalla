@@ -42,4 +42,11 @@ router.post(
  */
 router.post('/webhook', handleStripeWebhook);
 
+/**
+ * @route   POST /api/v1/webhooks/stripe
+ * @desc    Alias for Stripe webhook integration endpoint
+ * @access  Public (Stripe)
+ */
+router.post('/webhooks/stripe', handleStripeWebhook);
+
 export default router;

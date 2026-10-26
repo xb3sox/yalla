@@ -30,20 +30,16 @@ export interface CreatePaymentInput {
 
 class PaymentModel {
   /**
-   * Create a payment intent
+   * Save pre-created Stripe PaymentIntent into DB
    */
-  async createPaymentIntent(input: CreatePaymentInput): Promise<Payment> {
+  async createPaymentIntentWithStripeId(input: {
+    reservation_id: string;
+    amount: number;
+    currency?: string;
+    stripe_payment_id: string;
+    stripe_client_secret?: string;
+  }): Promise<Payment> {
     try {
-      // Create Stripe payment intent
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(input.amount * 100), // Convert to cents
-        currency: input.currency || 'sar',
-        metadata: {
-          reservation_id: input.reservation_id,
-        },
-      });
-
-      // Save to database
       const query = `
         INSERT INTO payments (
           reservation_id, amount, currency, status, stripe_payment_id, stripe_client_secret
@@ -56,19 +52,45 @@ class PaymentModel {
         input.amount,
         input.currency || 'sar',
         'pending',
-        paymentIntent.id,
-        paymentIntent.client_secret,
+        input.stripe_payment_id,
+        input.stripe_client_secret || null,
       ];
       
       const result = await pool.query(query, values);
-      
-      logger.info('Payment intent created', { 
-        paymentId: result.rows[0].id,
-        stripePaymentId: paymentIntent.id,
-        amount: input.amount 
-      });
-      
       return result.rows[0];
+    } catch (error: any) {
+      logger.error('createPaymentIntentWithStripeId failed', { error: error.message });
+      throw error;
+    }
+  }
+
+  /**
+   * Create a payment intent
+   */
+  async createPaymentIntent(input: CreatePaymentInput): Promise<Payment> {
+    try {
+      // Create Stripe payment intent with Mada 3DS2 options
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(input.amount * 100), // Convert to halalas
+        currency: input.currency || 'sar',
+        payment_method_types: ['card'],
+        payment_method_options: {
+          card: {
+            request_three_d_secure: 'any',
+          },
+        },
+        metadata: {
+          reservation_id: input.reservation_id,
+        },
+      });
+
+      return await this.createPaymentIntentWithStripeId({
+        reservation_id: input.reservation_id,
+        amount: input.amount,
+        currency: input.currency || 'sar',
+        stripe_payment_id: paymentIntent.id,
+        stripe_client_secret: paymentIntent.client_secret || undefined,
+      });
     } catch (error: any) {
       logger.error('Create payment intent failed', { error: error.message });
       throw new Error('Failed to create payment intent');

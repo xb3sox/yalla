@@ -5,7 +5,7 @@ import reservationModel from '../models/reservation.model';
 import experienceModel from '../models/experience.model';
 import logger from '../utils/logger';
 import config from '../config';
-import { stripe } from '../models/payment.model';
+import paymentService from '../services/payment.service';
 
 /**
  * Create payment intent for reservation
@@ -73,16 +73,11 @@ export const createPaymentIntent = async (req: AuthRequest, res: Response) => {
       });
     }
     
-    // Create payment intent with actual experience price
-    const payment = await paymentModel.createPaymentIntent({
-      reservation_id,
+    // Create payment intent via paymentService
+    const payment = await paymentService.createPaymentIntent({
       amount: experience.price,
-      currency: experience.currency || 'sar',
-    });
-    logger.info('Payment intent created', { 
-      userId: req.user.userId, 
       reservationId: reservation_id,
-      paymentId: payment.id 
+      userId: req.user.userId,
     });
 
     res.status(201).json({
@@ -93,6 +88,17 @@ export const createPaymentIntent = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (error: any) {
+    if (error.code === 'PAYMENT_EXISTS') {
+      return res.status(409).json({
+        success: false,
+        error: {
+          code: 'PAYMENT_EXISTS',
+          message: 'Payment already exists for this reservation',
+          data: { payment: error.existingPayment },
+        },
+      });
+    }
+
     logger.error('Create payment intent failed', { error: error.message });
     res.status(500).json({
       success: false,
@@ -243,13 +249,13 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'];
 
   try {
-    const event = stripe.webhooks.constructEvent(
+    const event = paymentService.stripe.webhooks.constructEvent(
       req.body,
       sig!,
       config.stripe.webhookSecret
     );
 
-    await paymentModel.handleWebhook(event);
+    await paymentService.handleWebhook(event);
 
     res.json({ received: true });
   } catch (error: any) {
