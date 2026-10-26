@@ -1,7 +1,9 @@
 import express from 'express';
+import http from 'http';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import config from './config';
+import { initWebSocketGateway } from './gateways/websocket.gateway';
 import pool from './config/database';
 import logger from './utils/logger';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
@@ -90,10 +92,14 @@ app.use(notFoundHandler);
 // Error handler
 app.use(errorHandler);
 
+// HTTP Server & WebSocket initialization
+const httpServer = http.createServer(app);
+const io = initWebSocketGateway(httpServer);
+
 // Start server and setup graceful shutdown only outside test runs
 if (config.env !== 'test' && process.env.NODE_ENV !== 'test') {
   const PORT = config.port;
-  const server = app.listen(PORT, () => {
+  httpServer.listen(PORT, () => {
     logger.info(`🚀 Server running on port ${PORT}`);
     logger.info(`📝 Environment: ${config.env}`);
     logger.info(`🔗 API Version: ${config.apiVersion}`);
@@ -102,7 +108,7 @@ if (config.env !== 'test' && process.env.NODE_ENV !== 'test') {
 
   const shutdown = (signal: string) => {
     logger.info(`Received ${signal}. Shutting down gracefully...`);
-    server.close(async () => {
+    httpServer.close(async () => {
       logger.info('HTTP server closed.');
       try {
         await pool.end();
@@ -134,4 +140,5 @@ if (config.env !== 'test' && process.env.NODE_ENV !== 'test') {
   });
 }
 
+export { httpServer, io };
 export default app;
