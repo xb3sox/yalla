@@ -11,6 +11,28 @@ Yalla: React 18 + Vite 6 frontend at repo root (`yalla-frontend`), Express + Typ
 5. **Stage 5 (Deploy)**: Automated guardrails in `.github/workflows/jules-automerge.yml` protect sensitive configs, workflows, evals, scripts, and Docker files.
 6. **Stage 6 (Maintain)**: Closed-loop maintenance via `node scripts/monitor-breach.js` writing to `intent/`.
 
+## Jules Autonomous Agent (`.jules/`)
+
+Jules runs autonomous end-to-end task execution across the repository:
+
+- **Personas & Guardrails**:
+  - `sentinel.md`: Strict input sanitization (strips `__proto__`, `constructor`, `prototype`), zero DB internal leak on `/health` or `/metrics`.
+  - `bolt.md`: Algorithmic efficiency; precompute `Set`/`Map` lookups outside iterations to prevent O(N^2) loops.
+  - `critic.md`: Pre-PR verification checklist (zero security regression, invariant checks pass, reproduction test for bugfixes).
+  - `workflow.md`: Branch naming (`jules/<issue-id>-<description>`) and gating conventions.
+- **Autonomous Queue & Dispatch**:
+  - `.github/workflows/jules-dispatch.yml`: Consumes queued backlog issues labeled `backlog`, assigns them to Jules, sets `jules` label.
+  - `.github/PROJECT.md` & `scripts/setup-github-project.js`: GitHub Projects v2 integration with 6 lifecycle stages, 5 phases, priority queues.
+- **PR Comments & Review Bot Feedback**:
+  - **Auto-merge halted comment**: When sensitive files are modified, Jules auto-merge workflow posts a comment specifying blocked files and requests human review.
+  - **Review approval comment**: On clean PRs, it records an automated approval review comment: `✅ Automated Review: Safety checks passed. Queued for auto-merge upon successful CI completion.`
+  - **Dispatch tracking comment**: When dispatching an issue, it leaves a comment instructing Jules: `🤖 Autonomous Dispatch: Assigned to Google Jules. Please implement, verify with tests, and include 'Closes #<id>' in the PR description.`
+  - **PR descriptions**: Jules PRs must include `Closes #<issue-id>` to automatically link and close corresponding GitHub Project issues on merge.
+- **Auto-Merge Safety Guardrails**:
+  - `.github/workflows/jules-automerge.yml`: PRs touching sensitive files halt auto-merge and require manual human review (`.github/**`, `AGENTS.md`, `CLAUDE.md`, `.jules/**`, `evals/**`, `scripts/**`, `Dockerfile*`, `docker-compose*.yml`, lockfiles, `tsconfig*.json`, `vite.config.*`).
+- **Closed-Loop Self-Healing**:
+  - `scripts/monitor-breach.js`: Continuously verifies product pillar routes and evals. If breached, auto-generates a new `intent/` artifact for Jules to fix.
+
 ## Commands
 
 Frontend (repo root):
