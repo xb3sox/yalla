@@ -12,6 +12,12 @@ interface SearchFilters {
   accessibility?: boolean;
 }
 
+// Hoisted static keyword arrays to avoid array reallocation per experience inside filter loops
+const ACCESSIBILITY_KEYWORDS: Record<'ar' | 'en', string[]> = {
+  ar: ['متاح', 'كراسي متحركة', 'وصول', 'بدون درجات', 'مناسب'],
+  en: ['accessible', 'wheelchair', 'access', 'step-free', 'suitable'],
+};
+
 export function useExperienceSearch(initialFilters: Partial<SearchFilters> = {}) {
   const { state } = useApp();
   const lang = state.language;
@@ -83,13 +89,12 @@ export function useExperienceSearch(initialFilters: Partial<SearchFilters> = {})
           return false;
         }
         
-        // Check for accessibility keywords
-        const keywords = lang === 'ar' 
-          ? ['متاح', 'كراسي متحركة', 'وصول', 'بدون درجات', 'مناسب']
-          : ['accessible', 'wheelchair', 'access', 'step-free', 'suitable'];
+        // Check for accessibility keywords using hoisted static arrays to avoid inline allocations
+        const keywords = ACCESSIBILITY_KEYWORDS[lang] || ACCESSIBILITY_KEYWORDS.en;
+        const lowerText = accessibilityText.toLowerCase();
         
         const hasAccessibility = keywords.some(keyword => 
-          accessibilityText.toLowerCase().includes(keyword)
+          lowerText.includes(keyword)
         );
         
         if (!hasAccessibility) {
