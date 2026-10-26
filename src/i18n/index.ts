@@ -190,6 +190,33 @@ type TranslationKeys = {
   'support.submissionAcknowledged': string;
   'support.responseExpectation': string;
 
+  // Host Portal
+  'host.title': string;
+  'host.overview': string;
+  'host.calendar': string;
+  'host.attendees': string;
+  'host.payouts': string;
+  'host.totalAttendees': string;
+  'host.averageRating': string;
+  'host.totalEarnings': string;
+  'host.upcomingSessions': string;
+  'host.scheduleSession': string;
+  'host.sessionTitle': string;
+  'host.sessionTitleAr': string;
+  'host.date': string;
+  'host.time': string;
+  'host.price': string;
+  'host.capacity': string;
+  'host.seatUtilization': string;
+  'host.checkInPin': string;
+  'host.checkInBtn': string;
+  'host.checkInSuccess': string;
+  'host.pendingBalance': string;
+  'host.totalPaidOut': string;
+  'host.stripeStatus': string;
+  'host.cancelSession': string;
+  'host.capacityError': string;
+
   // Staff
   'staff.plans': string;
   'staff.hosts': string;
@@ -436,6 +463,32 @@ const en: TranslationKeys = {
   'staff.correctAttendance': 'Correct Attendance',
   'staff.reasonRequired': 'Reason required',
 
+  'host.title': 'Host Portal',
+  'host.overview': 'Overview',
+  'host.calendar': 'Calendar',
+  'host.attendees': 'Attendees',
+  'host.payouts': 'Earnings & Payouts',
+  'host.totalAttendees': 'Attendees Served',
+  'host.averageRating': 'Average Rating',
+  'host.totalEarnings': 'Total Net Earnings',
+  'host.upcomingSessions': 'Upcoming Sessions',
+  'host.scheduleSession': 'Schedule New Session',
+  'host.sessionTitle': 'Session Title',
+  'host.sessionTitleAr': 'Session Title (Arabic)',
+  'host.date': 'Date',
+  'host.time': 'Time',
+  'host.price': 'Price (SAR)',
+  'host.capacity': 'Capacity',
+  'host.seatUtilization': '{booked} / {capacity} seats booked',
+  'host.checkInPin': 'Enter Check-in PIN',
+  'host.checkInBtn': 'Check In',
+  'host.checkInSuccess': 'Attendee checked in successfully',
+  'host.pendingBalance': 'Pending Balance',
+  'host.totalPaidOut': 'Total Paid Out',
+  'host.stripeStatus': 'Stripe Transfer Status',
+  'host.cancelSession': 'Cancel Session',
+  'host.capacityError': 'Cannot reduce capacity below current confirmed bookings.',
+
   'state.available': 'Available',
   'state.approvalPending': 'Approval pending',
   'state.waitlisted': 'Waitlisted',
@@ -659,6 +712,32 @@ const ar: TranslationKeys = {
   'staff.setCapacity': 'تعيين السعة',
   'staff.correctAttendance': 'تصحيح الحضور',
   'staff.reasonRequired': 'السبب مطلوب',
+
+  'host.title': 'بوابة المضيف',
+  'host.overview': 'نظرة عامة',
+  'host.calendar': 'التقويم',
+  'host.attendees': 'المشاركون',
+  'host.payouts': 'الأرباح والمدفوعات',
+  'host.totalAttendees': 'المشاركون المخدومون',
+  'host.averageRating': 'متوسط التقييم',
+  'host.totalEarnings': 'إجمالي صافي الأرباح',
+  'host.upcomingSessions': 'الجلسات القادمة',
+  'host.scheduleSession': 'جدولة جلسة جديدة',
+  'host.sessionTitle': 'عنوان الجلسة',
+  'host.sessionTitleAr': 'عنوان الجلسة (بالعربية)',
+  'host.date': 'التاريخ',
+  'host.time': 'الوقت',
+  'host.price': 'السعر (ر.س)',
+  'host.capacity': 'السعة',
+  'host.seatUtilization': '{booked} / {capacity} مقاعد محجوزة',
+  'host.checkInPin': 'أدخل رمز التحقق',
+  'host.checkInBtn': 'تسجيل الحضور',
+  'host.checkInSuccess': 'تم تسجيل حضور المشارك بنجاح',
+  'host.pendingBalance': 'الرصيد المعلق',
+  'host.totalPaidOut': 'إجمالي المدفوعات',
+  'host.stripeStatus': 'حالة تحويل Stripe',
+  'host.cancelSession': 'إلغاء الجلسة',
+  'host.capacityError': 'لا يمكن تقليل السعة عن عدد الحجوزات المؤكدة حالياً.',
 
   'state.available': 'متاح',
   'state.approvalPending': 'بانتظار الموافقة',

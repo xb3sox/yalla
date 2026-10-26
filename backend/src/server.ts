@@ -28,7 +28,7 @@ import supportRoutes from './routes/support.routes';
 import favoritesRoutes from './routes/favorites.routes';
 import blocksRoutes from './routes/blocks.routes';
 import feedbackRoutes from './routes/feedback.routes';
-import hostRoutes from './routes/host.routes';
+import hostRoutes from './routes/host_portal.routes';
 import rewardRoutes from './routes/reward.routes';
 
 const app = express();

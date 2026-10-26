@@ -23,6 +23,7 @@ const FeedbackPage = lazy(() => import('./pages/Feedback').then(m => ({ default:
 const ProfilePage = lazy(() => import('./pages/Profile').then(m => ({ default: m.ProfilePage })));
 const SupportPage = lazy(() => import('./pages/Support').then(m => ({ default: m.SupportPage })));
 const StaffPage = lazy(() => import('./pages/Staff').then(m => ({ default: m.StaffPage })));
+const HostPortalPage = lazy(() => import('./pages/HostPortal').then(m => ({ default: m.HostPortalPage })));
 const DashboardPage = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.DashboardPage })));
 const OnboardingPage = lazy(() => import('./pages/Onboarding').then(m => ({ default: m.OnboardingPage })));
 const FavoritesPage = lazy(() => import('./pages/Favorites').then(m => ({ default: m.FavoritesPage })));
@@ -80,11 +81,59 @@ function AppContent() {
     setCurrentView('feedback');
   };
 
-  const isStaffView = state.role !== 'participant' && state.role !== 'visitor';
+  const isHostView = state.role === 'host';
+  const isStaffView = state.role !== 'participant' && state.role !== 'visitor' && !isHostView;
 
   // Show onboarding for unauthenticated users
   if (!state.isAuthenticated || state.onboardingStep !== 'complete') {
     return <OnboardingPage onComplete={() => dispatch({ type: 'COMPLETE_ONBOARDING' })} />;
+  }
+
+  // Host view
+  if (isHostView) {
+    return (
+      <div className="min-h-screen bg-surface">
+        <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-border">
+          <div className="flex items-center justify-between px-5 h-14 max-w-lg mx-auto">
+            <span className="text-lg font-semibold text-text-primary tracking-tight">Yalla Host Portal</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
+                className="p-2 hover:bg-surface-sunken rounded-full transition-colors"
+                aria-label={t('nav.switchRole', lang)}
+                title={t('nav.switchRole', lang)}
+              >
+                <Shield className="w-5 h-5 text-text-secondary" />
+              </button>
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-sunken text-xs font-medium text-text-secondary hover:bg-border transition-colors"
+                aria-label={lang === 'en' ? 'Switch to Arabic' : 'Switch to English'}
+              >
+                <Globe className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>{lang === 'en' ? 'العربية' : 'EN'}</span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <RoleSwitcher
+          isOpen={showRoleSwitcher}
+          onClose={() => setShowRoleSwitcher(false)}
+        />
+
+        <Suspense fallback={
+          <div className="min-h-screen bg-surface flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto mb-4"></div>
+              <p className="text-text-secondary">{lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</p>
+            </div>
+          </div>
+        }>
+          <HostPortalPage />
+        </Suspense>
+      </div>
+    );
   }
 
   // Staff view
@@ -198,6 +247,7 @@ function AppContent() {
             {currentView === 'arrival' && <ArrivalModePage experienceId={selectedExperienceId} onBack={() => setCurrentView('plans')} />}
             {currentView === 'feedback' && <FeedbackPage reservationId={selectedReservationId} onBack={() => setCurrentView('plans')} onBookAnother={() => setCurrentView('explore')} />}
             {currentView === 'profile' && <ProfilePage onGoToSupport={() => setCurrentView('support')} />}
+            {currentView === 'host' && <HostPortalPage onBack={() => setCurrentView('dashboard')} />}
             {currentView === 'support' && <SupportPage onBack={() => setCurrentView('profile')} />}
             {currentView === 'notfound' && <NotFoundPage />}
           </main>
