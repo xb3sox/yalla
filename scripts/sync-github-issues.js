@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 const issuesDir = path.join(rootDir, '.github', 'ISSUES');
 
-const isDryRun = process.argv.includes('--dry-run') || !process.env.GH_TOKEN;
+const isDryRun = process.argv.includes('--dry-run');
 
 console.log('🤖 Running Yalla GitHub Issues Synchronizer...');
 console.log(`Directory: ${issuesDir}`);
@@ -109,6 +109,54 @@ async function runSync() {
     console.log(`ℹ️ Found ${existingTitles.size} existing issue(s) in repository.\n`);
   } catch (err) {
     console.warn(`⚠️ Warning: Could not fetch existing issues via gh CLI (${err.message}). Proceeding without pre-cached issue list.`);
+  }
+
+  // Ensure milestones exist
+  const knownMilestones = new Set();
+  try {
+    const { stdout: repoInfo } = await execFileAsync('gh', ['repo', 'view', '--json', 'nameWithOwner'], { cwd: rootDir });
+    const { nameWithOwner } = JSON.parse(repoInfo || '{}');
+    if (nameWithOwner) {
+      const { stdout: msOut } = await execFileAsync('gh', ['api', `repos/${nameWithOwner}/milestones`, '--paginate', '--jq', '.[].title'], { cwd: rootDir });
+      msOut.split(/\r?\n/).map(m => m.trim()).filter(Boolean).forEach(m => knownMilestones.add(m));
+
+      for (const issue of parsedIssues) {
+        if (issue.milestone && !knownMilestones.has(issue.milestone)) {
+          try {
+            await execFileAsync('gh', ['api', `repos/${nameWithOwner}/milestones`, '-f', `title=${issue.milestone}`], { cwd: rootDir });
+            knownMilestones.add(issue.milestone);
+            console.log(`📌 Created milestone: "${issue.milestone}"`);
+          } catch (mErr) {
+            console.warn(`⚠️ Could not create milestone "${issue.milestone}": ${mErr.message}`);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(`⚠️ Could not pre-query milestones: ${err.message}`);
+  }
+
+  // Ensure labels exist
+  const knownLabels = new Set();
+  try {
+    const { stdout: labelsOut } = await execFileAsync('gh', ['label', 'list', '--limit', '1000', '--json', 'name'], { cwd: rootDir });
+    const existingLabels = JSON.parse(labelsOut || '[]');
+    existingLabels.forEach(l => knownLabels.add(l.name.toLowerCase()));
+
+    const allLabels = new Set(parsedIssues.flatMap(i => i.labels));
+    for (const label of allLabels) {
+      if (!knownLabels.has(label.toLowerCase())) {
+        try {
+          await execFileAsync('gh', ['label', 'create', label, '--color', '0366d6'], { cwd: rootDir });
+          knownLabels.add(label.toLowerCase());
+          console.log(`🏷️ Created label: "${label}"`);
+        } catch (lErr) {
+          knownLabels.add(label.toLowerCase());
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(`⚠️ Could not pre-query labels: ${err.message}`);
   }
 
   const failedIssues = [];

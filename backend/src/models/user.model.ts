@@ -323,7 +323,7 @@ class UserModel {
       FROM reservations r
       JOIN experiences e ON r.experience_id = e.id
       WHERE r.participant_id = $1
-      ORDER BY r.created_at DESC
+      ORDER BY r.updated_at DESC
     `;
     const reservations = await pool.query(reservationsQuery, [userId]);
     

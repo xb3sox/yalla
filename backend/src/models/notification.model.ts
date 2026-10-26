@@ -46,14 +46,15 @@ class NotificationModel {
       RETURNING *
     `;
     
+    const anyIn = input as any;
     const values = [
-      input.recipient_id,
+      input.recipient_id || anyIn.recipientId,
       input.type,
       'queued',
       input.title,
-      input.title_ar,
+      input.title_ar || anyIn.titleAr || '',
       input.body,
-      input.body_ar,
+      input.body_ar || anyIn.bodyAr || '',
     ];
     
     const result = await pool.query(query, values);

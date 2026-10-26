@@ -178,11 +178,14 @@ class ReservationModel {
       SELECT * FROM reservations 
       WHERE idempotency_key = $1
     `;
-    const existing = await pool.query(existingQuery, [input.idempotency_key]);
+    const idempotencyKey = input.idempotency_key || (input as any).idempotencyKey;
+    const participantId = input.participant_id || (input as any).participantId;
+    const experienceId = input.experience_id || (input as any).experienceId;
+    const existing = await pool.query(existingQuery, [idempotencyKey]);
     
     if (existing.rows.length > 0) {
       logger.info('Duplicate reservation request detected', { 
-        idempotencyKey: input.idempotency_key,
+        idempotencyKey: idempotencyKey,
         existingReservationId: existing.rows[0].id 
       });
       return existing.rows[0];
@@ -196,8 +199,8 @@ class ReservationModel {
         AND state IN ('initiated', 'payment_pending', 'confirmed', 'reconfirmation_required', 'reconfirmed', 'waitlisted', 'offered')
     `;
     const activeCheck = await pool.query(activeCheckQuery, [
-      input.participant_id,
-      input.experience_id,
+      participantId,
+      experienceId,
     ]);
 
     if (activeCheck.rows.length > 0) {
@@ -213,11 +216,11 @@ class ReservationModel {
     `;
     
     const values = [
-      input.participant_id,
-      input.experience_id,
+      participantId,
+      experienceId,
       'initiated',
       'initiated',
-      input.idempotency_key,
+      idempotencyKey,
     ];
     
     const result = await pool.query(query, values);

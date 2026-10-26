@@ -35,14 +35,15 @@ class AuditModel {
       RETURNING *
     `;
     
+    const anyIn = input as any;
     const values = [
-      input.actor_id,
-      input.actor_role,
+      input.actor_id || anyIn.actorId,
+      input.actor_role || anyIn.actorRole,
       input.action,
-      input.resource_type,
-      input.resource_id,
-      JSON.stringify(input.details || {}),
-      input.classification || 'internal',
+      input.resource_type || anyIn.resourceType,
+      input.resource_id || anyIn.resourceId,
+      JSON.stringify(input.details || anyIn.details || {}),
+      input.classification || anyIn.classification || 'internal',
     ];
     
     const result = await pool.query(query, values);

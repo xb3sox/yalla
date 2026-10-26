@@ -14,6 +14,54 @@ const poolConfig: PoolConfig = {
 
 const pool = new Pool(poolConfig);
 
+function toCamelCase(str: string): string {
+  return str.replace(/_([a-z0-9])/g, (_, g) => g.toUpperCase());
+}
+
+export function attachCamelCaseAliases(row: any): any {
+  if (!row || typeof row !== 'object' || Array.isArray(row) || row instanceof Date) return row;
+  for (const key of Object.keys(row)) {
+    if (key.includes('_')) {
+      const camel = toCamelCase(key);
+      if (!(camel in row)) {
+        row[camel] = row[key];
+      }
+    }
+  }
+  if (row.stripe_payment_id && !row.stripePaymentIntentId) {
+    row.stripePaymentIntentId = row.stripe_payment_id;
+  }
+  return row;
+}
+
+const originalPoolQuery = pool.query.bind(pool);
+(pool as any).query = async function(...args: any[]) {
+  const res = await (originalPoolQuery as any)(...args);
+  if (res && Array.isArray(res.rows)) {
+    for (let i = 0; i < res.rows.length; i++) {
+      attachCamelCaseAliases(res.rows[i]);
+    }
+  }
+  return res;
+};
+
+const originalConnect = pool.connect.bind(pool);
+(pool as any).connect = async function(...args: any[]) {
+  const client = await (originalConnect as any)(...args);
+  const origClientQuery = client.query.bind(client);
+  client.query = async function(...qArgs: any[]) {
+    const res = await (origClientQuery as any)(...qArgs);
+    if (res && Array.isArray(res.rows)) {
+      for (let i = 0; i < res.rows.length; i++) {
+        attachCamelCaseAliases(res.rows[i]);
+      }
+    }
+    return res;
+  };
+  return client;
+};
+
+
 // Test connection
 pool.on('connect', () => {
   logger.info('Connected to PostgreSQL database');

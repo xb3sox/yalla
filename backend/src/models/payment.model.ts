@@ -39,7 +39,7 @@ class PaymentModel {
         amount: Math.round(input.amount * 100), // Convert to cents
         currency: input.currency || 'sar',
         metadata: {
-          reservation_id: input.reservation_id,
+          reservation_id: input.reservation_id || (input as any).reservationId,
         },
       });
 
@@ -51,8 +51,9 @@ class PaymentModel {
         RETURNING *
       `;
       
+      const reservationId = input.reservation_id || (input as any).reservationId;
       const values = [
-        input.reservation_id,
+        reservationId,
         input.amount,
         input.currency || 'sar',
         'pending',

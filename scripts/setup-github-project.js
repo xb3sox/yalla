@@ -20,7 +20,7 @@ const rootDir = path.resolve(__dirname, '..');
 const issuesDir = path.join(rootDir, '.github', 'ISSUES');
 const projectSpecFile = path.join(rootDir, '.github', 'PROJECT.md');
 
-const isDryRun = process.argv.includes('--dry-run') || !process.env.GH_TOKEN;
+const isDryRun = process.argv.includes('--dry-run');
 
 console.log('🤖 Running Yalla GitHub Project v2 Setup & Sync Tool...');
 console.log(`Mode: ${isDryRun ? 'Dry Run / Local Verification' : 'Live Sync via GitHub API'}\n`);
@@ -218,7 +218,19 @@ async function runProjectSetup() {
 
   // Live GraphQL API setup when GH_TOKEN is present
   console.log('🚀 Invoking GitHub GraphQL API to create/update Project v2 Board...');
-  const ownerId = process.env.GH_OWNER_ID;
+  let ownerId = process.env.GH_OWNER_ID;
+  if (!ownerId) {
+    try {
+      const { stdout: idOut } = await execFileAsync(
+        'gh',
+        ['api', 'graphql', '-f', 'query=query { viewer { id } }', '--jq', '.data.viewer.id'],
+        { cwd: rootDir }
+      );
+      ownerId = idOut.trim();
+    } catch {
+      // fallback
+    }
+  }
   if (!ownerId) {
     console.error('❌ GH_OWNER_ID environment variable is required for live project setup.');
     process.exit(1);
