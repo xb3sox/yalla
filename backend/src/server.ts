@@ -6,8 +6,6 @@ import pool from './config/database';
 import logger from './utils/logger';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import {
-  apiLimiter,
-  authLimiter,
   securityHeaders,
   requestLogger,
   corsOptions,
@@ -16,6 +14,10 @@ import {
   healthCheck,
   metrics,
 } from './middleware/security.middleware';
+import {
+  rateLimitGlobal,
+  rateLimitAuth,
+} from './middleware/rateLimiter.middleware';
 import authRoutes from './routes/auth.routes';
 import experienceRoutes from './routes/experience.routes';
 import reservationRoutes from './routes/reservation.routes';
@@ -54,11 +56,11 @@ app.use(sanitizeInput);
 app.use(requestLogger);
 
 // Rate limiting - general API
-app.use('/api/', apiLimiter);
+app.use('/api/', rateLimitGlobal);
 
 // Rate limiting - authentication endpoints (stricter)
-app.use(`/api/${config.apiVersion}/auth/login`, authLimiter);
-app.use(`/api/${config.apiVersion}/auth/register`, authLimiter);
+app.use(`/api/${config.apiVersion}/auth/login`, rateLimitAuth);
+app.use(`/api/${config.apiVersion}/auth/register`, rateLimitAuth);
 
 // Health check endpoint (root and api version)
 app.get('/health', healthCheck);

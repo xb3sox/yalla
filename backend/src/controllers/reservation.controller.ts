@@ -4,6 +4,7 @@ import reservationModel from '../models/reservation.model';
 import experienceModel from '../models/experience.model';
 import logger from '../utils/logger';
 import { randomUUID } from 'crypto';
+import { invalidateExperienceCache } from '../middleware/cache.middleware';
 
 /**
  * Create a new reservation
@@ -37,6 +38,8 @@ export const createReservation = async (req: AuthRequest, res: Response) => {
       experience_id,
       idempotency_key,
     });
+
+    await invalidateExperienceCache();
 
     if (isWaitlisted) {
       logger.info('User added to waitlist', { 
@@ -397,6 +400,7 @@ export const cancelReservation = async (req: AuthRequest, res: Response) => {
 
     // Decrement experience booked count
     await experienceModel.decrementBooked(reservation.experience_id);
+    await invalidateExperienceCache();
 
     logger.info('Reservation cancelled', { 
       userId: req.user.userId, 

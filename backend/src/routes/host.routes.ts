@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { getExperiences, getExperienceRoster, verifyPin } from '../controllers/host.controller';
 import { authenticate } from '../middleware/auth.middleware';
+import { rateLimitPin } from '../middleware/rateLimiter.middleware';
 
 const router = Router();
 
@@ -14,6 +15,6 @@ router.get('/experiences', getExperiences);
 router.get('/experiences/:id/roster', getExperienceRoster);
 
 // POST /api/v1/host/experiences/:id/verify-pin
-router.post('/experiences/:id/verify-pin', verifyPin);
+router.post('/experiences/:id/verify-pin', rateLimitPin, verifyPin);
 
 export default router;

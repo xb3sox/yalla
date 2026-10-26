@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import experienceModel from '../models/experience.model';
 import logger from '../utils/logger';
+import { invalidateExperienceCache } from '../middleware/cache.middleware';
 
 /**
  * Get all published experiences
@@ -146,6 +147,7 @@ export const createExperience = async (req: Request, res: Response) => {
     
     const experience = await experienceModel.create(input);
     
+    await invalidateExperienceCache();
     logger.info('Experience created', { experienceId: experience.id });
     
     res.status(201).json({
@@ -187,6 +189,7 @@ export const updateExperience = async (req: Request, res: Response) => {
     
     const updated = await experienceModel.update(id, updates);
     
+    await invalidateExperienceCache();
     logger.info('Experience updated', { experienceId: id });
     
     res.json({
@@ -227,6 +230,7 @@ export const deleteExperience = async (req: Request, res: Response) => {
     
     await experienceModel.delete(id);
     
+    await invalidateExperienceCache();
     logger.info('Experience deleted', { experienceId: id });
     
     res.json({

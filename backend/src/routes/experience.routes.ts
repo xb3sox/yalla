@@ -10,7 +10,7 @@ import {
 } from '../controllers/experience.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 import { getRecommendations } from '../controllers/recommendation.controller';
-
+import { cacheMiddleware } from '../middleware/cache.middleware';
 
 const router = Router();
 
@@ -19,7 +19,7 @@ const router = Router();
  * @desc    Get all published experiences
  * @access  Public
  */
-router.get('/', getExperiences);
+router.get('/', cacheMiddleware(300), getExperiences);
 
 /**
  * @route   GET /api/v1/experiences/recommendations
@@ -28,20 +28,19 @@ router.get('/', getExperiences);
  */
 router.get('/recommendations', authenticate, getRecommendations);
 
-
 /**
  * @route   GET /api/v1/experiences/search
  * @desc    Search experiences
  * @access  Public
  */
-router.get('/search', searchExperiences);
+router.get('/search', cacheMiddleware(300), searchExperiences);
 
 /**
  * @route   GET /api/v1/experiences/:id
  * @desc    Get experience by ID
  * @access  Public
  */
-router.get('/:id', getExperienceById);
+router.get('/:id', cacheMiddleware(300), getExperienceById);
 
 /**
  * @route   GET /api/v1/experiences/staff/search
