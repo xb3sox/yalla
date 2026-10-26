@@ -201,10 +201,10 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Run npm audit on frontend (blocking: production deps, high+)
+      - name: "Run npm audit on frontend (blocking: production deps, high+)"
         run: npm audit --omit=dev --audit-level=high
 
-      - name: Run npm audit on backend (blocking: production deps, high+)
+      - name: "Run npm audit on backend (blocking: production deps, high+)"
         working-directory: ./backend
         run: npm audit --omit=dev --audit-level=high
 
