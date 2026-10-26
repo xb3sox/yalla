@@ -111,6 +111,10 @@ jobs:
           NODE_ENV: test
         run: npm run migrate
 
+      - name: Run backend typecheck
+        working-directory: ./backend
+        run: npm run typecheck
+
       - name: Run backend tests with coverage
         working-directory: ./backend
         env:
@@ -157,6 +161,9 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
 
       - name: Install frontend dependencies
         run: npm ci

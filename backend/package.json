@@ -14,7 +14,10 @@
     "migrate:rollback": "tsx src/migrations/rollback.ts",
     "seed": "tsx src/migrations/seed.ts",
     "lint": "eslint src --ext .ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "migrate:prod": "node dist/migrations/run.js",
+    "migrate:rollback:prod": "node dist/migrations/rollback.js",
+    "seed:prod": "node dist/migrations/seed.js"
   },
   "keywords": [
     "yalla",
