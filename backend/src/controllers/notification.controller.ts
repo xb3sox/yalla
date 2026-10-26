@@ -1,8 +1,128 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import notificationModel from '../models/notification.model';
+import pushNotificationService from '../services/pushNotification.service';
 import logger from '../utils/logger';
 import { EmailService } from '../services/email.service';
+
+/**
+ * Get VAPID Public Key
+ */
+export const getVapidPublicKey = async (_req: AuthRequest, res: Response) => {
+  try {
+    const publicKey = pushNotificationService.getVapidPublicKey();
+    res.json({
+      success: true,
+      data: { publicKey },
+    });
+  } catch (error: any) {
+    logger.error('Get VAPID public key failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'GET_VAPID_KEY_FAILED',
+        message: 'Failed to retrieve VAPID public key',
+      },
+    });
+  }
+};
+
+/**
+ * Subscribe to push notifications
+ */
+export const subscribe = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required',
+        },
+      });
+    }
+
+    const subscriptionData = req.body.subscription || req.body;
+    const { endpoint, keys } = subscriptionData || {};
+
+    if (!endpoint || !keys || !keys.p256dh || !keys.auth) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_SUBSCRIPTION',
+          message: 'Invalid push subscription payload. Endpoint and keys (p256dh, auth) are required.',
+        },
+      });
+    }
+
+    const userAgent = req.headers['user-agent'];
+    const saved = await pushNotificationService.saveSubscription(
+      req.user.userId,
+      { endpoint, keys },
+      userAgent
+    );
+
+    res.status(201).json({
+      success: true,
+      data: { subscription: saved },
+      message: 'Push subscription saved successfully',
+    });
+  } catch (error: any) {
+    logger.error('Push subscription failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SUBSCRIBE_FAILED',
+        message: 'Failed to save push subscription',
+      },
+    });
+  }
+};
+
+/**
+ * Unsubscribe from push notifications
+ */
+export const unsubscribe = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required',
+        },
+      });
+    }
+
+    const endpoint = req.body.endpoint || req.query.endpoint;
+
+    if (!endpoint) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_ENDPOINT',
+          message: 'Subscription endpoint is required',
+        },
+      });
+    }
+
+    await pushNotificationService.deleteSubscription(req.user.userId, endpoint as string);
+
+    res.json({
+      success: true,
+      message: 'Push subscription removed successfully',
+    });
+  } catch (error: any) {
+    logger.error('Unsubscribe failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'UNSUBSCRIBE_FAILED',
+        message: 'Failed to unsubscribe from push notifications',
+      },
+    });
+  }
+};
 
 /**
  * Get user notifications

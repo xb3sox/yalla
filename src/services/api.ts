@@ -400,6 +400,9 @@ export const api = {
     getUnreadCount: () => apiClient.get('/notifications/unread-count'),
     get: (id: string) => apiClient.get(`/notifications/${id}`),
     markAsRead: (id: string) => apiClient.post(`/notifications/${id}/read`),
+    getVapidPublicKey: () => apiClient.get<{ publicKey: string }>('/notifications/vapid-public-key'),
+    subscribePush: (subscription: any) => apiClient.post('/notifications/subscribe', { subscription }),
+    unsubscribePush: (endpoint: string) => apiClient.post('/notifications/unsubscribe', { endpoint }),
   },
 
   // Feedbacks

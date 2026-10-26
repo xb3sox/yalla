@@ -29,6 +29,7 @@ beforeEach(async () => {
     // Clear test data
     await pool.query('DELETE FROM audit_events');
     await pool.query('DELETE FROM safety_cases');
+    await pool.query('DELETE FROM push_subscriptions');
     await pool.query('DELETE FROM notifications');
     await pool.query('DELETE FROM support_requests');
     await pool.query('DELETE FROM blocks');

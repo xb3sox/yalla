@@ -103,28 +103,51 @@ async function syncReservations() {
 
 // Push notifications
 self.addEventListener('push', (event) => {
+  let data = {};
   if (event.data) {
-    const data = event.data.json();
-    const options = {
-      body: data.body,
-      icon: '/favicon.svg',
-      badge: '/favicon.svg',
-      vibrate: [200, 100, 200],
-      data: {
-        url: data.url || '/',
-      },
-    };
-
-    event.waitUntil(
-      self.registration.showNotification(data.title, options)
-    );
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { body: event.data.text() };
+    }
   }
+
+  const options = {
+    body: data.body || '',
+    icon: data.icon || '/pwa-192x192.png',
+    badge: data.badge || '/pwa-96x96.png',
+    vibrate: [200, 100, 200],
+    dir: data.dir || 'rtl', // Support Arabic RTL
+    lang: data.lang || 'ar',
+    data: {
+      url: data.url || '/',
+      ...(data.data || {}),
+    },
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'Yalla', options)
+  );
 });
 
 // Notification click
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || '/';
+
   event.waitUntil(
-    clients.openWindow(event.notification.data.url)
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url && 'focus' in client) {
+          if ('navigate' in client) {
+            client.navigate(targetUrl);
+          }
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
   );
 });

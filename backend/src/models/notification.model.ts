@@ -1,5 +1,6 @@
 import pool from '../config/database';
 import logger from '../utils/logger';
+import pushNotificationService from '../services/pushNotification.service';
 
 export interface Notification {
   id: string;
@@ -223,16 +224,18 @@ class NotificationModel {
     }
 
     try {
-      // NOTE: Push notification service integration placeholder
-      // In production, integrate with Firebase Cloud Messaging, OneSignal, or similar service
-      // For MVP, we track notification state in database without actual push delivery
-      // To enable real push notifications, implement push service client here
+      await pushNotificationService.sendPushNotificationToUser(notification.recipient_id, {
+        title: notification.title_ar || notification.title,
+        body: notification.body_ar || notification.body,
+        url: '/',
+        dir: 'rtl',
+        lang: 'ar',
+      });
       await this.markAsSent(notificationId);
       
-      logger.info('Push notification queued', { 
+      logger.info('Push notification sent', {
         notificationId,
         recipientId: notification.recipient_id,
-        note: 'Push service not configured - notification tracked in database only'
       });
     } catch (error: any) {
       await this.markAsFailed(notificationId, error.message);

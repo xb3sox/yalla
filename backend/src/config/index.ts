@@ -86,6 +86,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
       phoneNumber: env.TWILIO_PHONE_NUMBER || '',
     },
 
+    // VAPID Web Push
+    vapid: {
+      publicKey: env.VAPID_PUBLIC_KEY || 'BDoj-Gs9fqCP3Dxm0_2qFixvfoxjAAOn7uSkffL46GghdRA7ZSX8vCNvV2eF2qXLzpLNtxZlnYHmrpimtBlQQRg',
+      privateKey: env.VAPID_PRIVATE_KEY || '',
+      subject: env.VAPID_SUBJECT || 'mailto:support@yalla.com',
+    },
+
     // Redis
     redis: {
       url: env.REDIS_URL || 'redis://localhost:6379',

@@ -8,10 +8,36 @@ import {
   sendBookingConfirmation,
   sendReconfirmationReminder,
   sendCancellationNotification,
+  getVapidPublicKey,
+  subscribe,
+  unsubscribe,
 } from '../controllers/notification.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 
 const router = Router();
+
+/**
+ * @route   GET /api/v1/notifications/vapid-public-key
+ * @desc    Get VAPID Public Key for Web Push
+ * @access  Public
+ */
+router.get('/vapid-public-key', getVapidPublicKey);
+
+/**
+ * @route   POST /api/v1/notifications/subscribe
+ * @desc    Save VAPID PushSubscription object
+ * @access  Private
+ */
+router.post('/subscribe', authenticate, subscribe);
+
+/**
+ * @route   POST /api/v1/notifications/unsubscribe
+ * @route   DELETE /api/v1/notifications/unsubscribe
+ * @desc    Remove VAPID PushSubscription endpoint
+ * @access  Private
+ */
+router.post('/unsubscribe', authenticate, unsubscribe);
+router.delete('/unsubscribe', authenticate, unsubscribe);
 
 /**
  * @route   GET /api/v1/notifications
