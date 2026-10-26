@@ -3,6 +3,7 @@ import { useApp } from '../data/store';
 import { useToast } from '../components/Toast';
 import { t } from '../i18n';
 import { Button, ArrivalAction, Dialog } from '../components/DesignSystem';
+import { WalletButtons } from '../components/WalletButtons';
 import { api } from '../services/api';
 import { ArrowLeft, MapPin, Clock, User, Shield, Wifi, Navigation, CheckCircle, AlertTriangle, HelpCircle } from 'lucide-react';
 
@@ -176,6 +177,16 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
                 <p className="text-sm text-text-secondary">{lang === 'ar' ? experience.accessibilityAr : experience.accessibility}</p>
               </div>
             </div>
+          </section>
+        )}
+
+        {/* Wallet Passes */}
+        {reservation && (
+          <section className="bg-surface-raised rounded-xl border border-border p-4">
+            <p className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-3">
+              {lang === 'ar' ? 'بطاقة المحفظة الرقمية' : 'Digital Wallet Pass'}
+            </p>
+            <WalletButtons reservationId={reservation.id} />
           </section>
         )}
 

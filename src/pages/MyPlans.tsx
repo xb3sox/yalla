@@ -5,6 +5,7 @@ import { t } from '../i18n';
 import { StatusPanel, StatusBadge, Button, MaterialChangeBanner } from '../components/DesignSystem';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { MyPlansPageSkeleton } from '../components/LoadingSkeleton';
+import { WalletButtons } from '../components/WalletButtons';
 import { Calendar } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -161,6 +162,13 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback, i
               showToast('success', lang === 'ar' ? 'تم قبول التغييرات' : 'Changes accepted');
             }}
           />
+        )}
+
+        {/* Wallet Buttons for active bookings */}
+        {['confirmed', 'reconfirmed'].includes(reservation.state) && (
+          <div className="pt-2 border-t border-border">
+            <WalletButtons reservationId={reservation.id} compact />
+          </div>
         )}
 
         {/* Secondary actions */}

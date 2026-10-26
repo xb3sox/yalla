@@ -6,6 +6,7 @@ import { ShareExperience } from '../components/ShareExperience';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { t } from '../i18n';
 import { Button, PriceSummary, Timeline, Dialog, SyntheticPaymentLabel } from '../components/DesignSystem';
+import { WalletButtons } from '../components/WalletButtons';
 import { ArrowLeft, Clock, MapPin, Users, Globe, Shield, CheckCircle, ChevronDown } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -331,6 +332,9 @@ export function ExperienceDetailsPage({ experienceId, onBack, onBookSuccess }: E
               {t('booking.successTitle', lang)}
             </h3>
             <p className="text-sm text-text-secondary mb-5">{t('booking.success', lang)}</p>
+            <div className="mb-5 text-start">
+              <WalletButtons reservationId={state.reservations.find(r => r.planId === experienceId)?.id || 'res-success'} />
+            </div>
             <Button variant="primary" className="w-full" onClick={() => { setShowBookingDialog(false); onBookSuccess(); }}>
               {t('nav.myPlans', lang)}
             </Button>
