@@ -78,7 +78,9 @@ export class WaitlistService {
       if (isLocalClient) {
         try {
           await dbClient.query('ROLLBACK');
-        } catch (_) {}
+        } catch (_) {
+          // Ignore rollback failure
+        }
       }
       logger.error('Waitlist promotion failed', { error: error.message, experienceId });
       throw error;

@@ -1,6 +1,6 @@
 import pool from '../config/database';
 import logger from '../utils/logger';
-import paymentModel, { stripe } from '../models/payment.model';
+import { stripe } from '../models/payment.model';
 import rewardModel from '../models/reward.model';
 import notificationModel from '../models/notification.model';
 import waitlistService from './waitlist.service';
@@ -317,7 +317,9 @@ export class CancellationService {
     } catch (error: any) {
       try {
         await client.query('ROLLBACK');
-      } catch (_) {}
+      } catch (_) {
+        // Ignore rollback failure
+      }
       logger.error('Execute cancellation failed', { error: error.message, reservationId: input.reservationId });
       throw error;
     } finally {
