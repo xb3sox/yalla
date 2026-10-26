@@ -1,9 +1,7 @@
 name: Jules Autonomous Queue Dispatcher
 
 on:
-  schedule:
-    # Run every 30 minutes
-    - cron: '*/30 * * * *'
+  # schedule: disabled to conserve private repo minutes
   workflow_dispatch:
 
 concurrency:

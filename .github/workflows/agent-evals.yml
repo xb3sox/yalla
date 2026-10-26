@@ -12,8 +12,7 @@ on:
       - 'intent/**'
       - 'specs/**'
       - 'plans/**'
-  schedule:
-    - cron: '0 2 * * *'
+  # schedule: disabled to conserve private repo minutes
   workflow_dispatch:
 
 concurrency:
