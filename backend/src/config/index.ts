@@ -79,11 +79,15 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
       fromName: env.EMAIL_FROM_NAME || 'Yalla',
     },
 
-    // SMS (Twilio)
+    // SMS (Twilio & Unifonic)
     sms: {
       accountSid: env.TWILIO_ACCOUNT_SID || '',
       authToken: env.TWILIO_AUTH_TOKEN || '',
       phoneNumber: env.TWILIO_PHONE_NUMBER || '',
+      senderId: env.TWILIO_SENDER_ID || 'Yalla',
+      unifonicAppsId: env.UNIFONIC_APPSID || '',
+      unifonicSenderId: env.UNIFONIC_SENDER_ID || 'Yalla',
+      provider: env.SMS_PROVIDER || 'factory',
     },
 
     // Redis

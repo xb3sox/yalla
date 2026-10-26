@@ -30,6 +30,7 @@ import blocksRoutes from './routes/blocks.routes';
 import feedbackRoutes from './routes/feedback.routes';
 import hostRoutes from './routes/host.routes';
 import rewardRoutes from './routes/reward.routes';
+import webhookRoutes from './routes/webhook.routes';
 
 const app = express();
 
@@ -83,6 +84,7 @@ app.use(`/api/${config.apiVersion}/blocks`, blocksRoutes);
 app.use(`/api/${config.apiVersion}/feedbacks`, feedbackRoutes);
 app.use(`/api/${config.apiVersion}/host`, hostRoutes);
 app.use(`/api/${config.apiVersion}/rewards`, rewardRoutes);
+app.use(`/api/${config.apiVersion}/webhooks`, webhookRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

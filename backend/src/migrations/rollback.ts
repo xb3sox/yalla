@@ -10,6 +10,8 @@ async function rollback() {
     
     // Drop tables in reverse order of dependencies
     const tables = [
+      'sms_logs',
+      'rewards_ledger',
       'audit_events',
       'notifications',
       'safety_cases',
