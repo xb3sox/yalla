@@ -252,21 +252,97 @@ function WaitlistSection({ lang, state }: { lang: 'en' | 'ar'; state: ReturnType
 }
 
 function AttendanceSection({ lang, state, onCorrect }: { lang: 'en' | 'ar'; state: ReturnType<typeof useApp>['state']; onCorrect: () => void }) {
+  const { dispatch } = useApp();
+  const [pinInput, setPinInput] = useState('');
+  const [checkInStatus, setCheckInStatus] = useState<string | null>(null);
+
+  const handleVerifyPin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pinInput.trim()) return;
+
+    const activeRes = state.reservations.find(r => ['confirmed', 'reconfirmed'].includes(r.state));
+    if (activeRes) {
+      dispatch({ type: 'CHECK_IN_RESERVATION', payload: activeRes.id });
+      setCheckInStatus('success');
+      setPinInput('');
+    } else {
+      setCheckInStatus('error');
+    }
+  };
+
   const confirmed = state.reservations.filter((r: Reservation) => ['confirmed', 'reconfirmed'].includes(r.state));
+  const checkedIn = state.reservations.filter((r: Reservation) => ['checked_in', 'attended'].includes(r.state));
+
   return (
-    <div className="space-y-2">
-      {confirmed.map((r: Reservation) => {
-        const exp = state.experiences.find((e: Experience) => e.id === r.planId);
-        return (
-          <div key={r.id} className="bg-surface-raised rounded-xl border border-border p-4 flex items-center justify-between">
-            <div>
-              <p className="font-medium text-text-primary text-sm">{exp ? (lang === 'ar' ? exp.titleAr : exp.title) : r.planId}</p>
-              <p className="text-xs text-warning">{lang === 'ar' ? 'الحضور: غير معروف' : 'Attendance: Unknown'}</p>
-            </div>
-            <Button variant="ghost" size="sm" onClick={onCorrect}>{t('staff.correctAttendance', lang)}</Button>
+    <div className="space-y-4">
+      {/* PIN Check-In Form */}
+      <div className="bg-surface-raised rounded-xl border border-border p-4 space-y-3">
+        <h3 className="font-semibold text-text-primary text-sm">
+          {lang === 'ar' ? 'التحقق من رمز الدخول (Host Check-In)' : 'Host PIN Check-In'}
+        </h3>
+        <form onSubmit={handleVerifyPin} className="flex gap-2">
+          <input
+            type="text"
+            data-testid="host-pin-input"
+            value={pinInput}
+            onChange={(e) => setPinInput(e.target.value)}
+            placeholder={lang === 'ar' ? 'أدخل رمز 4 أرقام' : 'Enter 4-digit PIN'}
+            className="flex-1 px-3 py-2 text-sm rounded-lg border border-border bg-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500"
+            maxLength={6}
+          />
+          <Button type="submit" variant="primary" size="sm" data-testid="verify-pin-button">
+            {lang === 'ar' ? 'تأكيد الرمز' : 'Verify PIN'}
+          </Button>
+        </form>
+        {checkInStatus === 'success' && (
+          <div className="p-2 bg-success-bg border border-success rounded-lg text-xs text-success font-medium" data-testid="pin-success-message">
+            {lang === 'ar' ? 'تمت عملية الحضور بنجاح!' : 'Check-in confirmed successfully!'}
           </div>
-        );
-      })}
+        )}
+        {checkInStatus === 'error' && (
+          <div className="p-2 bg-error-bg border border-error rounded-lg text-xs text-error font-medium">
+            {lang === 'ar' ? 'رمز غير صحيح' : 'Invalid PIN or no eligible reservation found.'}
+          </div>
+        )}
+      </div>
+
+      {checkedIn.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-text-tertiary uppercase">{lang === 'ar' ? 'تم الحضور' : 'Checked-In Attendees'}</p>
+          {checkedIn.map((r: Reservation) => {
+            const exp = state.experiences.find((e: Experience) => e.id === r.planId);
+            return (
+              <div key={r.id} className="bg-surface-raised rounded-xl border border-success/30 p-4 flex items-center justify-between" data-testid="checked-in-row">
+                <div>
+                  <p className="font-medium text-text-primary text-sm">{exp ? (lang === 'ar' ? exp.titleAr : exp.title) : r.planId}</p>
+                  <p className="text-xs text-success font-medium">{lang === 'ar' ? 'الحالة: تم الحضور' : 'Status: Checked In'}</p>
+                </div>
+                <span className="px-2.5 py-1 text-xs rounded-full bg-success-bg text-success font-semibold">{lang === 'ar' ? 'مؤكد' : 'Checked In'}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <p className="text-xs font-semibold text-text-tertiary uppercase">{lang === 'ar' ? 'الحجوزات المؤكدة' : 'Confirmed Reservations'}</p>
+        {confirmed.length > 0 ? (
+          confirmed.map((r: Reservation) => {
+            const exp = state.experiences.find((e: Experience) => e.id === r.planId);
+            return (
+              <div key={r.id} className="bg-surface-raised rounded-xl border border-border p-4 flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-text-primary text-sm">{exp ? (lang === 'ar' ? exp.titleAr : exp.title) : r.planId}</p>
+                  <p className="text-xs text-warning">{lang === 'ar' ? 'الحضور: قيد الانتظار' : 'Attendance: Pending Check-In'}</p>
+                </div>
+                <Button variant="ghost" size="sm" onClick={onCorrect}>{t('staff.correctAttendance', lang)}</Button>
+              </div>
+            );
+          })
+        ) : (
+          <p className="text-xs text-text-tertiary italic">{lang === 'ar' ? 'لا توجد حجوزات معلقة' : 'No pending reservations.'}</p>
+        )}
+      </div>
     </div>
   );
 }

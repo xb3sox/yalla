@@ -32,7 +32,7 @@ describe('ArrivalModePage', () => {
       <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
     );
 
-    expect(screen.getByText(/Arrival/i)).toBeTruthy();
+    expect(screen.getAllByText(/Arrival/i).length).toBeGreaterThan(0);
   });
 
   it('renders Arabic title when language is Arabic', () => {
