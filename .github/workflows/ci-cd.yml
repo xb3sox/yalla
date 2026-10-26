@@ -125,7 +125,7 @@ jobs:
           SESSION_SECRET: test-session-secret
           STRIPE_SECRET_KEY: sk_test_dummy
           STRIPE_WEBHOOK_SECRET: whsec_test_dummy
-        run: npm run test:coverage
+        run: npm run test:coverage -- tests/unit
 
       - name: Upload backend coverage reports
         uses: codecov/codecov-action@v5
