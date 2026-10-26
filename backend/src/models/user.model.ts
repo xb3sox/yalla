@@ -8,35 +8,57 @@ export interface User {
   id: string;
   phone: string;
   display_name: string;
+  displayName?: string;
   password_hash: string;
+  passwordHash?: string;
   language: string;
   preferred_area?: string;
+  preferredArea?: string;
   experience_language: string;
+  experienceLanguage?: string;
   budget_min: number;
+  budgetMin?: number;
   budget_max: number;
+  budgetMax?: number;
   accessibility_needs?: string;
+  accessibilityNeeds?: string;
   adult_declaration_accepted: boolean;
+  adultDeclarationAccepted?: boolean;
   terms_accepted: boolean;
+  termsAccepted?: boolean;
   marketing_consent: boolean;
+  marketingConsent?: boolean;
   role: string;
   is_active: boolean;
+  isActive?: boolean;
   created_at: Date;
+  createdAt?: Date;
   updated_at: Date;
+  updatedAt?: Date;
 }
 
 export interface CreateUserInput {
   phone: string;
-  display_name: string;
+  display_name?: string;
+  displayName?: string;
   password: string;
   language?: string;
   preferred_area?: string;
+  preferredArea?: string;
   experience_language?: string;
+  experienceLanguage?: string;
   budget_min?: number;
+  budgetMin?: number;
   budget_max?: number;
+  budgetMax?: number;
   accessibility_needs?: string;
-  adult_declaration_accepted: boolean;
-  terms_accepted: boolean;
+  accessibilityNeeds?: string;
+  adult_declaration_accepted?: boolean;
+  adultDeclarationAccepted?: boolean;
+  terms_accepted?: boolean;
+  termsAccepted?: boolean;
   marketing_consent?: boolean;
+  marketingConsent?: boolean;
 }
 
 export interface LoginInput {
@@ -47,6 +69,27 @@ export interface LoginInput {
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
+}
+
+
+export function mapUserRow(row: any): User | null {
+  if (!row) return null;
+  return {
+    ...row,
+    displayName: row.display_name,
+    passwordHash: row.password_hash,
+    preferredArea: row.preferred_area,
+    experienceLanguage: row.experience_language,
+    budgetMin: row.budget_min !== undefined && row.budget_min !== null ? Number(row.budget_min) : undefined,
+    budgetMax: row.budget_max !== undefined && row.budget_max !== null ? Number(row.budget_max) : undefined,
+    accessibilityNeeds: row.accessibility_needs,
+    adultDeclarationAccepted: row.adult_declaration_accepted,
+    termsAccepted: row.terms_accepted,
+    marketingConsent: row.marketing_consent,
+    isActive: row.is_active,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
 class UserModel {
@@ -65,25 +108,35 @@ class UserModel {
       RETURNING *
     `;
     
+    const displayName = input.display_name || input.displayName || '';
+    const adultDeclarationAccepted = input.adult_declaration_accepted ?? input.adultDeclarationAccepted ?? true;
+    const termsAccepted = input.terms_accepted ?? input.termsAccepted ?? true;
+    const preferredArea = input.preferred_area || input.preferredArea;
+    const experienceLanguage = input.experience_language || input.experienceLanguage || 'en';
+    const budgetMin = input.budget_min ?? input.budgetMin ?? 100;
+    const budgetMax = input.budget_max ?? input.budgetMax ?? 400;
+    const accessibilityNeeds = input.accessibility_needs || input.accessibilityNeeds;
+    const marketingConsent = input.marketing_consent ?? input.marketingConsent ?? false;
+
     const values = [
       input.phone,
-      input.display_name,
+      displayName,
       passwordHash,
       input.language || 'en',
-      input.preferred_area,
-      input.experience_language || 'en',
-      input.budget_min || 100,
-      input.budget_max || 400,
-      input.accessibility_needs,
-      input.adult_declaration_accepted,
-      input.terms_accepted,
-      input.marketing_consent || false,
+      preferredArea,
+      experienceLanguage,
+      budgetMin,
+      budgetMax,
+      accessibilityNeeds,
+      adultDeclarationAccepted,
+      termsAccepted,
+      marketingConsent,
     ];
     
     const result = await pool.query(query, values);
     logger.info('User created', { userId: result.rows[0].id, phone: input.phone });
     
-    return result.rows[0];
+    return mapUserRow(result.rows[0])!;
   }
 
   /**
@@ -93,7 +146,7 @@ class UserModel {
     const query = 'SELECT * FROM users WHERE id = $1 AND is_active = TRUE';
     const result = await pool.query(query, [id]);
     
-    return result.rows[0] || null;
+    return mapUserRow(result.rows[0]);
   }
 
   /**
@@ -103,7 +156,7 @@ class UserModel {
     const query = 'SELECT * FROM users WHERE phone = $1 AND is_active = TRUE';
     const result = await pool.query(query, [phone]);
     
-    return result.rows[0] || null;
+    return mapUserRow(result.rows[0]);
   }
 
   /**
@@ -242,14 +295,14 @@ class UserModel {
     const result = await pool.query(query, values);
     logger.info('User preferences updated', { userId });
     
-    return result.rows[0];
+    return mapUserRow(result.rows[0])!;
   }
 
   /**
    * Delete user (soft delete)
    */
   async delete(userId: string): Promise<void> {
-    const query = 'UPDATE users SET is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE id = $1';
+    const query = 'UPDATE users SET is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE id::text = $1 OR phone = $1';
     await pool.query(query, [userId]);
     logger.info('User deleted', { userId });
   }

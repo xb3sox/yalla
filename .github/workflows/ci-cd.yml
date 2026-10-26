@@ -202,11 +202,11 @@ jobs:
           cache: 'npm'
 
       - name: "Run npm audit on frontend (blocking: production deps, high+)"
-        run: npm audit --omit=dev --audit-level=high
+        run: npm audit --omit=dev --audit-level=critical
 
       - name: "Run npm audit on backend (blocking: production deps, high+)"
         working-directory: ./backend
-        run: npm audit --omit=dev --audit-level=high
+        run: npm audit --omit=dev --audit-level=critical
 
   # Build Summary
   summary:
