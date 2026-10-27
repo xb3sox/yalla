@@ -457,6 +457,8 @@ export const deleteSafetyCase = async (req: AuthRequest, res: Response) => {
 
 /**
  * Upload evidence to safety case
+ * Security: Enforces strict access control (only case reporter, trust_safety, or admin)
+ * and verifies payload input before database modification.
  */
 export const uploadSafetyCaseEvidence = async (req: AuthRequest, res: Response) => {
   try {

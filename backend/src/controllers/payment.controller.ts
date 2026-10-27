@@ -258,7 +258,7 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
       success: false,
       error: {
         code: 'WEBHOOK_FAILED',
-        message: `Webhook Error: ${error.message}`,
+        message: 'Webhook verification failed',
       },
     });
   }
