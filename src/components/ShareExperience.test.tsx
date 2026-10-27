@@ -106,14 +106,24 @@ describe('ShareExperience Component', () => {
     expect(screen.getByText(/مشاركة عبر/i)).toBeTruthy();
   });
 
-  it('should have social sharing buttons', () => {
+  it('should have social sharing buttons with accessible aria-labels', () => {
     renderWithProvider(<ShareExperience {...mockProps} />);
     
     fireEvent.click(screen.getByLabelText(/Share experience/i));
     
-    expect(screen.getByText('Wh')).toBeTruthy(); // WhatsApp
-    expect(screen.getByText('Tw')).toBeTruthy(); // Twitter
-    expect(screen.getByText('Em')).toBeTruthy(); // Email
+    expect(screen.getByRole('button', { name: /Share via WhatsApp/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Share via Twitter/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Share via Email/i })).toBeTruthy();
+  });
+
+  it('should have Arabic social sharing buttons with accessible aria-labels', () => {
+    renderWithProvider(<ShareExperience {...mockProps} />, { language: 'ar' });
+
+    fireEvent.click(screen.getByLabelText(/مشاركة التجربة/i));
+
+    expect(screen.getByRole('button', { name: /مشاركة عبر WhatsApp/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /مشاركة عبر Twitter/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /مشاركة عبر Email/i })).toBeTruthy();
   });
 
   it('should show toast when social button is clicked', () => {

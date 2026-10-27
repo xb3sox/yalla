@@ -48,7 +48,7 @@ export function ShareExperience({ experienceId, title }: ShareExperienceProps) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="p-2 hover:bg-surface-sunken rounded-full transition-colors"
+        className="p-2 hover:bg-surface-sunken rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
         aria-label={lang === 'ar' ? 'مشاركة التجربة' : 'Share experience'}
       >
         <Share2 className="w-5 h-5 text-text-secondary" />
@@ -116,7 +116,8 @@ export function ShareExperience({ experienceId, title }: ShareExperienceProps) {
               {['WhatsApp', 'Twitter', 'Email'].map(platform => (
                 <button
                   key={platform}
-                  className="w-12 h-12 rounded-full bg-surface-sunken hover:bg-border transition-colors flex items-center justify-center text-xs font-medium text-text-secondary"
+                  className="w-12 h-12 rounded-full bg-surface-sunken hover:bg-border transition-colors flex items-center justify-center text-xs font-medium text-text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+                  aria-label={lang === 'ar' ? `مشاركة عبر ${platform}` : `Share via ${platform}`}
                   onClick={() => showToast('info', lang === 'ar' ? 'سيتم إضافة المشاركة قريباً' : 'Sharing coming soon')}
                 >
                   {platform.slice(0, 2)}
