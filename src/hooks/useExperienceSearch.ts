@@ -33,26 +33,35 @@ export function useExperienceSearch(initialFilters: Partial<SearchFilters> = {})
   );
 
   const filteredExperiences = useMemo(() => {
+    // Optimization: Precompute invariant search query, area filter, and keyword arrays once
+    // outside the iteration loop instead of recomputing & re-allocating O(N) times inside .filter().
+    const searchQuery = filters.query ? filters.query.trim().toLowerCase() : '';
+    const areaQuery = filters.area ? filters.area.trim().toLowerCase() : '';
+    const accessibilityKeywords = filters.accessibility
+      ? (lang === 'ar'
+          ? ['متاح', 'كراسي متحركة', 'وصول', 'بدون درجات', 'مناسب']
+          : ['accessible', 'wheelchair', 'access', 'step-free', 'suitable'])
+      : null;
+
     return publishedExperiences.filter(exp => {
       // Text search
-      if (filters.query) {
-        const query = filters.query.toLowerCase();
-        const title = lang === 'ar' ? exp.titleAr : exp.title;
-        const description = lang === 'ar' ? exp.descriptionAr : exp.description;
-        const area = lang === 'ar' ? exp.areaAr : exp.area;
+      if (searchQuery) {
+        const title = (lang === 'ar' ? exp.titleAr : exp.title).toLowerCase();
+        const description = (lang === 'ar' ? exp.descriptionAr : exp.description).toLowerCase();
+        const area = (lang === 'ar' ? exp.areaAr : exp.area).toLowerCase();
         
         const matchesQuery = 
-          title.toLowerCase().includes(query) ||
-          description.toLowerCase().includes(query) ||
-          area.toLowerCase().includes(query);
+          title.includes(searchQuery) ||
+          description.includes(searchQuery) ||
+          area.includes(searchQuery);
         
         if (!matchesQuery) return false;
       }
 
       // Area filter
-      if (filters.area) {
-        const expArea = lang === 'ar' ? exp.areaAr : exp.area;
-        if (!expArea.toLowerCase().includes(filters.area.toLowerCase())) {
+      if (areaQuery) {
+        const expArea = (lang === 'ar' ? exp.areaAr : exp.area).toLowerCase();
+        if (!expArea.includes(areaQuery)) {
           return false;
         }
       }
@@ -76,20 +85,16 @@ export function useExperienceSearch(initialFilters: Partial<SearchFilters> = {})
       }
 
       // Accessibility
-      if (filters.accessibility) {
+      if (accessibilityKeywords) {
         const accessibilityText = lang === 'ar' ? exp.accessibilityAr : exp.accessibility;
         
         if (!accessibilityText) {
           return false;
         }
         
-        // Check for accessibility keywords
-        const keywords = lang === 'ar' 
-          ? ['متاح', 'كراسي متحركة', 'وصول', 'بدون درجات', 'مناسب']
-          : ['accessible', 'wheelchair', 'access', 'step-free', 'suitable'];
-        
-        const hasAccessibility = keywords.some(keyword => 
-          accessibilityText.toLowerCase().includes(keyword)
+        const lowerAccessibility = accessibilityText.toLowerCase();
+        const hasAccessibility = accessibilityKeywords.some(keyword =>
+          lowerAccessibility.includes(keyword)
         );
         
         if (!hasAccessibility) {
