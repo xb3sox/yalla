@@ -42,6 +42,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     env: nodeEnv,
     port: parseInt(env.PORT || '3000', 10),
     apiVersion: env.API_VERSION || 'v1',
+    // Number of reverse-proxy hops to trust for client IP resolution.
+    // Defaults to 1 in production (single ingress) and 0 otherwise.
+    trustProxy: parseInt(env.TRUST_PROXY || (isProduction ? '1' : '0'), 10) || 0,
 
     // Database
     database: {
@@ -51,6 +54,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
       name: env.DB_NAME || 'yalla',
       user: env.DB_USER || 'postgres',
       password: env.DB_PASSWORD || 'password',
+      // TLS certificate verification is on by default; opt out only for
+      // providers that require it (e.g. self-signed bundles).
+      sslRejectUnauthorized: env.DB_SSL_REJECT_UNAUTHORIZED !== 'false',
     },
 
     // JWT

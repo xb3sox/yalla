@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import auditModel from '../models/audit.model';
 import logger from '../utils/logger';
+import { parsePagination } from '../utils/pagination';
 
 /**
  * Get audit events with filters
@@ -115,7 +116,7 @@ export const getAuditEventsByActor = async (req: AuthRequest, res: Response) => 
     }
 
     const { actorId } = req.params;
-    const limit = parseInt(req.query.limit as string) || 100;
+    const { limit } = parsePagination(req.query, { defaultLimit: 100, maxLimit: 200 });
 
     const events = await auditModel.findByActor(actorId, limit);
 

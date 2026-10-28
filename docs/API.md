@@ -44,7 +44,7 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 | POST | `/auth/register` | Public | Register new user account |
 | POST | `/auth/login` | Public | Authenticate user, set refresh cookie, return JWT |
 | POST | `/auth/refresh` | Public (Cookie) | Issue new access token using refresh token |
-| POST | `/auth/logout` | Authenticated | Revoke refresh token and clear cookie |
+| POST | `/auth/logout` | Authenticated | Clear auth cookies |
 | GET | `/auth/me` | Authenticated | Fetch authenticated user profile |
 | PUT | `/auth/profile` | Authenticated | Update user name, phone, preferences |
 | POST | `/auth/change-password` | Authenticated | Change current password |

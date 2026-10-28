@@ -34,6 +34,10 @@ PORT=3000
 API_VERSION=v1
 CORS_ORIGIN=https://yalla.example.com
 
+# Reverse proxy hops trusted for client IP (set 1 behind a single ingress such
+# as Nginx, ALB, or Cloudflare; rate limits key on the resolved client IP)
+TRUST_PROXY=1
+
 # Database
 DATABASE_URL=postgresql://yalla_user:secure_password@localhost:5432/yalla_prod
 DB_HOST=localhost
@@ -41,6 +45,8 @@ DB_PORT=5432
 DB_NAME=yalla_prod
 DB_USER=yalla_user
 DB_PASSWORD=secure_password
+# Keep certificate verification on; set to false only for self-signed bundles
+DB_SSL_REJECT_UNAUTHORIZED=true
 
 # Authentication (Must be cryptographically random 64-char strings)
 JWT_SECRET=<generated-secret>

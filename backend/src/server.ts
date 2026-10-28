@@ -33,6 +33,11 @@ import rewardRoutes from './routes/reward.routes';
 
 const app = express();
 
+// Rate limiting and request logging key on client IP. Behind a reverse proxy
+// (Nginx, ALB, Cloudflare) the socket address is the proxy, so without this
+// every user shares a single rate-limit bucket.
+app.set('trust proxy', config.trustProxy);
+
 // Security headers
 app.use(securityHeaders);
 
@@ -44,7 +49,16 @@ app.use(requestSizeLimiter);
 
 // Body and Cookie parsing (must precede input sanitization)
 app.use(cookieParser());
-app.use(express.json({ limit: '10mb' }));
+// Preserve the raw request body: Stripe signature verification hashes the exact
+// bytes received, so a JSON-parsed object can never validate.
+app.use(
+  express.json({
+    limit: '10mb',
+    verify: (req, _res, buf) => {
+      (req as any).rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 
 // Input sanitization (now inspects populated req.body/params/query)
