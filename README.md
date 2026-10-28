@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD013 -->
 # Yalla
 
 **Managed discovery and booking for small-group local experiences.**
@@ -9,20 +10,30 @@
 [![WCAG 2.2 AA](https://img.shields.io/badge/WCAG-2.2_AA-0A7B4F)](https://www.w3.org/TR/WCAG22/)
 [![Proprietary](https://img.shields.io/badge/license-proprietary-lightgrey)](#license)
 
-Yalla is an end-to-end managed platform for curated local activities. Unlike open
-marketplaces, every host, venue, schedule, and safety policy is vetted by Yalla
-before an experience is listed — so guests can book with confidence and hosts can
-focus on running great events.
+Yalla is an end-to-end managed platform for curated local activities. Unlike
+open marketplaces, every host, venue, schedule, and safety policy is vetted by
+Yalla before an experience is listed — so guests can book with confidence and
+hosts can focus on running great events.
 
-The product is bilingual (English and Arabic with full RTL support), installable
-as a PWA, and built to WCAG 2.2 AA.
+The product serves Arabic (RTL) and English (LTR), installs as a PWA, and is
+built to WCAG 2.2 AA.
+
+## Contents
+
+[Features](#features) · [Tech stack](#tech-stack) ·
+[Getting started](#getting-started) · [Configuration](#configuration) ·
+[Architecture](#architecture) · [Commands](#commands) ·
+[CI](#continuous-integration) · [Docs](#documentation) ·
+[Contributing](#contributing) · [Security](#security)
 
 ## Features
 
 - **Discovery** — filter curated experiences by category, city, and date.
 - **Booking** — seat reservations, waitlists, and Stripe payment intents.
-- **Attendance** — 24-hour reconfirmation and an arrival mode with a protected, rotating venue check-in PIN.
-- **Roles** — scoped access for participants, hosts, operations, support, trust & safety, and admin.
+- **Attendance** — 24-hour reconfirmation and an arrival mode with a
+  rotating venue check-in PIN.
+- **Roles** — scoped access for participants, hosts, operations, support,
+  trust & safety, and admin.
 - **Feedback** — post-experience ratings that feed host quality control.
 - **Localization** — one UI serving Arabic (RTL) and English (LTR).
 
@@ -34,50 +45,67 @@ as a PWA, and built to WCAG 2.2 AA.
 | Backend | Node.js 20, Express 4, TypeScript, Zod, JWT in HttpOnly cookies |
 | Data | PostgreSQL 15, Redis 7 for rate limiting and cache (optional) |
 | Payments | Stripe payment intents and webhooks |
-| Testing | Vitest + Testing Library, Jest + Supertest, axe accessibility checks |
+| Testing | Vitest, Testing Library, Jest, Supertest, axe |
 | Delivery | GitHub Actions, Docker, Nginx |
 
-## Quick start
+## Getting started
 
-**Prerequisites:** Node.js 20 (see `.nvmrc`), npm 9+, and PostgreSQL 15 for the
-backend. Docker can supply PostgreSQL and Redis for you.
+**Prerequisites:** Node.js 20 (pinned in `.nvmrc`), npm 9+, and PostgreSQL 15.
+Docker can supply PostgreSQL and Redis for you.
 
 ### 1. Install
 
 ```bash
 git clone https://github.com/xb3sox/yalla.git
 cd yalla
+nvm use                       # Node 20
 npm ci
 npm ci --prefix backend
 ```
 
-The frontend and backend are two independent npm projects — install and run each separately.
+The frontend (repo root) and backend are separate npm projects — install and
+run each independently.
 
-### 2. Configure
+### 2. Start dependencies
+
+Skip this if you already have PostgreSQL and Redis running locally.
+
+```bash
+docker compose up -d postgres redis
+```
+
+### 3. Configure
 
 ```bash
 cp .env.example .env
 cp backend/.env.example backend/.env
 ```
 
-Then set `DATABASE_URL`, `JWT_SECRET`, and `JWT_REFRESH_SECRET` in
-`backend/.env`. See [Configuration](#configuration) for the rest.
+Set `DATABASE_URL`, `JWT_SECRET`, and `JWT_REFRESH_SECRET` in `backend/.env`.
+Everything else has a working local default — see [Configuration](#configuration).
 
-### 3. Run
+### 4. Create the schema
+
+Required before the API can serve requests.
+
+```bash
+npm run migrate --prefix backend
+npm run seed --prefix backend     # optional demo data
+```
+
+### 5. Run
 
 ```bash
 npm run dev                    # frontend → http://localhost:5173
 npm run dev --prefix backend   # API       → http://localhost:3000
 ```
 
-On first run, create the schema and optional demo data:
-
-```bash
-npm run migrate --prefix backend
-npm run seed --prefix backend
-```
+Confirm the API is up: `curl http://localhost:3000/health`. Metrics are
+exposed at `/metrics` for scraping.
 
 ### Docker alternative
+
+Run the full stack, including a database UI, in one command:
 
 ```bash
 docker compose up --build
@@ -85,20 +113,20 @@ docker compose up --build
 
 | Service | URL |
 | --- | --- |
-| Frontend | http://localhost:5173 |
-| API | http://localhost:3000 |
-| Adminer (database UI) | http://localhost:8080 |
+| Frontend | <http://localhost:5173> |
+| API | <http://localhost:3000> |
+| Adminer (database UI) | <http://localhost:8080> |
 
 ## Configuration
 
-Variables live in `.env` (frontend, `VITE_` prefix only) and `backend/.env`.
-Defaults are documented in [`.env.example`](./.env.example) and
-[`backend/.env.example`](./backend/.env.example).
+Frontend settings live in `.env` (only `VITE_`-prefixed values reach the
+browser). Backend settings live in `backend/.env`. Full defaults are in
+[`.env.example`](./.env.example) and [`backend/.env.example`](./backend/.env.example).
 
 | Variable | File | Purpose |
 | --- | --- | --- |
-| `VITE_API_URL` | `.env` | API base URL, e.g. `http://localhost:3000/api/v1` |
-| `DATABASE_URL` | `backend/.env` | PostgreSQL connection string (required in production) |
+| `VITE_API_URL` | `.env` | API base URL; defaults to `http://localhost:3000/api/v1` |
+| `DATABASE_URL` | `backend/.env` | PostgreSQL connection string; required in production |
 | `JWT_SECRET`, `JWT_REFRESH_SECRET` | `backend/.env` | Token signing keys — use long random values |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | `backend/.env` | Payments and webhook verification |
 | `CORS_ORIGIN` | `backend/.env` | Allowed frontend origin |
@@ -106,7 +134,8 @@ Defaults are documented in [`.env.example`](./.env.example) and
 | `API_VERSION`, `PORT` | `backend/.env` | Route prefix (default `v1`) and listen port |
 
 > [!NOTE]
-> Never commit `.env` files. Production secrets belong in your platform's secret manager.
+> Never commit `.env` files. In production, inject secrets from your platform's
+> secret manager rather than bundling them into images.
 
 ## Architecture
 
@@ -122,6 +151,8 @@ Both apps follow a layered, dependency-inward design: domain and application
 logic stay framework-agnostic, while HTTP, persistence, and third-party
 integrations sit at the edges. Reservation state transitions are centralized in
 the model layer, and capacity checks run inside atomic, row-locked transactions.
+Destructive operations fail closed, and the API shuts down gracefully on
+`SIGTERM`/`SIGINT` by draining the connection pool.
 
 ## Project structure
 
@@ -150,22 +181,27 @@ the model layer, and capacity checks run inside atomic, row-locked transactions.
 | Coverage | `npm run test:coverage` | `npm run test:coverage --prefix backend` |
 | Invariant evals | `node evals/check.js` | — |
 
-Bare `npm test` starts Vitest in watch mode; use `npx vitest run` for a single pass.
-Backend API and end-to-end suites need a live `DATABASE_URL` and an applied schema.
+> [!IMPORTANT]
+> Bare `npm test` starts Vitest in watch mode — use `npx vitest run` for a
+> single pass. Backend API and end-to-end suites require a live `DATABASE_URL`
+> and an applied schema; `tests/unit` runs without a database.
 
 ## Continuous integration
 
 | Workflow | Enforces |
 | --- | --- |
-| [`ci-cd.yml`](./.github/workflows/ci-cd.yml) | Type checks, lint, unit tests, builds, security scan |
+| [`ci-cd.yml`](./.github/workflows/ci-cd.yml) | Type checks, unit tests, builds, dependency audit |
 | [`agent-evals.yml`](./.github/workflows/agent-evals.yml) | Architectural invariants and regression evals |
 | [`jules-automerge.yml`](./.github/workflows/jules-automerge.yml) | Blocks auto-merge when sensitive paths change |
+
+Every pull request must pass type checks, tests, and `node evals/check.js`
+before review.
 
 ## Documentation
 
 | Document | Contents |
 | --- | --- |
-| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Clean Architecture, DDD layers, reservation state machine |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Layers, domain model, reservation state machine |
 | [`docs/API.md`](./docs/API.md) | REST endpoints, payloads, headers, status codes |
 | [`docs/DATABASE.md`](./docs/DATABASE.md) | Schema, ER diagram, migrations |
 | [`docs/adr/`](./docs/adr/) | Architecture decision records |
@@ -177,17 +213,26 @@ Backend API and end-to-end suites need a live `DATABASE_URL` and an applied sche
 
 ## Contributing
 
-Read [CONTRIBUTING.md](./CONTRIBUTING.md) for branch naming, commit conventions,
-and review expectations. Before opening a pull request, run type checks, tests,
-and `node evals/check.js`.
+Read [CONTRIBUTING.md](./CONTRIBUTING.md) for branch naming, commit
+conventions, and review expectations. AI-assisted and autonomous contributions
+must also follow [AGENTS.md](./AGENTS.md).
 
-AI-assisted and autonomous contributions must follow [AGENTS.md](./AGENTS.md).
+Run the same gates as CI before opening a pull request:
+
+```bash
+npm run typecheck
+npx vitest run
+npm run typecheck --prefix backend
+npm run lint --prefix backend
+npm test --prefix backend -- tests/unit
+node evals/check.js
+```
 
 ## Security
 
-Please report vulnerabilities privately through
-[GitHub Security Advisories](https://github.com/xb3sox/yalla/security/advisories/new)
-rather than in a public issue.
+Do not open public issues for vulnerabilities. Report them privately through
+[GitHub Security Advisories](https://github.com/xb3sox/yalla/security/advisories/new);
+see [SECURITY.md](./SECURITY.md) for scope and response targets.
 
 ## License
 
