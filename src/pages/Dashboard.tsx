@@ -76,9 +76,25 @@ export function DashboardPage({ onNavigate, onOpenNotifications }: DashboardPage
       setIsLoading(true);
       setError(null);
 
-      // Load reservations
+      // Optimization: Fetch all independent dashboard data (reservations, notifications, unread count, favorites)
+      // in parallel with Promise.all to eliminate sequential network request waterfalls.
+      const [
+        reservationsResponse,
+        notificationsResponse,
+        unreadResponse,
+        favoritesResponse
+      ] = await Promise.all([
+        api.reservations.list(),
+        api.notifications.list({ limit: 5 }),
+        api.notifications.getUnreadCount(),
+        api.favorites.list()
+      ]);
+
       let completedCount = 0;
-      const reservationsResponse = await api.reservations.list();
+      let totalReservations = 0;
+      let upcomingReservations = 0;
+
+      // Process reservations data
       if (reservationsResponse.success && reservationsResponse.data) {
         const data = reservationsResponse.data as any;
         const reservations = data.reservations || [];
@@ -86,42 +102,30 @@ export function DashboardPage({ onNavigate, onOpenNotifications }: DashboardPage
         completedCount = reservations.filter((r: any) =>
           ['completed', 'attended'].includes(r.state)
         ).length;
-
-        setStats(prev => ({
-          ...prev,
-          totalReservations: reservations.length,
-          upcomingReservations: reservations.filter((r: any) =>
-            ['confirmed', 'reconfirmed', 'reconfirmation_required'].includes(r.state)
-          ).length,
-          completedExperiences: completedCount,
-        }));
+        totalReservations = reservations.length;
+        upcomingReservations = reservations.filter((r: any) =>
+          ['confirmed', 'reconfirmed', 'reconfirmation_required'].includes(r.state)
+        ).length;
       }
 
-      // Load notifications
-      const notificationsResponse = await api.notifications.list({ limit: 5 });
+      // Process notifications data
       if (notificationsResponse.success && notificationsResponse.data) {
         const data = notificationsResponse.data as any;
         const notifications = data.notifications || [];
         setRecentNotifications(notifications);
-        
-        const unreadResponse = await api.notifications.getUnreadCount();
-        if (unreadResponse.success && unreadResponse.data) {
-          const unreadData = unreadResponse.data as any;
-          setStats(prev => ({
-            ...prev,
-            unreadNotifications: unreadData.unreadCount || 0,
-          }));
-        }
       }
 
-      // Load favorites
-      const favoritesResponse = await api.favorites.list();
+      let unreadNotifications = 0;
+      if (unreadResponse.success && unreadResponse.data) {
+        const unreadData = unreadResponse.data as any;
+        unreadNotifications = unreadData.unreadCount || 0;
+      }
+
+      // Process favorites data
+      let totalFavorites = 0;
       if (favoritesResponse.success && favoritesResponse.data) {
         const data = favoritesResponse.data as any;
-        setStats(prev => ({
-          ...prev,
-          totalFavorites: data.favorites?.length || 0,
-        }));
+        totalFavorites = data.favorites?.length || 0;
       }
 
       // Calculate reward points (mock for now)
@@ -131,11 +135,15 @@ export function DashboardPage({ onNavigate, onOpenNotifications }: DashboardPage
                    points >= 200 ? 'Silver' :
                    points >= 50 ? 'Bronze' : 'Member';
 
-      setStats(prev => ({
-        ...prev,
+      setStats({
+        totalReservations,
+        upcomingReservations,
+        completedExperiences: completedCount,
+        unreadNotifications,
+        totalFavorites,
         rewardPoints: points,
         currentTier: tier,
-      }));
+      });
 
     } catch (err: any) {
       setError(err.message || 'Failed to load dashboard data');
