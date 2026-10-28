@@ -68,10 +68,12 @@ export const verifyPin = async (req: AuthRequest, res: Response): Promise<void> 
       return;
     }
     
-    if (!pin) {
-      res.status(400).json({ error: 'PIN is required' });
+    if (!pin || typeof pin !== 'string' || pin.trim().length < 4) {
+      res.status(400).json({ error: 'PIN must be at least 4 characters' });
       return;
     }
+
+    const escapedPin = pin.trim().replace(/[%_\\]/g, '\\$&');
 
     // Check if the user is the host
     const experienceQuery = `
@@ -92,7 +94,7 @@ export const verifyPin = async (req: AuthRequest, res: Response): Promise<void> 
       LIMIT 1
     `;
     
-    const reservationResult = await pool.query(query, [id, `${pin}%`]);
+    const reservationResult = await pool.query(query, [id, `${escapedPin}%`]);
     
     if (reservationResult.rows.length === 0) {
       res.status(404).json({ error: 'Invalid PIN' });

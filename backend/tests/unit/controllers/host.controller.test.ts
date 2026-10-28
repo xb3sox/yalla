@@ -112,12 +112,31 @@ describe('Host Controller', () => {
       expect(mockStatus).toHaveBeenCalledWith(401);
     });
 
-    it('should return 400 if pin is missing', async () => {
+    it('should return 400 if pin is missing or shorter than 4 characters', async () => {
       mockReq.body = {};
       await verifyPin(mockReq as AuthRequest, mockRes as Response);
 
       expect(mockStatus).toHaveBeenCalledWith(400);
-      expect(mockJson).toHaveBeenCalledWith({ error: 'PIN is required' });
+      expect(mockJson).toHaveBeenCalledWith({ error: 'PIN must be at least 4 characters' });
+
+      mockReq.body = { pin: '12' };
+      await verifyPin(mockReq as AuthRequest, mockRes as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(400);
+      expect(mockJson).toHaveBeenCalledWith({ error: 'PIN must be at least 4 characters' });
+    });
+
+    it('should escape SQL LIKE wildcard characters in pin', async () => {
+      mockReq.body = { pin: '%123_' };
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ id: 'exp-1' }] });
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+
+      await verifyPin(mockReq as AuthRequest, mockRes as Response);
+
+      expect(pool.query).toHaveBeenLastCalledWith(
+        expect.stringContaining('ILIKE'),
+        ['exp-1', '\\%123\\_%']
+      );
     });
 
     it('should return 403 if user is not the host of the experience', async () => {

@@ -415,10 +415,12 @@ export const verifyPin = async (req: AuthRequest, res: Response): Promise<void> 
       return;
     }
 
-    if (!pin) {
-      res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'PIN is required' } });
+    if (!pin || typeof pin !== 'string' || pin.trim().length < 4) {
+      res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'PIN must be at least 4 characters' } });
       return;
     }
+
+    const escapedPin = pin.trim().replace(/[%_\\]/g, '\\$&');
 
     const checkQuery = `
       SELECT id FROM experiences
@@ -435,7 +437,7 @@ export const verifyPin = async (req: AuthRequest, res: Response): Promise<void> 
       WHERE experience_id = $1 AND (id::text ILIKE $2 OR pin = $3)
       LIMIT 1
     `;
-    const reservationRes = await pool.query(query, [id, `${pin}%`, pin]);
+    const reservationRes = await pool.query(query, [id, `${escapedPin}%`, pin.trim()]);
 
     if (reservationRes.rows.length === 0) {
       res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Invalid PIN' } });
