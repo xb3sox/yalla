@@ -7,6 +7,10 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 ## 1. Conventions
 
 - **Base URL**: `http://localhost:3000/api/v1` (configurable via `API_VERSION` / `PORT`)
+- **Sessions**: access tokens are short-lived (15 min default) and delivered in an
+  HttpOnly cookie. `POST /auth/refresh` rotates a single-use refresh token; a
+  replayed token revokes every session for that user. `POST /auth/logout`
+  revokes the presented refresh token server-side.
 - **Headers**:
   - `Content-Type: application/json`
   - `Authorization: Bearer <access_token>`
@@ -35,7 +39,7 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 
 ---
 
-## 2. Endpoints Overview (53 Endpoints)
+## 2. Endpoints Overview (84 route handlers)
 
 ### 2.1 Authentication (`/auth`)
 

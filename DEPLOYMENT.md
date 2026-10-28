@@ -52,6 +52,8 @@ DB_SSL_REJECT_UNAUTHORIZED=true
 JWT_SECRET=<generated-secret>
 JWT_REFRESH_SECRET=<generated-secret>
 SESSION_SECRET=<generated-secret>
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=30d
 
 # External Services
 STRIPE_SECRET_KEY=sk_live_...

@@ -4,6 +4,7 @@ import cors from 'cors';
 import config from './config';
 import pool from './config/database';
 import logger from './utils/logger';
+import refreshTokenModel from './models/refresh_token.model';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import {
   apiLimiter,
@@ -133,6 +134,13 @@ if (config.env !== 'test' && process.env.NODE_ENV !== 'test') {
       process.exit(1);
     }, 10000).unref();
   };
+
+  // Housekeeping: drop expired refresh tokens once a day.
+  setInterval(() => {
+    refreshTokenModel
+      .purgeExpired()
+      .catch((err) => logger.error('Refresh token purge failed', { error: err.message }));
+  }, 24 * 60 * 60 * 1000).unref();
 
   process.on('SIGTERM', () => shutdown('SIGTERM'));
   process.on('SIGINT', () => shutdown('SIGINT'));

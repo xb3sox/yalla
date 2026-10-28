@@ -5,6 +5,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [Unreleased]
+
+### Security
+- **Refresh tokens are now revocable and single-use.** New `refresh_tokens` table
+  (migration `006`) stores only SHA-256 hashes with expiry, revocation, and
+  replacement links. Rotation happens on every `/auth/refresh`; replaying a
+  rotated token outside a 10-second race window revokes every session for that
+  user. Logout and account deletion revoke server-side.
+- Access tokens shortened from 7 days to 15 minutes (unrevocable, so the refresh
+  token is the true session boundary).
+- Stripe webhooks verify signatures against the raw request body; missing or
+  unconfigured secrets fail closed without leaking verification internals.
+- Database TLS certificate verification is enabled by default
+  (`DB_SSL_REJECT_UNAUTHORIZED`).
+- Input sanitization no longer mangles credentials (`password`, `refreshToken`,
+  and similar fields pass through untouched).
+- Rate limiting resolves the real client IP behind a proxy (`TRUST_PROXY`);
+  Stripe webhooks are excluded from the API limiter.
+
+### Fixed
+- Guest check-in no longer reports success when the API call fails.
+- `limit`/`offset` query parameters are validated and clamped, preventing
+  negative SQL limits and unbounded page sizes.
+- Service worker serves navigations network-first, so deploys are picked up
+  immediately instead of one visit later.
+- Frontend deduplicates concurrent token refreshes to avoid tripping reuse
+  detection.
+
+---
+
 ## [2.0.0] - 2026-10-19
 
 ### Added

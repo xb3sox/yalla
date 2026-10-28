@@ -83,7 +83,7 @@ backend/src/
 
 - **Input Sanitization**: Strips HTML tags and recursively removes `__proto__`, `constructor`, and `prototype` keys to prevent prototype pollution.
 - **Health Checks**: Public `/health` and `/metrics` return high-level indicators and never leak internal DB error messages.
-- **Authentication**: Access tokens (15m JWT) passed in `Authorization` header; refresh tokens (7d) stored in secure, `HttpOnly` cookies.
+- **Authentication**: Short-lived access tokens (15m JWT) in `Authorization` or an `HttpOnly` cookie; refresh tokens (30d) in `HttpOnly` cookies, stored **hashed** in `refresh_tokens` and rotated on every use. Replaying a rotated token revokes all of that user's sessions; logout revokes server-side.
 
 ---
 

@@ -1,4 +1,6 @@
+import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';
+import refreshTokenModel, { TokenMetadata } from './refresh_token.model';
 import jwt from 'jsonwebtoken';
 import pool from '../config/database';
 import config from '../config';
@@ -175,7 +177,7 @@ class UserModel {
       throw new Error('Invalid credentials');
     }
     
-    const tokens = this.generateTokens(user);
+    const tokens = await this.issueTokens(user);
     
     logger.info('User logged in', { userId: user.id });
     
@@ -197,7 +199,7 @@ class UserModel {
     );
     
     const refreshToken = jwt.sign(
-      { userId: user.id },
+      { userId: user.id, jti: randomUUID() },
       config.jwt.refreshSecret as jwt.Secret,
       { expiresIn: config.jwt.refreshExpiresIn as any }
     );
@@ -217,21 +219,40 @@ class UserModel {
   }
 
   /**
-   * Refresh access token
+   * Generate tokens and persist the refresh token so it can be revoked later.
    */
-  async refreshAccessToken(refreshToken: string): Promise<AuthTokens> {
+  async issueTokens(user: User, meta: TokenMetadata = {}): Promise<AuthTokens> {
+    const tokens = this.generateTokens(user);
+    await refreshTokenModel.issue(user.id, tokens.refreshToken, meta);
+    return tokens;
+  }
+
+  /**
+   * Rotate a refresh token.
+   *
+   * The presented token is single-use: it is verified, consumed against the
+   * refresh_tokens table, and replaced. A user who has lost their session (or
+   * whose token was revoked, e.g. by logout on another device) cannot mint new
+   * access tokens.
+   */
+  async refreshAccessToken(refreshToken: string, meta: TokenMetadata = {}): Promise<AuthTokens> {
     try {
-      const decoded = jwt.verify(refreshToken, config.jwt.refreshSecret) as any;
-      const user = await this.findById(decoded.userId);
-      
-      if (!user) {
-        throw new Error('User not found');
-      }
-      
-      return this.generateTokens(user);
-    } catch (error) {
+      jwt.verify(refreshToken, config.jwt.refreshSecret);
+    } catch {
       throw new Error('Invalid refresh token');
     }
+
+    // Throws RefreshTokenError when the token is unknown, expired, revoked, or replayed.
+    const userId = await refreshTokenModel.consume(refreshToken);
+
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new Error('Invalid refresh token');
+    }
+
+    const tokens = await this.issueTokens(user, meta);
+    await refreshTokenModel.linkReplacement(refreshToken, tokens.refreshToken);
+    return tokens;
   }
 
   /**

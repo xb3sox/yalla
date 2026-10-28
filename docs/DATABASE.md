@@ -12,6 +12,8 @@ Migrations reside in `backend/src/migrations/`:
 - `002_add_payments_table.ts` — Stripe payment transaction ledger
 - `003_add_receipt_url_to_payments.ts` — Stripe receipt URL storage
 - `004_add_rewards_table.ts` — User points balances and transaction history
+- `005_add_refunds_table.ts` — Refund ledger tied to reservations and payments
+- `006_add_refresh_tokens.ts` — Hashed, revocable refresh tokens (rotation + reuse detection)
 
 ### Commands (execute in `backend/`)
 

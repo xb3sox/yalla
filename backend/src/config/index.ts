@@ -62,7 +62,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     // JWT
     jwt: {
       secret: jwtSecret,
-      expiresIn: env.JWT_EXPIRES_IN || '7d',
+      // Short-lived: access tokens are not revocable, so the rotated refresh
+      // token is the real session boundary.
+      expiresIn: env.JWT_EXPIRES_IN || '15m',
       refreshSecret: jwtRefreshSecret,
       refreshExpiresIn: env.JWT_REFRESH_EXPIRES_IN || '30d',
     },
