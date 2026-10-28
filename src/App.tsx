@@ -32,6 +32,10 @@ import { AppView } from './types';
 
 type View = AppView;
 
+// The role switcher is a demo/dev affordance: in production builds the role
+// comes from the authenticated session only, never from client-side state.
+const SHOW_ROLE_SWITCHER = import.meta.env.DEV;
+
 function AppContent() {
   const { state, dispatch } = useApp();
   const lang = state.language;
@@ -97,6 +101,7 @@ function AppContent() {
           <div className="flex items-center justify-between px-5 h-14 max-w-lg mx-auto">
             <span className="text-lg font-semibold text-text-primary tracking-tight">Yalla Host Portal</span>
             <div className="flex items-center gap-2">
+              {SHOW_ROLE_SWITCHER && (
               <button
                 onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
                 className="p-2 hover:bg-surface-sunken rounded-full transition-colors"
@@ -105,6 +110,7 @@ function AppContent() {
               >
                 <Shield className="w-5 h-5 text-text-secondary" />
               </button>
+              )}
               <button
                 onClick={toggleLanguage}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-sunken text-xs font-medium text-text-secondary hover:bg-border transition-colors"
@@ -117,10 +123,12 @@ function AppContent() {
           </div>
         </header>
 
-        <RoleSwitcher
-          isOpen={showRoleSwitcher}
-          onClose={() => setShowRoleSwitcher(false)}
-        />
+        {SHOW_ROLE_SWITCHER && (
+          <RoleSwitcher
+            isOpen={showRoleSwitcher}
+            onClose={() => setShowRoleSwitcher(false)}
+          />
+        )}
 
         <Suspense fallback={
           <div className="min-h-screen bg-surface flex items-center justify-center">
@@ -182,6 +190,7 @@ function AppContent() {
               onClick={() => setShowNotifications(!showNotifications)}
               count={state.notifications.filter(n => n.recipientId === 'user-1').length}
             />
+            {SHOW_ROLE_SWITCHER && (
             <button
               onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
               className="p-2 hover:bg-surface-sunken rounded-full transition-colors"
@@ -190,6 +199,7 @@ function AppContent() {
             >
               <Shield className="w-5 h-5 text-text-secondary" />
             </button>
+            )}
             <button
               onClick={toggleLanguage}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-sunken text-xs font-medium text-text-secondary hover:bg-border transition-colors"
@@ -208,11 +218,13 @@ function AppContent() {
         onClose={() => setShowNotifications(false)}
       />
 
-      {/* Role Switcher */}
-      <RoleSwitcher
-        isOpen={showRoleSwitcher}
-        onClose={() => setShowRoleSwitcher(false)}
-      />
+      {/* Role Switcher (dev builds only) */}
+      {SHOW_ROLE_SWITCHER && (
+        <RoleSwitcher
+          isOpen={showRoleSwitcher}
+          onClose={() => setShowRoleSwitcher(false)}
+        />
+      )}
 
       {/* Main content */}
       <PageTransition transitionKey={currentView + selectedExperienceId + selectedReservationId}>

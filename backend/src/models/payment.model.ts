@@ -276,9 +276,9 @@ class PaymentModel {
 
       const refund = await stripe.refunds.create(refundParams);
 
-      // Track how much was refunded and whether it was partial — the
-      // refund_amount/refunded_at columns exist for exactly this.
-      const refundAmount = amount ?? existing.amount;
+      // Track how much was refunded (cumulative across partial refunds)
+      // and whether the payment is now fully refunded.
+      const refundAmount = (existing.refund_amount || 0) + (amount ?? existing.amount);
       const newStatus = refundAmount >= existing.amount ? 'refunded' : 'partially_refunded';
 
       const query = `

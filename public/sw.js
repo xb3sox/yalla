@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
 // Bump when the caching strategy changes so old shells are evicted.
-const CACHE_NAME = 'yalla-cache-v2';
+const CACHE_NAME = 'yalla-cache-v3';
 const OFFLINE_URL = '/offline.html';
 
 // Files to cache immediately
@@ -9,6 +9,7 @@ const PRECACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/offline.html',
   '/favicon.svg',
   '/robots.txt',
   '/sitemap.xml',
