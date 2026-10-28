@@ -129,7 +129,15 @@ jobs:
           SESSION_SECRET: test-session-secret
           STRIPE_SECRET_KEY: sk_test_dummy
           STRIPE_WEBHOOK_SECRET: whsec_test_dummy
-        run: npm run test:coverage -- --runInBand
+        run: |
+          set -o pipefail
+          npm run test:coverage -- --runInBand 2>&1 | tee /tmp/jest-backend.log || {
+            # Surface failing suites/tests as check annotations (visible via API)
+            sed -r 's/\x1b\[[0-9;]*m//g' /tmp/jest-backend.log \
+              | grep -E '^(FAIL|  ● .*›)' | head -10 \
+              | while IFS= read -r line; do echo "::error ::$line"; done
+            exit 1
+          }
 
       - name: Upload backend coverage reports
         uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5
