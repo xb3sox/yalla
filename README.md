@@ -8,7 +8,7 @@
 [![Node 20](https://img.shields.io/badge/node-20_LTS-5FA04E?logo=node.js&logoColor=white)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![WCAG 2.2 AA](https://img.shields.io/badge/WCAG-2.2_AA-0A7B4F)](https://www.w3.org/TR/WCAG22/)
-[![Proprietary](https://img.shields.io/badge/license-proprietary-lightgrey)](#license)
+[![Proprietary](https://img.shields.io/badge/license-proprietary-lightgrey)](./LICENSE)
 
 Yalla is an end-to-end managed platform for curated local activities. Unlike
 open marketplaces, every host, venue, schedule, and safety policy is vetted by
@@ -236,5 +236,6 @@ see [SECURITY.md](./SECURITY.md) for scope and response targets.
 
 ## License
 
-Proprietary — all rights reserved. No part of this codebase may be copied,
-modified, or distributed without written permission.
+Proprietary — all rights reserved. Use, copying, modification, and distribution
+are prohibited without prior written permission. See [LICENSE](./LICENSE) for
+full terms, including contribution and third-party dependency clauses.

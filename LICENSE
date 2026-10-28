@@ -1,0 +1,71 @@
+# Yalla Proprietary License
+
+Copyright (c) 2026 Yalla. All rights reserved.
+
+This repository and all associated source code, documentation, designs, data
+models, and other materials (the "Software") are proprietary and confidential.
+
+## 1. No grant of rights
+
+No license, express or implied, is granted to any person or entity by the
+publication, disclosure, or delivery of the Software. All rights, title, and
+interest in and to the Software remain with the copyright holder.
+
+## 2. Permitted use
+
+You may view the Software where it is made publicly available for evaluation
+only. You may not, without the copyright holder's prior written permission:
+
+- copy, reproduce, mirror, or redistribute the Software in whole or in part;
+- modify, adapt, translate, or create derivative works from the Software;
+- sublicense, sell, rent, lease, lend, publish, or otherwise make the Software
+  available to any third party;
+- use the Software, in whole or in part, to develop or operate a competing
+  product or service;
+- remove, obscure, or alter any copyright, trademark, or proprietary notice.
+
+## 3. Contributions
+
+By submitting a contribution to this repository, you grant the copyright holder
+a perpetual, worldwide, irrevocable, royalty-free, sublicensable, and
+transferable license to use, reproduce, modify, distribute, and relicense your
+contribution under any terms, and you confirm you have the right to grant it.
+
+## 4. Third-party components
+
+The Software depends on third-party packages that remain governed by their own
+licenses. Nothing in this license limits your rights under those licenses.
+
+## 5. Trademarks
+
+"Yalla", its logo, and related marks are trademarks of the copyright holder.
+This license grants no right to use them.
+
+## 6. No warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT.
+
+## 7. Limitation of liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE COPYRIGHT HOLDER SHALL NOT BE LIABLE
+FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR
+ITS USE.
+
+## 8. Termination
+
+Any unauthorized use of the Software terminates all permissions granted under
+this license immediately. Sections 1, 2, 6, 7, and 9 survive termination.
+
+## 9. Governing law
+
+This license is governed by the laws of the jurisdiction in which the copyright
+holder is established, without regard to conflict-of-law rules.
+
+## 10. Contact
+
+For licensing, commercial, or partnership inquiries, open an issue at
+<https://github.com/xb3sox/yalla/issues> or contact the copyright holder through
+their GitHub profile.
