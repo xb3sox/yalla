@@ -36,6 +36,7 @@ Jules runs autonomous end-to-end task execution across the repository:
 ## Commands
 
 Frontend (repo root):
+
 - `npm run dev` — Vite on port 5173 (`strictPort`, host `0.0.0.0`)
 - `npm run typecheck` — `tsc --noEmit`, covers `src/` only
 - `npx vitest run <path>` — single/focused test. Bare `npm test` starts vitest **watch mode**; always add `run`.
@@ -43,13 +44,14 @@ Frontend (repo root):
 - `node evals/check.js` — run AI agent invariant evals (10 core evals)
 
 Backend (`cd backend`):
+
 - `npm run dev` / `npm run build` / `npm start` — `tsx watch` / `tsc` / `node dist/server.js`
 - `npm run lint` — eslint (only backend has lint script)
 - `npm run typecheck` — `tsc --noEmit`
 - `npm test -- tests/unit` — tolerates missing DB locally (warn-and-skip in `tests/setup.ts`); CI runs full suite (`npm run test:coverage`) with Postgres + migrations. `tests/api` + `tests/e2e` strictly require `DATABASE_URL` + `npm run migrate`.
 - `npm run migrate` / `migrate:rollback` / `seed` — via `tsx`, need `DATABASE_URL`
 
-Before a PR: frontend `typecheck` + `vitest run`, backend `lint` + `typecheck` + `tests/unit`, and `node evals/check.js`.
+Before a PR: frontend `typecheck` + `lint:md` + `vitest run`, backend `lint` + `typecheck` + `tests/unit`, and `node evals/check.js`.
 
 ## Architecture
 

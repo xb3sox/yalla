@@ -11,6 +11,7 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
   - `Content-Type: application/json`
   - `Authorization: Bearer <access_token>`
 - **Response Format**:
+
   ```json
   {
     "success": true,
@@ -18,7 +19,9 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
     "message": "Optional status message"
   }
   ```
+
 - **Error Format**:
+
   ```json
   {
     "success": false,
@@ -35,6 +38,7 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 ## 2. Endpoints Overview (53 Endpoints)
 
 ### 2.1 Authentication (`/auth`)
+
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | POST | `/auth/register` | Public | Register new user account |
@@ -46,6 +50,7 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 | POST | `/auth/change-password` | Authenticated | Change current password |
 
 ### 2.2 Experiences (`/experiences`)
+
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | GET | `/experiences` | Public | List published experiences (filter by category, city, date) |
@@ -56,6 +61,7 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 | GET | `/experiences/recommendations` | Authenticated | Get personalized recommendations (O(N) Set lookup) |
 
 ### 2.3 Reservations (`/reservations`)
+
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | POST | `/reservations` | Authenticated | Create pending reservation |
@@ -70,6 +76,7 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 | POST | `/reservations/:id/material-changes/accept` | Authenticated | Accept itinerary changes |
 
 ### 2.4 Payments (`/payments`)
+
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | POST | `/payments/intent` | Authenticated | Create Stripe payment intent for reservation |
@@ -78,6 +85,7 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 | GET | `/payments/:reservationId` | Authenticated | Get payment record for reservation |
 
 ### 2.5 Host Portal (`/host`)
+
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | GET | `/host/experiences` | Host | List assigned experiences for host |
@@ -85,12 +93,14 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 | POST | `/host/check-in` | Host | Verify attendee arrival PIN |
 
 ### 2.6 Feedback (`/feedbacks`)
+
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | POST | `/feedbacks` | Authenticated | Submit post-experience feedback |
 | GET | `/feedbacks/experience/:experienceId` | Public | Get verified reviews for experience |
 
 ### 2.7 Rewards & Loyalty (`/rewards`)
+
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | GET | `/rewards/balance` | Authenticated | Get user points balance and tier |
@@ -98,6 +108,7 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 | POST | `/rewards/redeem` | Authenticated | Redeem points for discount voucher |
 
 ### 2.8 Favorites & Social (`/favorites`, `/blocks`)
+
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | GET | `/favorites` | Authenticated | List saved experiences |
@@ -108,6 +119,7 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 | DELETE | `/blocks/:userId` | Authenticated | Unblock user |
 
 ### 2.9 Staff Operations (`/staff`)
+
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | GET | `/staff/dashboard` | Staff / Admin | Operational metrics and KPIs |
@@ -119,6 +131,7 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 | POST | `/staff/override-capacity` | Admin | Override attendee limit |
 
 ### 2.10 Safety & Trust (`/safety-cases`)
+
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | POST | `/safety-cases` | Authenticated | File an incident report |
@@ -130,6 +143,7 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 | GET | `/safety-cases/stats` | Admin | Safety incident frequency stats |
 
 ### 2.11 Support Requests (`/support-requests`)
+
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | POST | `/support-requests` | Authenticated | Open support ticket |
@@ -139,6 +153,7 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 | PUT | `/support-requests/:id/close` | Staff / Admin | Close ticket |
 
 ### 2.12 Notifications (`/notifications`)
+
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | GET | `/notifications` | Authenticated | List in-app notifications |
@@ -151,6 +166,7 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 | POST | `/notifications/test` | Admin | Test dispatch (Twilio/SES) |
 
 ### 2.13 Audit & Health (`/audit`, `/health`, `/metrics`)
+
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | GET | `/audit` | Admin | Query immutable audit log with filters |

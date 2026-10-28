@@ -9,6 +9,7 @@
 ---
 
 ## 1. Executive Summary
+
 Architecture for the operations management tier. Enforces role-based permissions (`staff`, `admin`), host and venue assignment workflows, auditable capacity adjustments, and data export endpoints.
 
 ---
@@ -36,6 +37,7 @@ graph TD
 ## 3. Endpoints & Data Model
 
 ### Routes (`backend/src/routes/staff.routes.ts`)
+
 - `GET /api/v1/staff/dashboard` — Live operations dashboard KPIs (occupancy, active hosts, pending requests).
 - `GET /api/v1/staff/experiences` — Operational experience schedule list.
 - `POST /api/v1/staff/assign-host` — Link `host_id` to experience record.
@@ -47,5 +49,6 @@ graph TD
 ---
 
 ## 4. Policy Constraints & Compliance
+
 - **Audit Logging**: Any capacity modification or manual check-in writes an immutable record to `audit_logs` within the same database transaction.
 - **Role Enforcement**: `requireRole(['staff', 'admin'])` middleware verifies JWT claims before invoking controllers.

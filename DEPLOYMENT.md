@@ -17,12 +17,17 @@ Production deployment guide for Yalla: Managed Experience Discovery Platform.
 ## 2. Environment Variables
 
 ### Frontend (`.env`)
+
 ```bash
-VITE_API_URL=https://api.yalla.example.com
-VITE_ENABLE_ANALYTICS=false
+VITE_API_URL=https://api.yalla.example.com/api/v1
 ```
 
+`VITE_API_URL` is the only frontend variable the app reads; it defaults to
+`http://localhost:3000/api/v1` when unset. Set it to the public API origin
+including the `/api/v1` prefix.
+
 ### Backend (`backend/.env`)
+
 ```bash
 NODE_ENV=production
 PORT=3000
@@ -52,6 +57,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 ## 3. Database Migration & Initialization
 
 In the `backend/` directory:
+
 ```bash
 # Execute schema migrations
 npm run migrate

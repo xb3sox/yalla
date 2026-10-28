@@ -2114,6 +2114,6 @@ Block 1 ─── * AuditEvent
 
 **تم الإنشاء بواسطة فريق تخطيط منتج عالمي المستوى**
 
-[README](./README.md) • [ROADMAP](./ROADMAP.md) • [CHANGELOG](./CHANGELOG.md)
+[README](../../README.md) • [ROADMAP](../../ROADMAP.md) • [CHANGELOG](../../CHANGELOG.md)
 
 </div>

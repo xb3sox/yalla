@@ -9,6 +9,7 @@
 ---
 
 ## 1. Files That Change
+
 - `[DELETE] docs/archive/*` (32 obsolete session files)
 - `[DELETE] pnpm-lock.yaml` (stale lockfile)
 - `[NEW] docs/ARCHITECTURE.md` (clean architecture & DDD guide)
@@ -26,6 +27,7 @@
 - `[MODIFY] README.md`, `CONTRIBUTING.md`, `DEPLOYMENT.md`, `ROADMAP.md`, `CHANGELOG.md`
 
 ## 2. Order of Work
+
 1. Purge obsolete files (`docs/archive/`, `pnpm-lock.yaml`).
 2. Add core technical documents (`docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DATABASE.md`).
 3. Commit SDLC templates and inaugural artifacts (`intent/`, `specs/`, `plans/`).
@@ -37,12 +39,14 @@
 9. Run full verification test matrix.
 
 ## 3. Risks & Mitigations
+
 - **Risk**: Deletion of non-essential docs breaking external links or developer bookmarks.
   - **Mitigation**: All valid technical content consolidated in `docs/ARCHITECTURE.md`, `docs/API.md`, and `docs/DATABASE.md`.
 - **Risk**: Test breakage during environment adjustments.
   - **Mitigation**: Run `tsc --noEmit` and full test suites before and after every phase.
 
 ## 4. Proof of Correctness
+
 - `npm run typecheck` passes with zero errors.
 - `npx vitest run` passes all 664 frontend tests.
 - `cd backend && npm run typecheck && npm run lint && npm test -- tests/unit` passes completely.

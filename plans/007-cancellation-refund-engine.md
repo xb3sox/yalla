@@ -9,6 +9,7 @@
 ---
 
 ## 1. Files That Change
+
 - `NEW` `intent/007-cancellation-refund-engine.md`
 - `NEW` `specs/007-cancellation-refund-engine.md`
 - `NEW` `plans/007-cancellation-refund-engine.md`
@@ -22,6 +23,7 @@
 - `MODIFY` `backend/src/controllers/reservation.controller.ts`
 
 ## 2. Order of Work
+
 1. Create SDLC intent, spec, and plan artifacts.
 2. Add database migration `005_add_refunds_table.ts` with `UNIQUE(reservation_id, stripe_refund_id)`.
 3. Implement `WaitlistService.promoteNext()` and `CancellationService`.
@@ -30,10 +32,12 @@
 6. Verify typecheck, unit tests, and evals.
 
 ## 3. Risks & Mitigations
+
 - **Risk**: Duplicate refund issuance on repeated cancellation calls.
 - **Mitigation**: DB unique constraint `UNIQUE(reservation_id, stripe_refund_id)` and checking current reservation state before processing refund.
 
 ## 4. Proof of Correctness
+
 - `npm run typecheck`
 - `npm test -- tests/unit`
 - `node evals/check.js`

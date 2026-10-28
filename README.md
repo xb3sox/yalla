@@ -1,4 +1,3 @@
-<!-- markdownlint-disable MD013 -->
 # Yalla
 
 **Managed discovery and booking for small-group local experiences.**
@@ -176,6 +175,7 @@ Destructive operations fail closed, and the API shuts down gracefully on
 | Dev server | `npm run dev` | `npm run dev --prefix backend` |
 | Production build | `npm run build` | `npm run build --prefix backend` |
 | Type check | `npm run typecheck` | `npm run typecheck --prefix backend` |
+| Markdown lint | `npm run lint:md` | — |
 | Lint | — | `npm run lint --prefix backend` |
 | Unit tests | `npx vitest run` | `npm test --prefix backend -- tests/unit` |
 | Coverage | `npm run test:coverage` | `npm run test:coverage --prefix backend` |
@@ -221,6 +221,7 @@ Run the same gates as CI before opening a pull request:
 
 ```bash
 npm run typecheck
+npm run lint:md
 npx vitest run
 npm run typecheck --prefix backend
 npm run lint --prefix backend

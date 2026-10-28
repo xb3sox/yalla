@@ -36,8 +36,8 @@ async function runCheck() {
     'backend/src/routes/payment.routes.ts',
     'src/domain/services/ReservationStateMachine.ts',
     // Pillar 2: Arrival Mode & Host Verification
-    'backend/src/routes/host.routes.ts',
-    'backend/src/controllers/host.controller.ts',
+    'backend/src/routes/host_portal.routes.ts',
+    'backend/src/controllers/host_portal.controller.ts',
     // Pillar 3: Staff Operations & Capacity
     'backend/src/routes/staff.routes.ts',
     'backend/src/controllers/staff.controller.ts',

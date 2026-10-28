@@ -1,4 +1,5 @@
-<!-- markdownlint-disable MD041 -->
+# Pull Request
+
 ## What changed
 
 <!-- One or two sentences. Link the intent/spec/plan artifact if one exists. -->
@@ -20,6 +21,7 @@ Closes #
 Commands run locally (see the [README](../README.md#commands)):
 
 - [ ] `npm run typecheck`
+- [ ] `npm run lint:md`
 - [ ] `npx vitest run`
 - [ ] `npm run typecheck --prefix backend`
 - [ ] `npm run lint --prefix backend`

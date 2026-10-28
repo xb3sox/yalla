@@ -171,6 +171,9 @@ jobs:
       - name: Run frontend typecheck
         run: npm run typecheck
 
+      - name: Lint Markdown
+        run: npm run lint:md
+
       - name: Run AI-native SDLC evals
         run: node evals/check.js
 
