@@ -15,13 +15,23 @@ describe('FavoriteButton Component', () => {
     expect(button).toBeTruthy();
   });
 
-  it('should have correct aria-label when not favorited', () => {
+  it('should have correct aria-label and title when not favorited', () => {
     renderWithProvider(
       <FavoriteButton experienceId="exp-1" />
     );
 
     const button = screen.getByRole('button');
     expect(button.getAttribute('aria-label')).toBe('Add to favorites');
+    expect(button.getAttribute('title')).toBe('Add to favorites');
+  });
+
+  it('should have focus-visible styling classes', () => {
+    renderWithProvider(
+      <FavoriteButton experienceId="exp-1" />
+    );
+
+    const button = screen.getByRole('button');
+    expect(button.className).toContain('focus-visible:outline-2');
   });
 
   it('should toggle aria-pressed when clicked', () => {

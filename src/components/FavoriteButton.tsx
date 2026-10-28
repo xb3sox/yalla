@@ -46,16 +46,18 @@ export function FavoriteButton({ experienceId, size = 'md' }: FavoriteButtonProp
     lg: 'w-6 h-6',
   };
 
+  const label = isFavorite
+    ? (lang === 'ar' ? 'إزالة من المفضلة' : 'Remove from favorites')
+    : (lang === 'ar' ? 'إضافة إلى المفضلة' : 'Add to favorites');
+
   return (
     <button
       onClick={handleToggle}
-      className={`${sizes[size]} flex items-center justify-center rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 transition-all ${
+      className={`${sizes[size]} flex items-center justify-center rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 hover:scale-105 active:scale-95 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 ${
         isFavorite ? 'text-red-500' : 'text-white'
       }`}
-      aria-label={isFavorite 
-        ? (lang === 'ar' ? 'إزالة من المفضلة' : 'Remove from favorites')
-        : (lang === 'ar' ? 'إضافة إلى المفضلة' : 'Add to favorites')
-      }
+      aria-label={label}
+      title={label}
       aria-pressed={isFavorite}
     >
       <Heart 
