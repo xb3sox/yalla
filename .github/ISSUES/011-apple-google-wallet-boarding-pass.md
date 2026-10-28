@@ -6,6 +6,7 @@
 ---
 
 ## Problem & Context
+
 Curated small-group experiences often take place in unique local venues, rooftop lounges, or subterranean spaces with weak cellular data connectivity. If an attendee cannot load the web application upon arrival, check-in can be delayed.
 
 Generating offline digital wallet passes (`.pkpass` for Apple Wallet and Google Wallet JWT passes) enables attendees to save their boarding pass with venue location, check-in QR code, and dynamic PIN directly into their smartphone wallet.
@@ -15,6 +16,7 @@ However, Yalla's core venue privacy invariant (eval-008) requires secret arrival
 ---
 
 ## User Story
+
 **As an** attendee,
 **I want** to tap "Add to Apple Wallet" or "Add to Google Wallet",
 **So that** I can view my booking details offline, and have my venue directions, GPS geofence, and check-in PIN automatically unlock once attendance is reconfirmed within 24 hours of the experience.
@@ -24,6 +26,7 @@ However, Yalla's core venue privacy invariant (eval-008) requires secret arrival
 ## Technical Architecture & Scope
 
 ### 1. Apple Wallet Pass Generator (`backend/src/services/appleWallet.service.ts`)
+
 - Use `passkit-generator` to compile `.pkpass` ZIP packages containing `pass.json`, icons, and cryptographic signatures signed by Apple Pass Type ID certificate.
 - Pass Type: Event Ticket (`eventTicket`).
 - Fields & Venue Privacy Gating (eval-008 invariant):
@@ -40,21 +43,25 @@ However, Yalla's core venue privacy invariant (eval-008) requires secret arrival
     - Once reconfirmed within 24h, an Apple Push Notification Service (APNs) update pushes the updated pass payload containing exact GPS coordinates and address.
 
 ### 2. Google Wallet Pass API (`backend/src/services/googleWallet.service.ts`)
+
 - Generate Google Wallet JWT pass class and object using Google Wallet REST API and service account key.
 - Apply the same privacy gating: omit exact coordinates and venue address until 24h window + `reconfirmed` / `checked_in` state. Deliver updates via Google Wallet REST API patch.
 
 ### 3. Backend Pass Generation API (`backend/src/routes/wallet.routes.ts`)
+
 - `GET /api/v1/reservations/:id/wallet/apple`: Generates and streams `.pkpass` binary file (`Content-Type: application/vnd.apple.pkpass`), gating venue coordinates based on reservation state and 24h time threshold.
 - `GET /api/v1/reservations/:id/wallet/google`: Returns Google Wallet save URL with gated venue details.
 - `POST /api/v1/wallet/v1/passes/...`: Apple Wallet web service endpoints for pass registration and push updates upon reconfirmation.
 
 ### 4. Frontend Wallet Buttons (`src/components/WalletButtons.tsx`)
+
 - Render official "Add to Apple Wallet" and "Add to Google Wallet" badges on the Booking Confirmation and Arrival Mode screens (`/arrival/:reservationId`).
 - Display privacy badge explaining that exact venue GPS coordinates will unlock in wallet 24 hours prior upon reconfirmation.
 
 ---
 
 ## Acceptance Criteria
+
 - [ ] Apple Wallet PKPASS generated cleanly with valid signature, icon assets, and barcode payload.
 - [ ] Google Wallet JWT pass link generated and redirects smoothly to Google Wallet app.
 - [ ] **Venue Privacy Gating (eval-008 invariant)**: Pass generation must NOT embed exact GPS coordinates, geofences (`relevantLocations`), or street address until 24h before event AND reservation state is `reconfirmed` or `checked_in`.
@@ -65,6 +72,7 @@ However, Yalla's core venue privacy invariant (eval-008) requires secret arrival
 ---
 
 ## Testing Requirements
+
 - [ ] Add unit tests in `backend/tests/unit/services/wallet.service.test.ts` verifying that pre-24h or unconfirmed reservations omit exact GPS coordinates and venue address, while reconfirmed reservations within 24h include them.
 - [ ] Add integration tests in `backend/tests/unit/routes/wallet.routes.test.ts`.
 - [ ] Verify test suite passes: `npm run typecheck`, `npm test -- tests/unit`, and `node evals/check.js`.
@@ -72,5 +80,6 @@ However, Yalla's core venue privacy invariant (eval-008) requires secret arrival
 ---
 
 ## SDLC & Security Guardrails
+
 - **Venue Privacy (eval-008 invariant)**: Guard venue privacy by ensuring pass generation never leaks exact coordinates or venue address prior to 24 hours before event start and attendance reconfirmation (`reconfirmed` or `checked_in` state).
 - **Security**: Embed short-lived, cryptographically signed JWT tokens in pass QR codes to prevent unauthorized ticket duplication or forgery.

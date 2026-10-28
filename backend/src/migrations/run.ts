@@ -3,6 +3,7 @@ import runMigrations002 from './002_add_payments_table';
 import runMigrations003 from './003_add_receipt_url_to_payments';
 import runMigrations004 from './004_add_rewards_table';
 import runMigrations005 from './005_add_refunds_table';
+import runMigrations006 from './006_add_refresh_tokens';
 import logger from '../utils/logger';
 
 async function main() {
@@ -14,6 +15,7 @@ async function main() {
     await runMigrations003();
     await runMigrations004();
     await runMigrations005();
+    await runMigrations006();
     logger.info('✅ All migrations completed successfully');
     process.exit(0);
   } catch (error) {

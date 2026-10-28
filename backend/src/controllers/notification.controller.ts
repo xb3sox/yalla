@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth.middleware';
 import notificationModel from '../models/notification.model';
 import logger from '../utils/logger';
 import { EmailService } from '../services/email.service';
+import { parsePagination } from '../utils/pagination';
 
 /**
  * Get user notifications
@@ -19,8 +20,7 @@ export const getUserNotifications = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    const limit = parseInt(req.query.limit as string) || 50;
-    const offset = parseInt(req.query.offset as string) || 0;
+    const { limit, offset } = parsePagination(req.query);
 
     const notifications = await notificationModel.findByRecipient(
       req.user.userId,

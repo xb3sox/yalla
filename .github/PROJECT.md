@@ -28,30 +28,35 @@ This specification defines the GitHub Projects v2 board architecture for Yalla. 
 ## 3. Project Views & Views Configuration
 
 ### View 1: 🚀 Product Roadmap Timeline (Roadmap)
+
 - **Layout**: Roadmap / Timeline View
 - **Group By**: `Phase`
 - **Fields Shown**: `Title`, `Status`, `Priority`, `Module / Pillar`, `Assignees`
 - **Purpose**: Strategic view for executive leadership showing quarterly delivery milestones (Q1 2027, Q2 2027, Q3 2027).
 
 ### View 2: 🤖 Jules Autonomous Queue (Board)
+
 - **Layout**: Kanban Board
 - **Filter**: `is:issue status:"📋 Backlog" label:backlog`
 - **Sort**: `Priority` (P0 -> P3), `Created` (Ascending)
 - **Purpose**: High-throughput queue consumed by `.github/workflows/jules-dispatch.yml` every 30 minutes.
 
 ### View 3: 🔄 AI-Native SDLC Board (Board)
+
 - **Layout**: Kanban Board
 - **Group By**: `SDLC Stage`
 - **Columns**: `Stage 1: Intent` | `Stage 2: Spec` | `Stage 3: Plan/Build` | `Stage 4: Test/Evals` | `Stage 5: Deploy` | `Stage 6: Maintenance`
 - **Purpose**: Real-time visualization of artifacts moving through stage gates (`intent/`, `specs/`, `plans/`, PR, evals).
 
 ### View 4: 📊 Architecture & Module Matrix (Table)
+
 - **Layout**: Table View
 - **Group By**: `Module / Pillar`
 - **Columns**: `Title`, `Status`, `Phase`, `Priority`, `Estimate`, `SDLC Stage`, `Assignees`
 - **Purpose**: Full database view for engineering planning and workload balancing across all 9 architectural pillars (including `Platform & Infrastructure`).
 
 ### View 5: ⚡ Active Sprint Board (Board)
+
 - **Layout**: Kanban Board
 - **Group By**: `Status`
 - **WIP Limits**: `🏗️ In Progress (Jules)` max 3, `👀 In Review` max 5
@@ -86,6 +91,7 @@ graph TD
 ## 5. Synchronizer Integration (`scripts/setup-github-project.js`)
 
 Run the automated setup script to provision fields, configure views, and sync repository issues:
+
 ```bash
 node scripts/setup-github-project.js --dry-run
 ```

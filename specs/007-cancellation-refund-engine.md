@@ -8,9 +8,11 @@
 ---
 
 ## 1. Executive Summary
+
 This feature automates attendee cancellations, rule-based partial/full refund calculation, instant Stripe refund processing, and waitlist backfilling.
 
 ## 2. Requirements & Domain Logic
+
 - **Refund Policy Rules Matrix**:
   - `> 48 Hours Before Event Start`: 100% refund of base fee (`tier: 'full'`).
   - `24 to 48 Hours Before Event Start`: 50% partial refund (`tier: 'partial'`).
@@ -24,6 +26,7 @@ This feature automates attendee cancellations, rule-based partial/full refund ca
   - Promotes highest priority waitlisted reservation from `waitlisted` -> `offered` with `expiry_at` set to 2 hours from now.
 
 ## 3. Technical Design & Architecture
+
 - **Database Schema**:
   - Table `refunds` with `UNIQUE(reservation_id, stripe_refund_id)`.
 - **Backend Services**:
@@ -36,6 +39,7 @@ This feature automates attendee cancellations, rule-based partial/full refund ca
   - Authorized for reservation owner or staff (`staff`, `admin`, `operations`, `support`).
 
 ## 4. Policy Constraints & Compliance
+
 - **Security & Financial Integrity**:
   - Idempotent Stripe refunds.
   - Constraint `UNIQUE(reservation_id, stripe_refund_id)`.
@@ -43,4 +47,5 @@ This feature automates attendee cancellations, rule-based partial/full refund ca
   - Immutable append-only audit event in `audit_events`.
 
 ## 5. Areas of Concern & Tradeoffs
+
 - Concurrency: Atomically acquire row locks (`SELECT ... FOR UPDATE`) on reservation and experience rows during cancellation to prevent race conditions during state transitions and waitlist promotions.

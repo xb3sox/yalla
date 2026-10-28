@@ -242,10 +242,33 @@ export const processRefund = async (req: AuthRequest, res: Response) => {
 export const handleStripeWebhook = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'];
 
+  if (!config.stripe.webhookSecret) {
+    logger.error('Stripe webhook received but STRIPE_WEBHOOK_SECRET is not configured');
+    return res.status(503).json({
+      success: false,
+      error: {
+        code: 'WEBHOOK_NOT_CONFIGURED',
+        message: 'Webhook endpoint is not configured',
+      },
+    });
+  }
+
+  if (!sig) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'MISSING_SIGNATURE',
+        message: 'Missing Stripe signature header',
+      },
+    });
+  }
+
   try {
+    // Verify against the raw bytes; a parsed object cannot reproduce the signed payload.
+    const payload = (req as any).rawBody ?? req.body;
     const event = stripe.webhooks.constructEvent(
-      req.body,
-      sig!,
+      payload,
+      sig,
       config.stripe.webhookSecret
     );
 
@@ -254,11 +277,12 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
     res.json({ received: true });
   } catch (error: any) {
     logger.error('Stripe webhook failed', { error: error.message });
+    // Never echo verification internals back to an unauthenticated caller.
     res.status(400).json({
       success: false,
       error: {
         code: 'WEBHOOK_FAILED',
-        message: `Webhook Error: ${error.message}`,
+        message: 'Webhook signature verification failed',
       },
     });
   }

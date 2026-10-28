@@ -6,6 +6,7 @@
 ---
 
 ## Problem & Context
+
 Currently, when a confirmed attendee cancels a reservation, staff operations must manually calculate refund eligibility, issue Stripe refunds, update database records, and manually check if waitlisted attendees can be promoted.
 
 An automated, rule-based cancellation and refund engine is required to enforce Yalla's tier-based cancellation policy, process partial/full Stripe refunds instantly, and automatically backfill canceled spots from the waitlist queue.
@@ -13,6 +14,7 @@ An automated, rule-based cancellation and refund engine is required to enforce Y
 ---
 
 ## User Story
+
 **As an** attendee or staff member,
 **I want** cancellations to automatically calculate eligible refund percentages based on notice period and issue Stripe refunds instantly,
 **So that** refund processing is immediate, transparent, and backfills the waitlist without manual operational overhead.
@@ -22,12 +24,14 @@ An automated, rule-based cancellation and refund engine is required to enforce Y
 ## Technical Architecture & Scope
 
 ### 1. Cancellation Policy Rules Matrix
+
 - **>48 Hours Before Event Start**: 100% refund of base experience fee.
 - **24 to 48 Hours Before Event Start**: 50% partial refund.
 - **<24 Hours Before Event Start**: 0% refund (non-refundable window; spot released).
 - **Host / Yalla Operational Cancellation**: 100% full refund + bonus loyalty points credit.
 
 ### 2. Core Service (`backend/src/services/cancellation.service.ts`)
+
 - `calculateRefundAmount(reservation, eventStartTime)`: Determines eligible refund amount and policy tier.
 - `executeCancellation(reservationId, canceledBy, reason)`:
   1. Executes PostgreSQL transaction adhering to `ReservationStateMachine.ts` and `reservation.model.ts`:
@@ -41,12 +45,14 @@ An automated, rule-based cancellation and refund engine is required to enforce Y
   5. Writes immutable audit record to `audit_events` (not `audit_logs`) and dispatches localized SMS/notification receipt to user.
 
 ### 3. API Endpoint (`POST /api/v1/reservations/:id/cancel`)
+
 - Endpoint schema validation using Zod.
 - Require authentication (`req.user.id === reservation.user_id` OR `req.user.role IN ('staff', 'admin')`).
 
 ---
 
 ## Acceptance Criteria
+
 - [ ] Cancellation endpoint enforces role authorization and validates current reservation state (`confirmed` or `reconfirmed`).
 - [ ] State lifecycle strictly adheres to `ReservationStateMachine.ts` and `reservation.model.ts`: column is `state` (not `status`).
 - [ ] Valid cancellation transitions follow: `cancelled_by_participant` or `cancelled_by_yalla` -> `refund_pending` -> `refunded`.
@@ -59,6 +65,7 @@ An automated, rule-based cancellation and refund engine is required to enforce Y
 ---
 
 ## Testing Requirements
+
 - [ ] Add unit tests in `backend/tests/unit/services/cancellation.service.test.ts` testing time-based refund calculations, state transitions (`cancelled_by_participant`/`cancelled_by_yalla` -> `refund_pending` -> `refunded`), and Stripe mocks.
 - [ ] Add integration test in `backend/tests/unit/routes/cancellation.routes.test.ts`.
 - [ ] Verify test suite passes: `npm run typecheck`, `npm test -- tests/unit`, and `node evals/check.js`.
@@ -66,5 +73,6 @@ An automated, rule-based cancellation and refund engine is required to enforce Y
 ---
 
 ## SDLC & Security Guardrails
+
 - **Financial Invariants**: Never issue duplicate refunds for the same `payment_intent_id`; enforce database constraint `UNIQUE(reservation_id, stripe_refund_id)`.
 - **Auditability**: Every cancellation and refund event must write an immutable record to `audit_events` (strictly appending to `audit_events`, not `audit_logs`) capturing `actor_id`, `event_type`, `resource_id`, `metadata` (refund amount, tier, IP address), and timestamp.

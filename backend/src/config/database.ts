@@ -9,7 +9,10 @@ const poolConfig: PoolConfig = {
   connectionTimeoutMillis: 5000,
   statement_timeout: 10000,
   query_timeout: 10000,
-  ssl: config.env === 'production' && !config.database.url.includes('localhost') ? { rejectUnauthorized: false } : undefined,
+  ssl:
+    config.env === 'production' && !config.database.url.includes('localhost')
+      ? { rejectUnauthorized: config.database.sslRejectUnauthorized !== false }
+      : undefined,
 };
 
 const pool = new Pool(poolConfig);

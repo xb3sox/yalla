@@ -104,7 +104,7 @@ npm run test:coverage
 
 All protected endpoints require a JWT token in the Authorization header:
 
-```
+```http
 Authorization: Bearer <access_token>
 ```
 
