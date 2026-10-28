@@ -1,53 +1,45 @@
 import notificationModel from '../../src/models/notification.model';
 import userModel from '../../src/models/user.model';
-import pool from '../../src/config/database';
 
+// Rewritten against the current model contract: notifications carry
+// body/body_ar and a delivery lifecycle (queued -> sent -> delivered /
+// failed). "Unread" means state='queued'; there is no read flag and no
+// delete (the previous suite tested a removed API generation).
 describe('Notification Model', () => {
   let testUserId: string;
   let testNotificationId: string;
 
   beforeAll(async () => {
-    // Create test user
     const user = await userModel.create({
       phone: '+966507777777',
       password: 'password123',
-      displayName: 'Notification Test User',
+      display_name: 'Notification Test User',
       language: 'en',
-      adultDeclarationAccepted: true,
-      termsAccepted: true,
-    });
+      adult_declaration_accepted: true,
+      terms_accepted: true,
+    } as any);
     testUserId = user.id;
   });
 
-  afterAll(async () => {
-    // Clean up
-    if (testNotificationId) {
-      await pool.query('DELETE FROM notifications WHERE id = $1', [testNotificationId]);
-    }
-    await pool.query('DELETE FROM users WHERE id = $1', [testUserId]);
-  });
+  // No per-file cleanup: tests/setup.ts wipes all tables before each file.
 
   describe('create', () => {
-    it('should create a notification', async () => {
+    it('should create a notification in queued state', async () => {
       const notification = await notificationModel.create({
-        recipientId: testUserId,
-        type: 'booking_confirmation',
+        recipient_id: testUserId,
+        type: 'email',
         title: 'Booking Confirmed',
-        titleAr: 'تم تأكيد الحجز',
-        message: 'Your booking has been confirmed',
-        messageAr: 'تم تأكيد حجزك',
-        relatedEntityType: 'reservation',
-        relatedEntityId: 'test-reservation-id',
-      });
+        title_ar: 'تم تأكيد الحجز',
+        body: 'Your booking has been confirmed',
+        body_ar: 'تم تأكيد حجزك',
+      } as any);
 
-      expect(notification).toBeDefined();
       expect(notification.id).toBeDefined();
-      expect(notification.recipientId).toBe(testUserId);
-      expect(notification.type).toBe('booking_confirmation');
+      expect(notification.recipient_id).toBe(testUserId);
+      expect(notification.type).toBe('email');
       expect(notification.title).toBe('Booking Confirmed');
-      expect(notification.titleAr).toBe('تم تأكيد الحجز');
-      expect(notification.status).toBe('pending');
-      expect(notification.read).toBe(false);
+      expect(notification.body).toBe('Your booking has been confirmed');
+      expect(notification.state).toBe('queued');
 
       testNotificationId = notification.id;
     });
@@ -56,10 +48,8 @@ describe('Notification Model', () => {
   describe('findById', () => {
     it('should find notification by ID', async () => {
       const notification = await notificationModel.findById(testNotificationId);
-
-      expect(notification).toBeDefined();
       expect(notification?.id).toBe(testNotificationId);
-      expect(notification?.recipientId).toBe(testUserId);
+      expect(notification?.recipient_id).toBe(testUserId);
     });
 
     it('should return null for non-existent ID', async () => {
@@ -70,215 +60,110 @@ describe('Notification Model', () => {
     });
   });
 
-  describe('findByRecipient', () => {
-    it('should find notifications by recipient ID', async () => {
-      // Create multiple notifications
-      await notificationModel.create({
-        recipientId: testUserId,
-        type: 'reminder',
-        title: 'Reminder',
-        titleAr: 'تذكير',
-        message: 'Experience starts soon',
-        messageAr: 'التجربة تبدأ قريباً',
-      });
-
+  describe('findByRecipient / getUnreadCount', () => {
+    it('should find notifications by recipient and count unread (queued)', async () => {
       const notifications = await notificationModel.findByRecipient(testUserId);
-
-      expect(notifications).toBeDefined();
-      expect(Array.isArray(notifications)).toBe(true);
       expect(notifications.length).toBeGreaterThan(0);
-      expect(notifications.every((n) => n.recipientId === testUserId)).toBe(true);
+      expect(notifications.every((n) => n.recipient_id === testUserId)).toBe(true);
+
+      const unread = await notificationModel.getUnreadCount(testUserId);
+      expect(unread).toBeGreaterThan(0);
     });
 
-    it('should return empty array for user with no notifications', async () => {
-      const newUser = await userModel.create({
-        phone: '+966506666666',
-        password: 'password123',
-        displayName: 'No Notifications User',
-        language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
-      });
-
-      const notifications = await notificationModel.findByRecipient(newUser.id);
-
-      expect(notifications).toBeDefined();
-      expect(Array.isArray(notifications)).toBe(true);
-      expect(notifications.length).toBe(0);
-
-      await pool.query('DELETE FROM users WHERE id = $1', [newUser.id]);
+    it('should respect limit and offset', async () => {
+      const page = await notificationModel.findByRecipient(testUserId, 1, 0);
+      expect(page.length).toBe(1);
     });
   });
 
-  describe('getUnreadCount', () => {
-    it('should get unread notification count', async () => {
-      const count = await notificationModel.getUnreadCount(testUserId);
+  describe('delivery lifecycle', () => {
+    it('should mark as sent, then delivered (drops unread count)', async () => {
+      const sent = await notificationModel.markAsSent(testNotificationId);
+      expect(sent.state).toBe('sent');
+      expect(sent.sent_at).toBeDefined();
 
-      expect(count).toBeDefined();
-      expect(typeof count).toBe('number');
-      expect(count).toBeGreaterThan(0);
-    });
-  });
-
-  describe('markAsRead', () => {
-    it('should mark notification as read', async () => {
-      const notification = await notificationModel.create({
-        recipientId: testUserId,
-        type: 'test',
-        title: 'Test',
-        titleAr: 'اختبار',
-        message: 'Test message',
-        messageAr: 'رسالة اختبار',
-      });
-
-      const updated = await notificationModel.markAsRead(notification.id);
-
-      expect(updated).toBeDefined();
-      expect(updated.read).toBe(true);
-      expect(updated.readAt).toBeDefined();
+      const before = await notificationModel.getUnreadCount(testUserId);
+      const delivered = await notificationModel.markAsDelivered(testNotificationId);
+      expect(delivered.state).toBe('delivered');
+      expect(delivered.delivered_at).toBeDefined();
+      expect(await notificationModel.getUnreadCount(testUserId)).toBe(before);
     });
 
-    it('should throw error for non-existent notification', async () => {
+    it('should mark as failed', async () => {
+      const created = await notificationModel.create({
+        recipient_id: testUserId,
+        type: 'sms',
+        title: 'Failure probe',
+        title_ar: 'اختبار',
+        body: 'will fail',
+        body_ar: 'سيفشل',
+      } as any);
+
+      const failed = await notificationModel.markAsFailed(created.id, 'provider down');
+      expect(failed.state).toBe('failed');
+    });
+
+    it('should throw when sending a non-existent notification', async () => {
       await expect(
-        notificationModel.markAsRead('00000000-0000-0000-0000-000000000000')
+        notificationModel.send('00000000-0000-0000-0000-000000000000', 'email')
       ).rejects.toThrow('Notification not found');
     });
   });
 
-  describe('markAllAsRead', () => {
-    it('should mark all notifications as read for user', async () => {
-      // Create multiple unread notifications
-      await notificationModel.create({
-        recipientId: testUserId,
-        type: 'test1',
-        title: 'Test 1',
-        titleAr: 'اختبار 1',
-        message: 'Test message 1',
-        messageAr: 'رسالة اختبار 1',
-      });
-
-      await notificationModel.create({
-        recipientId: testUserId,
-        type: 'test2',
-        title: 'Test 2',
-        titleAr: 'اختبار 2',
-        message: 'Test message 2',
-        messageAr: 'رسالة اختبار 2',
-      });
-
-      const count = await notificationModel.markAllAsRead(testUserId);
-
-      expect(count).toBeDefined();
-      expect(typeof count).toBe('number');
-      expect(count).toBeGreaterThan(0);
-
-      // Verify all are read
-      const unreadCount = await notificationModel.getUnreadCount(testUserId);
-      expect(unreadCount).toBe(0);
-    });
-  });
-
-  describe('delete', () => {
-    it('should delete notification', async () => {
-      const notification = await notificationModel.create({
-        recipientId: testUserId,
-        type: 'to_delete',
-        title: 'To Delete',
-        titleAr: 'للحذف',
-        message: 'This will be deleted',
-        messageAr: 'سيتم حذف هذا',
-      });
-
-      await notificationModel.delete(notification.id);
-
-      const deleted = await notificationModel.findById(notification.id);
-      expect(deleted).toBeNull();
-    });
-
-    it('should throw error for non-existent notification', async () => {
-      await expect(
-        notificationModel.delete('00000000-0000-0000-0000-000000000000')
-      ).rejects.toThrow('Notification not found');
-    });
-  });
-
-  describe('sendBookingConfirmation', () => {
-    it('should send booking confirmation notification', async () => {
+  describe('templated senders (createAndSend)', () => {
+    it('should send booking confirmation', async () => {
       const notification = await notificationModel.sendBookingConfirmation(
         testUserId,
-        'Test Experience',
-        'تجربة اختبارية',
-        '2026-03-01',
-        '10:00'
+        'Sunset Art Walk',
+        'جولة فنية',
+        '2027-03-01',
+        '17:00'
       );
 
-      expect(notification).toBeDefined();
-      expect(notification.recipientId).toBe(testUserId);
-      expect(notification.type).toBe('booking_confirmation');
-      expect(notification.title).toContain('Test Experience');
-      expect(notification.titleAr).toContain('تجربة اختبارية');
-    });
-  });
+      expect(notification.title).toBe('Booking Confirmed');
+      expect(notification.type).toBe('email');
 
-  describe('sendReconfirmationReminder', () => {
-    it('should send reconfirmation reminder notification', async () => {
+      const stored = await notificationModel.findById(notification.id);
+      expect(stored?.state).toBe('sent');
+      expect(stored?.body).toContain('Sunset Art Walk');
+    });
+
+    it('should send reconfirmation reminder', async () => {
       const notification = await notificationModel.sendReconfirmationReminder(
         testUserId,
-        'Test Experience',
-        'تجربة اختبارية',
-        '2026-02-28'
+        'Sunset Art Walk',
+        'جولة فنية',
+        '2027-02-28'
       );
-
-      expect(notification).toBeDefined();
-      expect(notification.recipientId).toBe(testUserId);
-      expect(notification.type).toBe('reconfirmation_reminder');
-      expect(notification.title).toContain('Test Experience');
+      expect(notification.title).toBe('Reconfirmation Required');
     });
-  });
 
-  describe('sendCancellationNotification', () => {
     it('should send cancellation notification', async () => {
       const notification = await notificationModel.sendCancellationNotification(
         testUserId,
-        'Test Experience',
-        'تجربة اختبارية'
+        'Sunset Art Walk',
+        'جولة فنية'
       );
-
-      expect(notification).toBeDefined();
-      expect(notification.recipientId).toBe(testUserId);
-      expect(notification.type).toBe('cancellation');
-      expect(notification.title).toContain('Test Experience');
+      expect(notification.title).toBe('Booking Cancelled');
     });
-  });
 
-  describe('sendWaitlistNotification', () => {
     it('should send waitlist notification', async () => {
       const notification = await notificationModel.sendWaitlistNotification(
         testUserId,
-        'Test Experience',
-        'تجربة اختبارية'
+        'Sunset Art Walk',
+        'جولة فنية'
       );
-
-      expect(notification).toBeDefined();
-      expect(notification.recipientId).toBe(testUserId);
-      expect(notification.type).toBe('waitlist');
-      expect(notification.title).toContain('Test Experience');
+      expect(notification.title).toBe('Added to Waitlist');
     });
-  });
 
-  describe('sendSeatOfferedNotification', () => {
     it('should send seat offered notification', async () => {
       const notification = await notificationModel.sendSeatOfferedNotification(
         testUserId,
-        'Test Experience',
-        'تجربة اختبارية',
-        '2026-02-28'
+        'Sunset Art Walk',
+        'جولة فنية',
+        '2027-02-28'
       );
-
-      expect(notification).toBeDefined();
-      expect(notification.recipientId).toBe(testUserId);
-      expect(notification.type).toBe('seat_offered');
-      expect(notification.title).toContain('Test Experience');
+      expect(notification.title).toBe('Seat Offered');
     });
   });
 });

@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/xb3sox/yalla/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/xb3sox/yalla/actions/workflows/ci-cd.yml)
 [![Agent evals](https://github.com/xb3sox/yalla/actions/workflows/agent-evals.yml/badge.svg)](https://github.com/xb3sox/yalla/actions/workflows/agent-evals.yml)
-[![Node 20](https://img.shields.io/badge/node-20_LTS-5FA04E?logo=node.js&logoColor=white)](https://nodejs.org)
+[![Node 22](https://img.shields.io/badge/node-22_LTS-5FA04E?logo=node.js&logoColor=white)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![WCAG 2.2 AA](https://img.shields.io/badge/WCAG-2.2_AA-0A7B4F)](https://www.w3.org/TR/WCAG22/)
 [![Proprietary](https://img.shields.io/badge/license-proprietary-lightgrey)](./LICENSE)
@@ -41,15 +41,15 @@ built to WCAG 2.2 AA.
 | Layer | Stack |
 | --- | --- |
 | Frontend | React 18, Vite 6, TypeScript 5, Tailwind CSS 4, PWA |
-| Backend | Node.js 20, Express 4, TypeScript, Zod, JWT in HttpOnly cookies |
-| Data | PostgreSQL 15, Redis 7 for rate limiting and cache (optional) |
+| Backend | Node.js 22, Express 4, TypeScript, Zod, JWT in HttpOnly cookies |
+| Data | PostgreSQL 17 (Redis planned for distributed rate limiting — see issue 014; limiter is in-memory today) |
 | Payments | Stripe payment intents and webhooks |
 | Testing | Vitest, Testing Library, Jest, Supertest, axe |
 | Delivery | GitHub Actions, Docker, Nginx |
 
 ## Getting started
 
-**Prerequisites:** Node.js 20 (pinned in `.nvmrc`), npm 9+, and PostgreSQL 15.
+**Prerequisites:** Node.js 22 (pinned in `.nvmrc`), npm 9+, and PostgreSQL 17.
 Docker can supply PostgreSQL and Redis for you.
 
 ### 1. Install
@@ -57,7 +57,7 @@ Docker can supply PostgreSQL and Redis for you.
 ```bash
 git clone https://github.com/xb3sox/yalla.git
 cd yalla
-nvm use                       # Node 20
+nvm use                       # Node 22
 npm ci
 npm ci --prefix backend
 ```
@@ -129,7 +129,7 @@ browser). Backend settings live in `backend/.env`. Full defaults are in
 | `JWT_SECRET`, `JWT_REFRESH_SECRET` | `backend/.env` | Token signing keys — use long random values |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | `backend/.env` | Payments and webhook verification |
 | `CORS_ORIGIN` | `backend/.env` | Allowed frontend origin |
-| `REDIS_URL` | `backend/.env` | Distributed rate limiting and cache (optional) |
+| `REDIS_URL` | `backend/.env` | Reserved for distributed rate limiting (not yet wired; issue 014) |
 | `API_VERSION`, `PORT` | `backend/.env` | Route prefix (default `v1`) and listen port |
 
 > [!NOTE]
@@ -141,7 +141,7 @@ browser). Backend settings live in `backend/.env`. Full defaults are in
 ```mermaid
 graph LR
     Client["Browser / PWA<br/>React + Vite"] -->|"REST / JSON"| API["Express API<br/>TypeScript"]
-    API -->|"SQL (pooled)"| DB[("PostgreSQL 15")]
+    API -->|"SQL (pooled)"| DB[("PostgreSQL 17")]
     API -->|"Cache & rate limits"| Redis[("Redis 7")]
     API -->|"Payment intents<br/>Webhooks"| Stripe["Stripe"]
 ```
@@ -177,14 +177,14 @@ Destructive operations fail closed, and the API shuts down gracefully on
 | Type check | `npm run typecheck` | `npm run typecheck --prefix backend` |
 | Markdown lint | `npm run lint:md` | — |
 | Lint | — | `npm run lint --prefix backend` |
-| Unit tests | `npx vitest run` | `npm test --prefix backend -- tests/unit` |
+| Unit tests | `npm test` | `npm test --prefix backend -- tests/unit` |
 | Coverage | `npm run test:coverage` | `npm run test:coverage --prefix backend` |
 | Invariant evals | `node evals/check.js` | — |
 
 > [!IMPORTANT]
-> Bare `npm test` starts Vitest in watch mode — use `npx vitest run` for a
-> single pass. Backend API and end-to-end suites require a live `DATABASE_URL`
-> and an applied schema; `tests/unit` runs without a database.
+> Backend API/model/e2e suites require a live `DATABASE_URL` and an applied
+> schema, and must run serially (`-- --runInBand`); `tests/unit` runs without
+> a database.
 
 ## Continuous integration
 
@@ -222,7 +222,7 @@ Run the same gates as CI before opening a pull request:
 ```bash
 npm run typecheck
 npm run lint:md
-npx vitest run
+npm test
 npm run typecheck --prefix backend
 npm run lint --prefix backend
 npm test --prefix backend -- tests/unit

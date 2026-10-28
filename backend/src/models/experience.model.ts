@@ -113,11 +113,12 @@ class ExperienceModel {
         language, price, currency, included, included_ar, excluded, excluded_ar,
         accessibility, accessibility_ar, physical_demand, environment, environment_ar,
         noise_level, host_role, host_role_ar, requirements, requirements_ar,
-        cancellation_summary, cancellation_summary_ar, image_url, capacity, min_attendance
+        cancellation_summary, cancellation_summary_ar, image_url, capacity, min_attendance,
+        plan_state
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
         $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29,
-        $30, $31, $32, $33, $34
+        $30, $31, $32, $33, $34, $35
       )
       RETURNING *
     `;
@@ -158,6 +159,12 @@ class ExperienceModel {
       input.image_url || anyIn.imageUrl || '',
       input.capacity,
       input.min_attendance ?? anyIn.minAttendance ?? 4,
+      // Without this every created experience was stuck in the DB default
+      // 'draft' — invisible in listings and unbookable. Only the entry
+      // states of EXPERIENCE_TRANSITIONS are accepted at creation time.
+      ['draft', 'review', 'published'].includes(input.plan_state || anyIn.planState)
+        ? input.plan_state || anyIn.planState
+        : 'draft',
     ];
     
     const result = await pool.query(query, values);
@@ -302,13 +309,32 @@ class ExperienceModel {
    * Update experience
    */
   async update(id: string, updates: Partial<CreateExperienceInput> | Record<string, any>): Promise<Experience> {
+    // Column names are interpolated into SQL, so they must come from a
+    // whitelist — never from caller-controlled keys. camelCase aliases are
+    // normalized to snake_case columns before validation.
+    const ALLOWED_COLUMNS = new Set([
+      'title', 'title_ar', 'description', 'description_ar', 'date', 'time',
+      'duration', 'duration_minutes', 'area', 'area_ar', 'group_size_min',
+      'group_size_max', 'language', 'price', 'currency', 'included',
+      'included_ar', 'excluded', 'excluded_ar', 'accessibility',
+      'accessibility_ar', 'physical_demand', 'environment', 'environment_ar',
+      'noise_level', 'host_role', 'host_role_ar', 'requirements',
+      'requirements_ar', 'cancellation_summary', 'cancellation_summary_ar',
+      'image_url', 'capacity', 'min_attendance', 'plan_state',
+      'primary_host_id', 'backup_host_id', 'primary_venue_id',
+      'fallback_venue_id',
+    ]);
+    const toSnakeCase = (key: string) =>
+      key.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
+
     const updates_list: string[] = [];
     const values: any[] = [];
     let paramCount = 1;
-    
+
     for (const [key, value] of Object.entries(updates)) {
-      if (value !== undefined) {
-        updates_list.push(`${key} = $${paramCount}`);
+      const column = toSnakeCase(key);
+      if (value !== undefined && ALLOWED_COLUMNS.has(column)) {
+        updates_list.push(`${column} = $${paramCount}`);
         values.push(Array.isArray(value) ? JSON.stringify(value) : value);
         paramCount++;
       }

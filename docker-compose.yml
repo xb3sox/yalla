@@ -1,14 +1,12 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: yalla-postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: yalla
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres} # dev only; set a real password outside local dev
+      POSTGRES_DB: ${POSTGRES_DB:-yalla}
     ports:
       - "5432:5432"
     volumes:
@@ -42,6 +40,9 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      # Dev command below (tsx watch) needs devDependencies, which only the
+      # builder stage installs; the production stage omits them.
+      target: builder
     container_name: yalla-backend
     environment:
       NODE_ENV: development
@@ -93,7 +94,7 @@ services:
 
   # Adminer (Database Management UI)
   adminer:
-    image: adminer:latest
+    image: adminer:5
     container_name: yalla-adminer
     ports:
       - "8080:8080"

@@ -13,43 +13,43 @@ describe('Reservation Model', () => {
     const user = await userModel.create({
       phone: '+966509999999',
       password: 'password123',
-      displayName: 'Test User',
+      display_name: 'Test User',
       language: 'en',
-      adultDeclarationAccepted: true,
-      termsAccepted: true,
+      adult_declaration_accepted: true,
+      terms_accepted: true,
     });
     testUserId = user.id;
 
     // Create test experience
     const experience = await experienceModel.create({
       title: 'Test Experience',
-      titleAr: 'تجربة اختبارية',
+      title_ar: 'تجربة اختبارية',
       description: 'Test description',
-      descriptionAr: 'وصف اختباري',
-      date: '2026-03-01',
+      description_ar: 'وصف اختباري',
+      date: '2027-03-01',
       time: '10:00',
       duration: '2 hours',
-      durationMinutes: 120,
+      duration_minutes: 120,
       area: 'Riyadh',
-      areaAr: 'الرياض',
-      groupSizeMin: 4,
-      groupSizeMax: 8,
+      area_ar: 'الرياض',
+      group_size_min: 4,
+      group_size_max: 8,
       language: 'en',
       price: 100,
       capacity: 8,
-      planState: 'published',
+      plan_state: 'published',
     });
     testExperienceId = experience.id;
   });
 
-  afterAll(async () => {
-    // Clean up
-    if (testReservationId) {
-      await pool.query('DELETE FROM reservations WHERE id = $1', [testReservationId]);
-    }
-    await pool.query('DELETE FROM experiences WHERE id = $1', [testExperienceId]);
-    await pool.query('DELETE FROM users WHERE id = $1', [testUserId]);
+  // The model allows only one ACTIVE reservation per participant+experience,
+  // so each test must start without leftovers from the previous one. Every
+  // suite below creates the reservation it needs.
+  beforeEach(async () => {
+    await pool.query('DELETE FROM reservations WHERE participant_id = $1', [testUserId]);
   });
+
+  // No per-file cleanup: tests/setup.ts wipes all tables before each file.
 
   describe('State Machine', () => {
     it('should allow valid state transitions', () => {
@@ -93,33 +93,33 @@ describe('Reservation Model', () => {
   describe('create', () => {
     it('should create a new reservation', async () => {
       const reservation = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-1',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-1',
       });
 
       expect(reservation).toBeDefined();
       expect(reservation.id).toBeDefined();
-      expect(reservation.participantId).toBe(testUserId);
-      expect(reservation.experienceId).toBe(testExperienceId);
+      expect(reservation.participant_id).toBe(testUserId);
+      expect(reservation.experience_id).toBe(testExperienceId);
       expect(reservation.state).toBe('initiated');
-      expect(reservation.paymentState).toBe('initiated');
-      expect(reservation.idempotencyKey).toBe('test-key-1');
+      expect(reservation.payment_state).toBe('initiated');
+      expect(reservation.idempotency_key).toBe('test-key-1');
 
       testReservationId = reservation.id;
     });
 
     it('should return existing reservation for duplicate idempotency key', async () => {
       const reservation1 = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'duplicate-key',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'duplicate-key',
       });
 
       const reservation2 = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'duplicate-key',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'duplicate-key',
       });
 
       expect(reservation1.id).toBe(reservation2.id);
@@ -127,16 +127,16 @@ describe('Reservation Model', () => {
 
     it('should prevent duplicate active reservations', async () => {
       await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-2',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-2',
       });
 
       await expect(
         reservationModel.create({
-          participantId: testUserId,
-          experienceId: testExperienceId,
-          idempotencyKey: 'test-key-3',
+          participant_id: testUserId,
+          experience_id: testExperienceId,
+          idempotency_key: 'test-key-3',
         })
       ).rejects.toThrow('Active reservation already exists');
     });
@@ -145,16 +145,16 @@ describe('Reservation Model', () => {
   describe('findById', () => {
     it('should find reservation by ID', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-find',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-find',
       });
 
       const reservation = await reservationModel.findById(created.id);
 
       expect(reservation).toBeDefined();
       expect(reservation?.id).toBe(created.id);
-      expect(reservation?.participantId).toBe(testUserId);
+      expect(reservation?.participant_id).toBe(testUserId);
     });
 
     it('should return null for non-existent ID', async () => {
@@ -167,32 +167,44 @@ describe('Reservation Model', () => {
 
   describe('findByParticipant', () => {
     it('should find all reservations for a participant', async () => {
+      await reservationModel.create({
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'find-by-participant',
+      } as any);
+
       const reservations = await reservationModel.findByParticipant(testUserId);
 
       expect(reservations).toBeDefined();
       expect(Array.isArray(reservations)).toBe(true);
       expect(reservations.length).toBeGreaterThan(0);
-      expect(reservations.every((r) => r.participantId === testUserId)).toBe(true);
+      expect(reservations.every((r) => r.participant_id === testUserId)).toBe(true);
     });
   });
 
   describe('findByExperience', () => {
     it('should find all reservations for an experience', async () => {
+      await reservationModel.create({
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'find-by-experience',
+      } as any);
+
       const reservations = await reservationModel.findByExperience(testExperienceId);
 
       expect(reservations).toBeDefined();
       expect(Array.isArray(reservations)).toBe(true);
       expect(reservations.length).toBeGreaterThan(0);
-      expect(reservations.every((r) => r.experienceId === testExperienceId)).toBe(true);
+      expect(reservations.every((r) => r.experience_id === testExperienceId)).toBe(true);
     });
   });
 
   describe('updateState', () => {
     it('should update reservation state', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-update',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-update',
       });
 
       const updated = await reservationModel.updateState(created.id, 'payment_pending');
@@ -202,9 +214,9 @@ describe('Reservation Model', () => {
 
     it('should reject invalid state transitions', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-invalid',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-invalid',
       });
 
       await expect(
@@ -214,23 +226,23 @@ describe('Reservation Model', () => {
 
     it('should set confirmed_at when transitioning to confirmed', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-confirmed',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-confirmed',
       });
 
       await reservationModel.updateState(created.id, 'payment_pending');
       const confirmed = await reservationModel.updateState(created.id, 'confirmed');
 
       expect(confirmed.state).toBe('confirmed');
-      expect(confirmed.confirmedAt).toBeDefined();
+      expect(confirmed.confirmed_at).toBeDefined();
     });
 
     it('should set reconfirmed_at when transitioning to reconfirmed', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-reconfirmed',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-reconfirmed',
       });
 
       await reservationModel.updateState(created.id, 'payment_pending');
@@ -239,14 +251,14 @@ describe('Reservation Model', () => {
       const reconfirmed = await reservationModel.updateState(created.id, 'reconfirmed');
 
       expect(reconfirmed.state).toBe('reconfirmed');
-      expect(reconfirmed.reconfirmedAt).toBeDefined();
+      expect(reconfirmed.reconfirmed_at).toBeDefined();
     });
 
     it('should set checked_in_at when transitioning to checked_in', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-checked-in',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-checked-in',
       });
 
       await reservationModel.updateState(created.id, 'payment_pending');
@@ -256,14 +268,14 @@ describe('Reservation Model', () => {
       const checkedIn = await reservationModel.updateState(created.id, 'checked_in');
 
       expect(checkedIn.state).toBe('checked_in');
-      expect(checkedIn.checkedInAt).toBeDefined();
+      expect(checkedIn.checked_in_at).toBeDefined();
     });
 
     it('should set cancelled_at when cancelling', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-cancel',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-cancel',
       });
 
       const cancelled = await reservationModel.updateState(
@@ -272,16 +284,16 @@ describe('Reservation Model', () => {
       );
 
       expect(cancelled.state).toBe('cancelled_by_participant');
-      expect(cancelled.cancelledAt).toBeDefined();
+      expect(cancelled.cancelled_at).toBeDefined();
     });
   });
 
   describe('reconfirm', () => {
     it('should reconfirm reservation', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-reconfirm',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-reconfirm',
       });
 
       await reservationModel.updateState(created.id, 'payment_pending');
@@ -291,14 +303,14 @@ describe('Reservation Model', () => {
       const reconfirmed = await reservationModel.reconfirm(created.id);
 
       expect(reconfirmed.state).toBe('reconfirmed');
-      expect(reconfirmed.reconfirmedAt).toBeDefined();
+      expect(reconfirmed.reconfirmed_at).toBeDefined();
     });
 
     it('should reject reconfirmation if not in reconfirmation_required state', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-reconfirm-invalid',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-reconfirm-invalid',
       });
 
       await expect(reservationModel.reconfirm(created.id)).rejects.toThrow(
@@ -308,9 +320,9 @@ describe('Reservation Model', () => {
 
     it('should reject reconfirmation if expired', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-reconfirm-expired',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-reconfirm-expired',
       });
 
       await reservationModel.updateState(created.id, 'payment_pending');
@@ -332,40 +344,42 @@ describe('Reservation Model', () => {
   describe('cancel', () => {
     it('should cancel reservation by participant', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-cancel-participant',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-cancel-participant',
       });
 
       const cancelled = await reservationModel.cancel(created.id, 'participant');
 
       expect(cancelled.state).toBe('cancelled_by_participant');
-      expect(cancelled.cancelledAt).toBeDefined();
+      expect(cancelled.cancelled_at).toBeDefined();
     });
 
     it('should cancel reservation by yalla', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-cancel-yalla',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-cancel-yalla',
       });
 
       const cancelled = await reservationModel.cancel(created.id, 'yalla');
 
       expect(cancelled.state).toBe('cancelled_by_yalla');
-      expect(cancelled.cancelledAt).toBeDefined();
+      expect(cancelled.cancelled_at).toBeDefined();
     });
   });
 
   describe('getWaitlist', () => {
     it('should get waitlist for experience', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-waitlist',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-waitlist',
       });
 
-      await reservationModel.updateState(created.id, 'waitlisted');
+      // 'waitlisted' is entered at intake when an experience is full
+      // (createWithCapacityCheck), not via a state-machine transition.
+      await pool.query("UPDATE reservations SET state = 'waitlisted' WHERE id = $1", [created.id]);
 
       const waitlist = await reservationModel.getWaitlist(testExperienceId);
 
@@ -379,9 +393,9 @@ describe('Reservation Model', () => {
   describe('getRequiringReconfirmation', () => {
     it('should get reservations requiring reconfirmation', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-requiring-reconf',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-requiring-reconf',
       });
 
       await reservationModel.updateState(created.id, 'payment_pending');
@@ -400,9 +414,9 @@ describe('Reservation Model', () => {
   describe('expireOldReconfirmations', () => {
     it('should expire old reconfirmations', async () => {
       const created = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'test-key-expire',
+        participant_id: testUserId,
+        experience_id: testExperienceId,
+        idempotency_key: 'test-key-expire',
       });
 
       await reservationModel.updateState(created.id, 'payment_pending');

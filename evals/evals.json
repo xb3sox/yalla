@@ -117,5 +117,14 @@
       "DELETE FROM audit_logs"
     ],
     "description": "Ensures audit log model enforces immutable append-only records with no delete queries"
+  },
+  {
+    "id": "eval-011",
+    "name": "Body validation unwraps the {body} schema envelope",
+    "target": "backend/src/middleware/validation.middleware.ts",
+    "must_contain": [
+      "schema.parse({ body: req.body })"
+    ],
+    "description": "Regression guard: schemas are shaped z.object({body}), so validateBody must wrap req.body before parsing or every validated route 400s"
   }
 ]

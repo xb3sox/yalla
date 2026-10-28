@@ -10,64 +10,61 @@ describe('User Model', () => {
     await pool.query('DELETE FROM users WHERE phone = $1', [testPhone]);
   });
 
-  afterAll(async () => {
-    // Final cleanup
-    await pool.query('DELETE FROM users WHERE phone = $1', [testPhone]);
-  });
+  // No per-file cleanup: tests/setup.ts wipes all tables before each file.
 
   describe('create', () => {
     it('should create a new user', async () => {
       const user = await userModel.create({
         phone: testPhone,
         password: testPassword,
-        displayName: 'Test User',
+        display_name: 'Test User',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
       expect(user).toBeDefined();
       expect(user.id).toBeDefined();
       expect(user.phone).toBe(testPhone);
-      expect(user.displayName).toBe('Test User');
+      expect(user.display_name).toBe('Test User');
       expect(user.language).toBe('en');
       expect(user.role).toBe('participant');
-      expect(user.isActive).toBe(true);
+      expect(user.is_active).toBe(true);
     });
 
     it('should hash password', async () => {
       const user = await userModel.create({
         phone: testPhone,
         password: testPassword,
-        displayName: 'Test User',
+        display_name: 'Test User',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
-      expect(user.passwordHash).toBeDefined();
-      expect(user.passwordHash).not.toBe(testPassword);
-      expect(user.passwordHash.length).toBeGreaterThan(0);
+      expect(user.password_hash).toBeDefined();
+      expect(user.password_hash).not.toBe(testPassword);
+      expect(user.password_hash.length).toBeGreaterThan(0);
     });
 
     it('should throw error for duplicate phone', async () => {
       await userModel.create({
         phone: testPhone,
         password: testPassword,
-        displayName: 'Test User 1',
+        display_name: 'Test User 1',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
       await expect(
         userModel.create({
           phone: testPhone,
           password: testPassword,
-          displayName: 'Test User 2',
+          display_name: 'Test User 2',
           language: 'en',
-          adultDeclarationAccepted: true,
-          termsAccepted: true,
+          adult_declaration_accepted: true,
+          terms_accepted: true,
         })
       ).rejects.toThrow();
     });
@@ -78,17 +75,17 @@ describe('User Model', () => {
       await userModel.create({
         phone: testPhone,
         password: testPassword,
-        displayName: 'Test User',
+        display_name: 'Test User',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
       const user = await userModel.findByPhone(testPhone);
 
       expect(user).toBeDefined();
       expect(user?.phone).toBe(testPhone);
-      expect(user?.displayName).toBe('Test User');
+      expect(user?.display_name).toBe('Test User');
     });
 
     it('should return null for non-existent phone', async () => {
@@ -100,10 +97,10 @@ describe('User Model', () => {
       await userModel.create({
         phone: testPhone,
         password: testPassword,
-        displayName: 'Test User',
+        display_name: 'Test User',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
       await userModel.delete(testPhone);
@@ -118,10 +115,10 @@ describe('User Model', () => {
       const created = await userModel.create({
         phone: testPhone,
         password: testPassword,
-        displayName: 'Test User',
+        display_name: 'Test User',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
       const user = await userModel.findById(created.id);
@@ -142,23 +139,23 @@ describe('User Model', () => {
       const user = await userModel.create({
         phone: testPhone,
         password: testPassword,
-        displayName: 'Test User',
+        display_name: 'Test User',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
       const updated = await userModel.updatePreferences(user.id, {
-        preferredArea: 'Riyadh',
-        experienceLanguage: 'ar',
-        budgetMin: 200,
-        budgetMax: 500,
+        preferred_area: 'Riyadh',
+        experience_language: 'ar',
+        budget_min: 200,
+        budget_max: 500,
       });
 
-      expect(updated.preferredArea).toBe('Riyadh');
-      expect(updated.experienceLanguage).toBe('ar');
-      expect(updated.budgetMin).toBe(200);
-      expect(updated.budgetMax).toBe(500);
+      expect(updated.preferred_area).toBe('Riyadh');
+      expect(updated.experience_language).toBe('ar');
+      expect(updated.budget_min).toBe(200);
+      expect(updated.budget_max).toBe(500);
     });
   });
 
@@ -167,10 +164,10 @@ describe('User Model', () => {
       await userModel.create({
         phone: testPhone,
         password: testPassword,
-        displayName: 'Test User',
+        display_name: 'Test User',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
       await userModel.delete(testPhone);
@@ -185,10 +182,10 @@ describe('User Model', () => {
       const user = await userModel.create({
         phone: testPhone,
         password: testPassword,
-        displayName: 'Test User',
+        display_name: 'Test User',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
       const exported = await userModel.exportData(user.id);
@@ -199,7 +196,7 @@ describe('User Model', () => {
       expect(exported.reservations).toBeDefined();
       expect(exported.feedbacks).toBeDefined();
       expect(exported.favorites).toBeDefined();
-      expect(exported.exportedAt).toBeDefined();
+      expect(exported.exported_at).toBeDefined();
     });
   });
 });

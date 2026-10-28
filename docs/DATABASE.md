@@ -1,6 +1,6 @@
 # Yalla Database Schema Specification
 
-PostgreSQL 15 schema specification and migration guide.
+PostgreSQL 17 schema specification and migration guide.
 
 ---
 

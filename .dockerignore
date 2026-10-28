@@ -1,4 +1,5 @@
 node_modules
+**/node_modules
 dist
 coverage
 .git
@@ -6,3 +7,13 @@ coverage
 .env*
 *.log
 .codegraph
+# Root build context is frontend-only (backend has its own context)
+backend
+docs
+intent
+specs
+plans
+evals
+scripts
+.jules
+*.md

@@ -8,7 +8,7 @@ describe('Health Check API', () => {
     
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
-    expect(response.body.data.status).toBe('healthy');
+    expect(response.body.data.message).toBe('OK');
     expect(response.body.data.timestamp).toBeDefined();
     expect(response.body.data.environment).toBeDefined();
     expect(response.body.data.version).toBe('1.0.0');
@@ -21,11 +21,9 @@ describe('Authentication API', () => {
     await pool.query('DELETE FROM users WHERE phone = $1', ['+1234567890']);
   });
 
-  afterAll(async () => {
-    // Clean up test data
-    await pool.query('DELETE FROM users WHERE phone = $1', ['+1234567890']);
-    await pool.end();
-  });
+  // NOTE: the registered user is intentionally kept — the Experiences and
+  // Reservations suites below log in as this user. tests/setup.ts wipes
+  // all tables before the next file runs.
 
   it('should register a new user', async () => {
     const response = await request(app)
@@ -151,7 +149,12 @@ describe('Experiences API', () => {
   let experienceId: string;
 
   beforeAll(async () => {
-    // Login as staff user
+    // Promote first, then login: the role is baked into the JWT at login.
+    await pool.query(
+      'UPDATE users SET role = $1 WHERE phone = $2',
+      ['operations', '+1234567890']
+    );
+
     const loginResponse = await request(app)
       .post('/api/v1/auth/login')
       .send({
@@ -160,12 +163,6 @@ describe('Experiences API', () => {
       });
 
     authToken = loginResponse.body.data.tokens.accessToken;
-
-    // Update user role to operations
-    await pool.query(
-      'UPDATE users SET role = $1 WHERE phone = $2',
-      ['operations', '+1234567890']
-    );
   });
 
   afterAll(async () => {
@@ -173,10 +170,7 @@ describe('Experiences API', () => {
     if (experienceId) {
       await pool.query('DELETE FROM experiences WHERE id = $1', [experienceId]);
     }
-    await pool.query('UPDATE users SET role = $1 WHERE phone = $2', [
-      'participant',
-      '+1234567890',
-    ]);
+    // Role stays 'operations': Reservations suite creates an experience too.
   });
 
   it('should create an experience', async () => {
@@ -188,7 +182,7 @@ describe('Experiences API', () => {
         title_ar: 'تجربة اختبارية',
         description: 'Test description',
         description_ar: 'وصف اختباري',
-        date: '2026-03-01',
+        date: '2027-03-01',
         time: '10:00',
         duration: '2 hours',
         duration_minutes: 120,
@@ -284,7 +278,7 @@ describe('Reservations API', () => {
         title_ar: 'تجربة اختبارية',
         description: 'Test description',
         description_ar: 'وصف اختباري',
-        date: '2026-03-01',
+        date: '2027-03-01',
         time: '10:00',
         duration: '2 hours',
         duration_minutes: 120,
@@ -368,6 +362,8 @@ describe('Reservations API', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
-    expect(response.body.data.reservation.state).toBe('cancelled_by_participant');
+    // The cancellation engine advances cancelled_by_participant -> refunded
+    // when a (full) refund is due; 2027-03-01 is inside the full-refund window.
+    expect(response.body.data.reservation.state).toBe('refunded');
   });
 });

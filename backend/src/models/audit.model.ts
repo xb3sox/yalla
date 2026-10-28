@@ -61,7 +61,7 @@ class AuditModel {
   /**
    * Get audit events with filters
    */
-  async findAll(filters: {
+  async findAll(rawFilters: {
     actor_id?: string;
     action?: string;
     resource_type?: string;
@@ -71,7 +71,17 @@ class AuditModel {
     end_date?: Date;
     limit?: number;
     offset?: number;
-  }): Promise<AuditEvent[]> {
+  } = {}): Promise<AuditEvent[]> {
+    // Accept camelCase filter aliases, matching create().
+    const anyFilters = rawFilters as any;
+    const filters = {
+      ...rawFilters,
+      actor_id: rawFilters.actor_id || anyFilters.actorId,
+      resource_type: rawFilters.resource_type || anyFilters.resourceType,
+      resource_id: rawFilters.resource_id || anyFilters.resourceId,
+      start_date: rawFilters.start_date || anyFilters.startDate,
+      end_date: rawFilters.end_date || anyFilters.endDate,
+    };
     let query = 'SELECT * FROM audit_events WHERE 1=1';
     const values: any[] = [];
     let paramCount = 1;
@@ -118,7 +128,8 @@ class AuditModel {
       paramCount++;
     }
 
-    query += ' ORDER BY timestamp DESC';
+    // id tiebreaks equal timestamps so LIMIT/OFFSET pages are stable.
+    query += ' ORDER BY timestamp DESC, id DESC';
 
     if (filters.limit) {
       query += ` LIMIT $${paramCount}`;
@@ -322,7 +333,7 @@ class AuditModel {
     let query = `
       SELECT 
         action,
-        COUNT(*) as count,
+        COUNT(*)::int as count,
         MIN(timestamp) as first_occurrence,
         MAX(timestamp) as last_occurrence
       FROM audit_events

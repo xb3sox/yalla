@@ -1,3 +1,5 @@
+jest.mock('stripe', () => require('../helpers/stripeMock').stripeMockFactory());
+
 import paymentModel from '../../src/models/payment.model';
 import reservationModel from '../../src/models/reservation.model';
 import experienceModel from '../../src/models/experience.model';
@@ -15,69 +17,82 @@ describe('Payment Model', () => {
     const user = await userModel.create({
       phone: '+966508888888',
       password: 'password123',
-      displayName: 'Payment Test User',
+      display_name: 'Payment Test User',
       language: 'en',
-      adultDeclarationAccepted: true,
-      termsAccepted: true,
+      adult_declaration_accepted: true,
+      terms_accepted: true,
     });
     testUserId = user.id;
 
     // Create test experience
     const experience = await experienceModel.create({
       title: 'Payment Test Experience',
-      titleAr: 'تجربة اختبار الدفع',
+      title_ar: 'تجربة اختبار الدفع',
       description: 'Test description',
-      descriptionAr: 'وصف اختباري',
-      date: '2026-03-01',
+      description_ar: 'وصف اختباري',
+      date: '2027-03-01',
       time: '10:00',
       duration: '2 hours',
-      durationMinutes: 120,
+      duration_minutes: 120,
       area: 'Riyadh',
-      areaAr: 'الرياض',
-      groupSizeMin: 4,
-      groupSizeMax: 8,
+      area_ar: 'الرياض',
+      group_size_min: 4,
+      group_size_max: 8,
       language: 'en',
       price: 100,
       capacity: 8,
-      planState: 'published',
+      plan_state: 'published',
     });
     testExperienceId = experience.id;
 
     // Create test reservation
     const reservation = await reservationModel.create({
-      participantId: testUserId,
-      experienceId: testExperienceId,
-      idempotencyKey: 'payment-test-key',
+      participant_id: testUserId,
+      experience_id: testExperienceId,
+      idempotency_key: 'payment-test-key',
     });
     testReservationId = reservation.id;
   });
 
-  afterAll(async () => {
-    // Clean up
-    if (testPaymentId) {
-      await pool.query('DELETE FROM payments WHERE id = $1', [testPaymentId]);
-    }
-    await pool.query('DELETE FROM reservations WHERE id = $1', [testReservationId]);
-    await pool.query('DELETE FROM experiences WHERE id = $1', [testExperienceId]);
-    await pool.query('DELETE FROM users WHERE id = $1', [testUserId]);
-  });
+  // No per-file cleanup: tests/setup.ts wipes all tables before each file.
+
+
+  // A participant may hold only one active reservation per experience, so
+  // scenarios that need another reservation must use a fresh participant.
+  async function createFreshReservation(key: string): Promise<string> {
+    const suffix = Math.floor(100000 + Math.random() * 899999);
+    const user = await userModel.create({
+      phone: `+9665077${suffix}`,
+      password: 'password123',
+      display_name: 'Refund Test User',
+      language: 'en',
+      adult_declaration_accepted: true,
+      terms_accepted: true,
+    } as any);
+    const reservation = await reservationModel.create({
+      participant_id: user.id,
+      experience_id: testExperienceId,
+      idempotency_key: key,
+    } as any);
+    return reservation.id;
+  }
 
   describe('createPaymentIntent', () => {
     it('should create a payment intent', async () => {
       const payment = await paymentModel.createPaymentIntent({
-        reservationId: testReservationId,
+        reservation_id: testReservationId,
         amount: 100,
         currency: 'sar',
       });
 
       expect(payment).toBeDefined();
       expect(payment.id).toBeDefined();
-      expect(payment.reservationId).toBe(testReservationId);
+      expect(payment.reservation_id).toBe(testReservationId);
       expect(payment.amount).toBe(100);
       expect(payment.currency).toBe('sar');
       expect(payment.status).toBe('pending');
-      expect(payment.stripePaymentIntentId).toBeDefined();
-      expect(payment.stripeClientSecret).toBeDefined();
+      expect(payment.stripe_payment_id).toBeDefined();
+      expect(payment.stripe_client_secret).toBeDefined();
 
       testPaymentId = payment.id;
     });
@@ -85,7 +100,7 @@ describe('Payment Model', () => {
     it('should prevent duplicate payment intents for same reservation', async () => {
       await expect(
         paymentModel.createPaymentIntent({
-          reservationId: testReservationId,
+          reservation_id: testReservationId,
           amount: 100,
           currency: 'sar',
         })
@@ -99,7 +114,7 @@ describe('Payment Model', () => {
 
       expect(payment).toBeDefined();
       expect(payment?.id).toBe(testPaymentId);
-      expect(payment?.reservationId).toBe(testReservationId);
+      expect(payment?.reservation_id).toBe(testReservationId);
     });
 
     it('should return null for non-existent reservation', async () => {
@@ -110,11 +125,11 @@ describe('Payment Model', () => {
     });
   });
 
-  describe('findByStripePaymentIntentId', () => {
+  describe('findByStripePaymentId', () => {
     it('should find payment by Stripe payment intent ID', async () => {
       const originalPayment = await paymentModel.findByReservationId(testReservationId);
-      const payment = await paymentModel.findByStripePaymentIntentId(
-        originalPayment!.stripePaymentIntentId
+      const payment = await paymentModel.findByStripePaymentId(
+        originalPayment!.stripe_payment_id!
       );
 
       expect(payment).toBeDefined();
@@ -122,7 +137,7 @@ describe('Payment Model', () => {
     });
 
     it('should return null for non-existent Stripe payment intent ID', async () => {
-      const payment = await paymentModel.findByStripePaymentIntentId('pi_nonexistent');
+      const payment = await paymentModel.findByStripePaymentId('pi_nonexistent');
       expect(payment).toBeNull();
     });
   });
@@ -130,17 +145,17 @@ describe('Payment Model', () => {
   describe('confirmPayment', () => {
     it('should confirm payment', async () => {
       const payment = await paymentModel.findByReservationId(testReservationId);
-      const confirmed = await paymentModel.confirmPayment(payment!.stripePaymentIntentId);
+      const confirmed = await paymentModel.confirmPayment(payment!.stripe_payment_id!);
 
       expect(confirmed).toBeDefined();
       expect(confirmed.status).toBe('completed');
-      expect(confirmed.completedAt).toBeDefined();
+      expect(confirmed.completed_at).toBeDefined();
     });
 
     it('should throw error for non-existent payment', async () => {
       await expect(
         paymentModel.confirmPayment('pi_nonexistent')
-      ).rejects.toThrow('Payment not found');
+      ).rejects.toThrow(/No such payment_intent/);
     });
   });
 
@@ -151,31 +166,27 @@ describe('Payment Model', () => {
 
       expect(refunded).toBeDefined();
       expect(refunded.status).toBe('refunded');
-      expect(refunded.refundAmount).toBe(payment!.amount);
-      expect(refunded.refundedAt).toBeDefined();
+      expect(refunded.refund_amount).toBe(payment!.amount);
+      expect(refunded.refunded_at).toBeDefined();
     });
 
     it('should refund partial payment', async () => {
       // Create new payment for partial refund test
-      const newReservation = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'partial-refund-test',
-      });
+      const newReservationId = await createFreshReservation('partial-refund-test');
 
       const newPayment = await paymentModel.createPaymentIntent({
-        reservationId: newReservation.id,
+        reservation_id: newReservationId,
         amount: 100,
         currency: 'sar',
       });
 
-      await paymentModel.confirmPayment(newPayment.stripePaymentIntentId);
+      await paymentModel.confirmPayment(newPayment.stripe_payment_id!);
 
       const refunded = await paymentModel.refundPayment(newPayment.id, 50);
 
       expect(refunded).toBeDefined();
       expect(refunded.status).toBe('partially_refunded');
-      expect(refunded.refundAmount).toBe(50);
+      expect(refunded.refund_amount).toBe(50);
     });
 
     it('should throw error for non-existent payment', async () => {
@@ -185,14 +196,10 @@ describe('Payment Model', () => {
     });
 
     it('should throw error for non-completed payment', async () => {
-      const newReservation = await reservationModel.create({
-        participantId: testUserId,
-        experienceId: testExperienceId,
-        idempotencyKey: 'non-completed-refund-test',
-      });
+      const newReservationId = await createFreshReservation('non-completed-refund-test');
 
       const newPayment = await paymentModel.createPaymentIntent({
-        reservationId: newReservation.id,
+        reservation_id: newReservationId,
         amount: 100,
         currency: 'sar',
       });

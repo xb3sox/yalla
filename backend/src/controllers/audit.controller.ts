@@ -191,6 +191,16 @@ export const createAuditEvent = async (req: AuthRequest, res: Response) => {
 
     const { action, resource_type, resource_id, details, classification } = req.body;
 
+    if (!action || !resource_type || !resource_id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'MISSING_FIELDS',
+          message: 'action, resource_type, and resource_id are required',
+        },
+      });
+    }
+
     const event = await auditModel.create({
       actor_id: req.user.userId,
       actor_role: req.user.role,

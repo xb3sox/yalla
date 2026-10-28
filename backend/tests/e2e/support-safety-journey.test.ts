@@ -85,11 +85,7 @@ describe('Complete User Journey - Support & Safety', () => {
     trustSafetyToken = tsLogin.body.data.tokens.accessToken;
   });
 
-  afterAll(async () => {
-    if (supportCaseId) await pool.query('DELETE FROM support_requests WHERE id = $1', [supportCaseId]);
-    if (safetyCaseId) await pool.query('DELETE FROM safety_cases WHERE id = $1', [safetyCaseId]);
-    await pool.query("DELETE FROM users WHERE phone IN ('+966507777771', '+966507777772', '+966507777773')");
-  });
+  // No per-file cleanup: tests/setup.ts wipes all tables before each file.
 
   describe('Part 1: Support Requests', () => {
     describe('Step 1: Participant Creates Support Request', () => {
@@ -249,20 +245,22 @@ describe('Complete User Journey - Support & Safety', () => {
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
-        expect(response.body.data.cases).toBeDefined();
-        expect(response.body.data.cases.length).toBeGreaterThan(0);
+        expect(response.body.data.safetyCases).toBeDefined();
+        expect(response.body.data.safetyCases.length).toBeGreaterThan(0);
       });
 
-      it('should filter by severity', async () => {
+      it('should filter by state', async () => {
+        // Safety cases have no severity field; state is the filterable axis.
         const response = await request(app)
           .get('/api/v1/safety-cases')
-          .query({ severity: 'high' })
+          .query({ state: 'submitted' })
           .set('Authorization', `Bearer ${trustSafetyToken}`);
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
+        expect(response.body.data.safetyCases.length).toBeGreaterThan(0);
         expect(
-          response.body.data.cases.every((c: any) => c.severity === 'high')
+          response.body.data.safetyCases.every((c: any) => c.state === 'submitted')
         ).toBe(true);
       });
 
@@ -273,7 +271,7 @@ describe('Complete User Journey - Support & Safety', () => {
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
-        expect(response.body.data.case.id).toBe(safetyCaseId);
+        expect(response.body.data.safetyCase.id).toBe(safetyCaseId);
       });
     });
 
@@ -286,20 +284,22 @@ describe('Complete User Journey - Support & Safety', () => {
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
-        expect(response.body.data.case.state).toBe('under_review');
+        expect(response.body.data.safetyCase.state).toBe('under_review');
       });
 
-      it('should add investigation notes', async () => {
+      it('should add investigation action', async () => {
+        // Investigation notes are recorded as case actions (no /notes route).
         const response = await request(app)
-          .post(`/api/v1/safety-cases/${safetyCaseId}/notes`)
+          .post(`/api/v1/safety-cases/${safetyCaseId}/actions`)
           .set('Authorization', `Bearer ${trustSafetyToken}`)
           .send({
-            note: 'Investigation started. Contacting involved parties.',
-            note_ar: 'بدأ التحقيق. التواصل مع الأطراف المعنية.',
+            action_type: 'warn',
+            description: 'Investigation started. Contacting involved parties.',
           });
 
-        expect(response.status).toBe(201);
+        expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
+        expect(response.body.data.safetyCase.actions.length).toBeGreaterThan(0);
       });
 
       it('should update state to action_taken', async () => {
@@ -314,7 +314,7 @@ describe('Complete User Journey - Support & Safety', () => {
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
-        expect(response.body.data.case.state).toBe('action_taken');
+        expect(response.body.data.safetyCase.state).toBe('action_taken');
       });
     });
 
@@ -326,10 +326,14 @@ describe('Complete User Journey - Support & Safety', () => {
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
-        expect(response.body.data.statistics).toBeDefined();
-        expect(response.body.data.statistics.totalCases).toBeDefined();
-        expect(response.body.data.statistics.casesByState).toBeDefined();
-        expect(response.body.data.statistics.casesBySeverity).toBeDefined();
+        // Statistics are per-state counts: [{ state, count }].
+        expect(Array.isArray(response.body.data.statistics)).toBe(true);
+        expect(response.body.data.statistics.length).toBeGreaterThan(0);
+        expect(
+          response.body.data.statistics.every(
+            (row: any) => typeof row.state === 'string' && typeof row.count === 'number'
+          )
+        ).toBe(true);
       });
     });
 

@@ -21,7 +21,7 @@ Yalla decouples core business logic from frameworks, UI widgets, and persistence
 graph TD
     Client["Browser (React 18 + Vite PWA)"]
     API["Express.js API (TypeScript)"]
-    DB[("PostgreSQL 15")]
+    DB[("PostgreSQL 17")]
     Redis[("Redis (Cache / Rate Limiting)")]
     Stripe["Stripe Payments API"]
 

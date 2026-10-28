@@ -11,6 +11,6 @@ Do **not** duplicate AGENTS.md content here. If a rule changes, change it in `AG
 
 ## Claude Code-specific notes
 
-- Use `npx vitest run <path>` (never bare `npm test` — it starts watch mode).
+- `npm test` runs the frontend suite once; use `npm run test:watch` for watch mode.
 - Before finishing any task, run the pre-PR checks listed in AGENTS.md "Commands".
 - Never commit build output (`dist/`, `coverage/`) or `.env` files; they are gitignored.

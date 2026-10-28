@@ -70,6 +70,16 @@ export const updateExperienceState = async (req: AuthRequest, res: Response) => 
       message: 'Experience state updated successfully',
     });
   } catch (error: any) {
+    if (error.message?.includes('Invalid state transition')) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_STATE_TRANSITION',
+          message: error.message,
+        },
+      });
+    }
+
     logger.error('Update experience state failed', { error: error.message });
     res.status(500).json({
       success: false,
@@ -109,6 +119,30 @@ export const assignHost = async (req: AuthRequest, res: Response) => {
           message: 'Experience not found',
         },
       });
+    }
+
+    // Host IDs are user UUIDs (FK). Reject malformed/unknown IDs with 400
+    // instead of letting Postgres throw an opaque 500.
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const { default: userModel } = await import('../models/user.model');
+    for (const [field, value] of [
+      ['primary_host_id', primary_host_id],
+      ['backup_host_id', backup_host_id],
+    ] as const) {
+      if (value === undefined || value === null) continue;
+      const host =
+        typeof value === 'string' && UUID_RE.test(value)
+          ? await userModel.findById(value)
+          : null;
+      if (!host) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_HOST',
+            message: `${field} must reference an existing user`,
+          },
+        });
+      }
     }
 
     const updates: any = {};
@@ -208,6 +242,16 @@ export const updateReservationState = async (req: AuthRequest, res: Response) =>
       message: 'Reservation state updated successfully',
     });
   } catch (error: any) {
+    if (error.message?.includes('Invalid state transition')) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_STATE_TRANSITION',
+          message: error.message,
+        },
+      });
+    }
+
     logger.error('Update reservation state failed', { error: error.message });
     res.status(500).json({
       success: false,

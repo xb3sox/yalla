@@ -15,15 +15,15 @@ describe('Staff Operations API', () => {
       .send({
         phone: '+966504444444',
         password: 'password123',
-        displayName: 'Staff User',
+        display_name: 'Staff User',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
-    // Update user role to operations
+    // Promote to admin: PUT /staff/users/:id/role requires it (admin also passes the staff gate)
     await pool.query(
-      "UPDATE users SET role = 'operations' WHERE phone = '+966504444444'"
+      "UPDATE users SET role = 'admin' WHERE phone = '+966504444444'"
     );
 
     // Login as staff
@@ -45,7 +45,7 @@ describe('Staff Operations API', () => {
         title_ar: 'تجربة اختبار الموظفين',
         description: 'Test description',
         description_ar: 'وصف اختباري',
-        date: '2026-03-01',
+        date: '2027-03-01',
         time: '10:00',
         duration: '2 hours',
         duration_minutes: 120,
@@ -67,10 +67,10 @@ describe('Staff Operations API', () => {
       .send({
         phone: '+966503333333',
         password: 'password123',
-        displayName: 'Test Participant',
+        display_name: 'Test Participant',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
     const userResponse = await pool.query(
@@ -99,13 +99,7 @@ describe('Staff Operations API', () => {
     testReservationId = resResponse.body.data.reservation.id;
   });
 
-  afterAll(async () => {
-    // Clean up
-    await pool.query('DELETE FROM reservations WHERE id = $1', [testReservationId]);
-    await pool.query('DELETE FROM experiences WHERE id = $1', [testExperienceId]);
-    await pool.query("DELETE FROM users WHERE phone = '+966504444444'");
-    await pool.query("DELETE FROM users WHERE phone = '+966503333333'");
-  });
+  // No per-file cleanup: tests/setup.ts wipes all tables before each file.
 
   describe('GET /api/v1/staff/dashboard', () => {
     it('should get dashboard statistics', async () => {
@@ -212,10 +206,10 @@ describe('Staff Operations API', () => {
         .send({
           phone: '+966502222222',
           password: 'password123',
-          displayName: 'Non-Admin Staff',
+          display_name: 'Non-Admin Staff',
           language: 'en',
-          adultDeclarationAccepted: true,
-          termsAccepted: true,
+          adult_declaration_accepted: true,
+          terms_accepted: true,
         });
 
       await pool.query(

@@ -8,7 +8,7 @@ Guidelines for human contributors and autonomous AI agents contributing to Yalla
 
 ### Prerequisites
 
-- Node.js 20.x
+- Node.js 22.x
 - npm 9.x+
 - Git
 

@@ -50,8 +50,9 @@ Reference for Yalla API endpoints mounted at `/api/v1/`.
 | POST | `/auth/refresh` | Public (Cookie) | Issue new access token using refresh token |
 | POST | `/auth/logout` | Authenticated | Clear auth cookies |
 | GET | `/auth/me` | Authenticated | Fetch authenticated user profile |
-| PUT | `/auth/profile` | Authenticated | Update user name, phone, preferences |
-| POST | `/auth/change-password` | Authenticated | Change current password |
+| PUT | `/auth/preferences` | Authenticated | Update language, area, budget and accessibility preferences |
+| GET | `/auth/export` | Authenticated | Export the authenticated user's data (PDPL) |
+| DELETE | `/auth/account` | Authenticated | Delete (deactivate) the authenticated user's account |
 
 ### 2.2 Experiences (`/experiences`)
 

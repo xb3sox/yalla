@@ -100,10 +100,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
       password: env.REDIS_PASSWORD || '',
     },
 
-    // CORS
+    // CORS (credentials default on: auth cookies are cross-origin in dev/prod)
     cors: {
       origin: env.CORS_ORIGIN || 'http://localhost:5173',
-      credentials: env.CORS_CREDENTIALS === 'true',
+      credentials: env.CORS_CREDENTIALS !== 'false',
     },
 
     // Rate Limiting

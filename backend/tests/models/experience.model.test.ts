@@ -6,21 +6,21 @@ describe('Experience Model', () => {
 
   const testExperience = {
     title: 'Test Experience',
-    titleAr: 'تجربة اختبارية',
+    title_ar: 'تجربة اختبارية',
     description: 'Test description',
-    descriptionAr: 'وصف اختباري',
-    date: '2026-03-01',
+    description_ar: 'وصف اختباري',
+    date: '2027-03-01',
     time: '10:00',
     duration: '2 hours',
-    durationMinutes: 120,
+    duration_minutes: 120,
     area: 'Riyadh',
-    areaAr: 'الرياض',
-    groupSizeMin: 4,
-    groupSizeMax: 8,
+    area_ar: 'الرياض',
+    group_size_min: 4,
+    group_size_max: 8,
     language: 'en',
     price: 100,
     capacity: 8,
-    planState: 'published',
+    plan_state: 'published',
   };
 
   beforeEach(async () => {
@@ -28,10 +28,7 @@ describe('Experience Model', () => {
     await pool.query("DELETE FROM experiences WHERE title LIKE 'Test Experience%'");
   });
 
-  afterAll(async () => {
-    // Final cleanup
-    await pool.query("DELETE FROM experiences WHERE title LIKE 'Test Experience%'");
-  });
+  // No per-file cleanup: tests/setup.ts wipes all tables before each file.
 
   describe('create', () => {
     it('should create a new experience', async () => {
@@ -40,12 +37,12 @@ describe('Experience Model', () => {
       expect(experience).toBeDefined();
       expect(experience.id).toBeDefined();
       expect(experience.title).toBe(testExperience.title);
-      expect(experience.titleAr).toBe(testExperience.titleAr);
+      expect(experience.title_ar).toBe(testExperience.title_ar);
       expect(experience.description).toBe(testExperience.description);
-      expect(experience.date).toBe(testExperience.date);
+      expect(new Date(experience.date).toISOString().slice(0, 10)).toBe(testExperience.date);
       expect(experience.capacity).toBe(testExperience.capacity);
       expect(experience.booked).toBe(0);
-      expect(experience.planState).toBe(testExperience.planState);
+      expect(experience.plan_state).toBe(testExperience.plan_state);
 
       testExperienceId = experience.id;
     });
@@ -54,15 +51,15 @@ describe('Experience Model', () => {
       const experience = await experienceModel.create({
         ...testExperience,
         currency: undefined,
-        physicalDemand: undefined,
-        noiseLevel: undefined,
-        minAttendance: undefined,
+        physical_demand: undefined,
+        noise_level: undefined,
+        min_attendance: undefined,
       });
 
       expect(experience.currency).toBe('SAR');
-      expect(experience.physicalDemand).toBe('moderate');
-      expect(experience.noiseLevel).toBe('moderate');
-      expect(experience.minAttendance).toBe(4);
+      expect(experience.physical_demand).toBe('moderate');
+      expect(experience.noise_level).toBe('moderate');
+      expect(experience.min_attendance).toBe(4);
     });
   });
 
@@ -89,19 +86,19 @@ describe('Experience Model', () => {
       await experienceModel.create({
         ...testExperience,
         title: 'Published Experience',
-        planState: 'published',
+        plan_state: 'published',
       });
 
       await experienceModel.create({
         ...testExperience,
         title: 'Draft Experience',
-        planState: 'draft',
+        plan_state: 'draft',
       });
 
       const experiences = await experienceModel.findAllPublished();
 
       expect(experiences.length).toBeGreaterThan(0);
-      expect(experiences.every((e) => e.planState === 'published')).toBe(true);
+      expect(experiences.every((e) => e.plan_state === 'published')).toBe(true);
     });
 
     it('should limit results', async () => {
@@ -126,8 +123,11 @@ describe('Experience Model', () => {
         });
       }
 
-      const experiences = await experienceModel.findAllPublished(10, 2);
-      expect(experiences.length).toBe(3); // 5 - 2 offset
+      // Earlier tests in this file also created published experiences,
+      // so assert the offset relatively instead of an absolute count.
+      const all = await experienceModel.findAllPublished(50, 0);
+      const experiences = await experienceModel.findAllPublished(50, 2);
+      expect(experiences.length).toBe(all.length - 2);
     });
   });
 
@@ -200,7 +200,7 @@ describe('Experience Model', () => {
         title: 'VIP Tour',
         description: 'Exclusive tour',
         area: 'Jeddah',
-        planState: 'published',
+        plan_state: 'published',
         capacity: 10,
         price: 500,
       });
@@ -209,7 +209,7 @@ describe('Experience Model', () => {
         ...testExperience,
         title: 'Draft Tour',
         area: 'Riyadh',
-        planState: 'draft',
+        plan_state: 'draft',
         capacity: 5,
         price: 200,
       });
@@ -237,7 +237,7 @@ describe('Experience Model', () => {
     it('should filter by status (plan_state)', async () => {
       const draftExperiences = await experienceModel.staffSearch({ status: 'draft' });
       expect(draftExperiences.length).toBeGreaterThan(0);
-      expect(draftExperiences.every((e) => e.planState === 'draft')).toBe(true);
+      expect(draftExperiences.every((e) => e.plan_state === 'draft')).toBe(true);
     });
 
     it('should filter by minSpots', async () => {
@@ -263,7 +263,7 @@ describe('Experience Model', () => {
       expect(experiences.length).toBeGreaterThan(0);
       expect(
         experiences.every(
-          (e) => e.area === 'Jeddah' && e.planState === 'published' && e.price <= 600
+          (e) => e.area === 'Jeddah' && e.plan_state === 'published' && e.price <= 600
         )
       ).toBe(true);
     });
@@ -285,14 +285,14 @@ describe('Experience Model', () => {
       const created = await experienceModel.create(testExperience);
       const updated = await experienceModel.update(created.id, {
         title: 'Updated Title',
-        titleAr: 'عنوان محدث',
+        title_ar: 'عنوان محدث',
         description: 'Updated Description',
         price: 200,
         capacity: 10,
       });
 
       expect(updated.title).toBe('Updated Title');
-      expect(updated.titleAr).toBe('عنوان محدث');
+      expect(updated.title_ar).toBe('عنوان محدث');
       expect(updated.description).toBe('Updated Description');
       expect(updated.price).toBe(200);
       expect(updated.capacity).toBe(10);

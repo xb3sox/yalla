@@ -11,41 +11,35 @@ describe('Audit Model', () => {
     const user = await userModel.create({
       phone: '+966505555555',
       password: 'password123',
-      displayName: 'Audit Test User',
+      display_name: 'Audit Test User',
       language: 'en',
-      adultDeclarationAccepted: true,
-      termsAccepted: true,
+      adult_declaration_accepted: true,
+      terms_accepted: true,
     });
     testUserId = user.id;
   });
 
-  afterAll(async () => {
-    // Clean up
-    if (testAuditEventId) {
-      await pool.query('DELETE FROM audit_events WHERE id = $1', [testAuditEventId]);
-    }
-    await pool.query('DELETE FROM users WHERE id = $1', [testUserId]);
-  });
+  // No per-file cleanup: tests/setup.ts wipes all tables before each file.
 
   describe('create', () => {
     it('should create an audit event', async () => {
       const auditEvent = await auditModel.create({
-        actorId: testUserId,
-        actorRole: 'participant',
+        actor_id: testUserId,
+        actor_role: 'participant',
         action: 'test_action',
-        resourceType: 'test_resource',
-        resourceId: 'test-resource-id',
+        resource_type: 'test_resource',
+        resource_id: 'test-resource-id',
         details: { test: 'data' },
         classification: 'internal',
       });
 
       expect(auditEvent).toBeDefined();
       expect(auditEvent.id).toBeDefined();
-      expect(auditEvent.actorId).toBe(testUserId);
-      expect(auditEvent.actorRole).toBe('participant');
+      expect(auditEvent.actor_id).toBe(testUserId);
+      expect(auditEvent.actor_role).toBe('participant');
       expect(auditEvent.action).toBe('test_action');
-      expect(auditEvent.resourceType).toBe('test_resource');
-      expect(auditEvent.resourceId).toBe('test-resource-id');
+      expect(auditEvent.resource_type).toBe('test_resource');
+      expect(auditEvent.resource_id).toBe('test-resource-id');
       expect(auditEvent.details).toEqual({ test: 'data' });
       expect(auditEvent.classification).toBe('internal');
       expect(auditEvent.timestamp).toBeDefined();
@@ -55,11 +49,11 @@ describe('Audit Model', () => {
 
     it('should create audit event with default classification', async () => {
       const auditEvent = await auditModel.create({
-        actorId: testUserId,
-        actorRole: 'participant',
+        actor_id: testUserId,
+        actor_role: 'participant',
         action: 'test_action_2',
-        resourceType: 'test_resource',
-        resourceId: 'test-resource-id-2',
+        resource_type: 'test_resource',
+        resource_id: 'test-resource-id-2',
       });
 
       expect(auditEvent.classification).toBe('internal');
@@ -67,11 +61,11 @@ describe('Audit Model', () => {
 
     it('should create audit event with empty details', async () => {
       const auditEvent = await auditModel.create({
-        actorId: testUserId,
-        actorRole: 'participant',
+        actor_id: testUserId,
+        actor_role: 'participant',
         action: 'test_action_3',
-        resourceType: 'test_resource',
-        resourceId: 'test-resource-id-3',
+        resource_type: 'test_resource',
+        resource_id: 'test-resource-id-3',
         details: {},
       });
 
@@ -79,22 +73,7 @@ describe('Audit Model', () => {
     });
   });
 
-  describe('findById', () => {
-    it('should find audit event by ID', async () => {
-      const auditEvent = await auditModel.findById(testAuditEventId);
-
-      expect(auditEvent).toBeDefined();
-      expect(auditEvent?.id).toBe(testAuditEventId);
-      expect(auditEvent?.actorId).toBe(testUserId);
-    });
-
-    it('should return null for non-existent ID', async () => {
-      const auditEvent = await auditModel.findById(
-        '00000000-0000-0000-0000-000000000000'
-      );
-      expect(auditEvent).toBeNull();
-    });
-  });
+  // No findById by design: the append-only log is queried via findAll/findByActor/findByResource.
 
   describe('findAll', () => {
     it('should find all audit events', async () => {
@@ -106,10 +85,10 @@ describe('Audit Model', () => {
     });
 
     it('should filter by actor', async () => {
-      const auditEvents = await auditModel.findAll({ actorId: testUserId });
+      const auditEvents = await auditModel.findAll({ actor_id: testUserId });
 
       expect(auditEvents).toBeDefined();
-      expect(auditEvents.every((ae) => ae.actorId === testUserId)).toBe(true);
+      expect(auditEvents.every((ae) => ae.actor_id === testUserId)).toBe(true);
     });
 
     it('should filter by action', async () => {
@@ -120,17 +99,17 @@ describe('Audit Model', () => {
     });
 
     it('should filter by resource type', async () => {
-      const auditEvents = await auditModel.findAll({ resourceType: 'test_resource' });
+      const auditEvents = await auditModel.findAll({ resource_type: 'test_resource' });
 
       expect(auditEvents).toBeDefined();
-      expect(auditEvents.every((ae) => ae.resourceType === 'test_resource')).toBe(true);
+      expect(auditEvents.every((ae) => ae.resource_type === 'test_resource')).toBe(true);
     });
 
     it('should filter by resource ID', async () => {
-      const auditEvents = await auditModel.findAll({ resourceId: 'test-resource-id' });
+      const auditEvents = await auditModel.findAll({ resource_id: 'test-resource-id' });
 
       expect(auditEvents).toBeDefined();
-      expect(auditEvents.every((ae) => ae.resourceId === 'test-resource-id')).toBe(true);
+      expect(auditEvents.every((ae) => ae.resource_id === 'test-resource-id')).toBe(true);
     });
 
     it('should filter by classification', async () => {
@@ -147,7 +126,7 @@ describe('Audit Model', () => {
       const endDate = new Date();
       endDate.setDate(endDate.getDate() + 1);
 
-      const auditEvents = await auditModel.findAll({ startDate, endDate });
+      const auditEvents = await auditModel.findAll({ start_date: startDate, end_date: endDate });
 
       expect(auditEvents).toBeDefined();
       expect(auditEvents.length).toBeGreaterThan(0);
@@ -169,7 +148,7 @@ describe('Audit Model', () => {
 
     it('should combine multiple filters', async () => {
       const auditEvents = await auditModel.findAll({
-        actorId: testUserId,
+        actor_id: testUserId,
         action: 'test_action',
         classification: 'internal',
       });
@@ -178,7 +157,7 @@ describe('Audit Model', () => {
       expect(
         auditEvents.every(
           (ae) =>
-            ae.actorId === testUserId &&
+            ae.actor_id === testUserId &&
             ae.action === 'test_action' &&
             ae.classification === 'internal'
         )
@@ -199,8 +178,8 @@ describe('Audit Model', () => {
       expect(
         auditEvents.every(
           (ae) =>
-            ae.resourceType === 'test_resource' &&
-            ae.resourceId === 'test-resource-id'
+            ae.resource_type === 'test_resource' &&
+            ae.resource_id === 'test-resource-id'
         )
       ).toBe(true);
     });
@@ -213,7 +192,7 @@ describe('Audit Model', () => {
       expect(auditEvents).toBeDefined();
       expect(Array.isArray(auditEvents)).toBe(true);
       expect(auditEvents.length).toBeGreaterThan(0);
-      expect(auditEvents.every((ae) => ae.actorId === testUserId)).toBe(true);
+      expect(auditEvents.every((ae) => ae.actor_id === testUserId)).toBe(true);
     });
 
     it('should limit results', async () => {
@@ -229,12 +208,12 @@ describe('Audit Model', () => {
       const auditEvent = await auditModel.logLogin(testUserId, 'participant', '127.0.0.1');
 
       expect(auditEvent).toBeDefined();
-      expect(auditEvent.actorId).toBe(testUserId);
-      expect(auditEvent.actorRole).toBe('participant');
+      expect(auditEvent.actor_id).toBe(testUserId);
+      expect(auditEvent.actor_role).toBe('participant');
       expect(auditEvent.action).toBe('user_login');
-      expect(auditEvent.resourceType).toBe('user');
-      expect(auditEvent.resourceId).toBe(testUserId);
-      expect(auditEvent.details).toEqual({ ipAddress: '127.0.0.1' });
+      expect(auditEvent.resource_type).toBe('user');
+      expect(auditEvent.resource_id).toBe(testUserId);
+      expect(auditEvent.details).toEqual({ ip_address: '127.0.0.1' });
       expect(auditEvent.classification).toBe('internal');
     });
   });
@@ -244,11 +223,11 @@ describe('Audit Model', () => {
       const auditEvent = await auditModel.logLogout(testUserId, 'participant');
 
       expect(auditEvent).toBeDefined();
-      expect(auditEvent.actorId).toBe(testUserId);
-      expect(auditEvent.actorRole).toBe('participant');
+      expect(auditEvent.actor_id).toBe(testUserId);
+      expect(auditEvent.actor_role).toBe('participant');
       expect(auditEvent.action).toBe('user_logout');
-      expect(auditEvent.resourceType).toBe('user');
-      expect(auditEvent.resourceId).toBe(testUserId);
+      expect(auditEvent.resource_type).toBe('user');
+      expect(auditEvent.resource_id).toBe(testUserId);
       expect(auditEvent.classification).toBe('internal');
     });
   });
@@ -263,12 +242,12 @@ describe('Audit Model', () => {
       );
 
       expect(auditEvent).toBeDefined();
-      expect(auditEvent.actorId).toBe(testUserId);
-      expect(auditEvent.actorRole).toBe('participant');
+      expect(auditEvent.actor_id).toBe(testUserId);
+      expect(auditEvent.actor_role).toBe('participant');
       expect(auditEvent.action).toBe('reservation_created');
-      expect(auditEvent.resourceType).toBe('reservation');
-      expect(auditEvent.resourceId).toBe('test-reservation-id');
-      expect(auditEvent.details).toEqual({ experienceId: 'test-experience-id' });
+      expect(auditEvent.resource_type).toBe('reservation');
+      expect(auditEvent.resource_id).toBe('test-reservation-id');
+      expect(auditEvent.details).toEqual({ experience_id: 'test-experience-id' });
       expect(auditEvent.classification).toBe('confidential');
     });
   });
@@ -283,11 +262,11 @@ describe('Audit Model', () => {
       );
 
       expect(auditEvent).toBeDefined();
-      expect(auditEvent.actorId).toBe(testUserId);
-      expect(auditEvent.actorRole).toBe('participant');
+      expect(auditEvent.actor_id).toBe(testUserId);
+      expect(auditEvent.actor_role).toBe('participant');
       expect(auditEvent.action).toBe('reservation_cancelled');
-      expect(auditEvent.resourceType).toBe('reservation');
-      expect(auditEvent.resourceId).toBe('test-reservation-id');
+      expect(auditEvent.resource_type).toBe('reservation');
+      expect(auditEvent.resource_id).toBe('test-reservation-id');
       expect(auditEvent.details).toEqual({ reason: 'User requested cancellation' });
       expect(auditEvent.classification).toBe('confidential');
     });
@@ -304,13 +283,13 @@ describe('Audit Model', () => {
       );
 
       expect(auditEvent).toBeDefined();
-      expect(auditEvent.actorId).toBe(testUserId);
-      expect(auditEvent.actorRole).toBe('participant');
+      expect(auditEvent.actor_id).toBe(testUserId);
+      expect(auditEvent.actor_role).toBe('participant');
       expect(auditEvent.action).toBe('payment_created');
-      expect(auditEvent.resourceType).toBe('payment');
-      expect(auditEvent.resourceId).toBe('test-payment-id');
+      expect(auditEvent.resource_type).toBe('payment');
+      expect(auditEvent.resource_id).toBe('test-payment-id');
       expect(auditEvent.details).toEqual({
-        reservationId: 'test-reservation-id',
+        reservation_id: 'test-reservation-id',
         amount: 100,
       });
       expect(auditEvent.classification).toBe('restricted');
@@ -327,11 +306,11 @@ describe('Audit Model', () => {
       );
 
       expect(auditEvent).toBeDefined();
-      expect(auditEvent.actorId).toBe(testUserId);
-      expect(auditEvent.actorRole).toBe('operations');
+      expect(auditEvent.actor_id).toBe(testUserId);
+      expect(auditEvent.actor_role).toBe('operations');
       expect(auditEvent.action).toBe('refund_processed');
-      expect(auditEvent.resourceType).toBe('payment');
-      expect(auditEvent.resourceId).toBe('test-payment-id');
+      expect(auditEvent.resource_type).toBe('payment');
+      expect(auditEvent.resource_id).toBe('test-payment-id');
       expect(auditEvent.details).toEqual({ amount: 50 });
       expect(auditEvent.classification).toBe('restricted');
     });
@@ -347,11 +326,11 @@ describe('Audit Model', () => {
       );
 
       expect(auditEvent).toBeDefined();
-      expect(auditEvent.actorId).toBe(testUserId);
-      expect(auditEvent.actorRole).toBe('operations');
+      expect(auditEvent.actor_id).toBe(testUserId);
+      expect(auditEvent.actor_role).toBe('operations');
       expect(auditEvent.action).toBe('experience_created');
-      expect(auditEvent.resourceType).toBe('experience');
-      expect(auditEvent.resourceId).toBe('test-experience-id');
+      expect(auditEvent.resource_type).toBe('experience');
+      expect(auditEvent.resource_id).toBe('test-experience-id');
       expect(auditEvent.details).toEqual({ title: 'Test Experience' });
       expect(auditEvent.classification).toBe('internal');
     });
@@ -367,12 +346,12 @@ describe('Audit Model', () => {
       );
 
       expect(auditEvent).toBeDefined();
-      expect(auditEvent.actorId).toBe(testUserId);
-      expect(auditEvent.actorRole).toBe('operations');
+      expect(auditEvent.actor_id).toBe(testUserId);
+      expect(auditEvent.actor_role).toBe('operations');
       expect(auditEvent.action).toBe('experience_updated');
-      expect(auditEvent.resourceType).toBe('experience');
-      expect(auditEvent.resourceId).toBe('test-experience-id');
-      expect(auditEvent.details).toEqual({ title: 'Updated Title', price: 150 });
+      expect(auditEvent.resource_type).toBe('experience');
+      expect(auditEvent.resource_id).toBe('test-experience-id');
+      expect(auditEvent.details).toEqual({ changes: { title: 'Updated Title', price: 150 } });
       expect(auditEvent.classification).toBe('internal');
     });
   });
@@ -387,11 +366,11 @@ describe('Audit Model', () => {
       );
 
       expect(auditEvent).toBeDefined();
-      expect(auditEvent.actorId).toBe(testUserId);
-      expect(auditEvent.actorRole).toBe('participant');
+      expect(auditEvent.actor_id).toBe(testUserId);
+      expect(auditEvent.actor_role).toBe('participant');
       expect(auditEvent.action).toBe('user_blocked');
-      expect(auditEvent.resourceType).toBe('block');
-      expect(auditEvent.resourceId).toBe('blocked-user-id');
+      expect(auditEvent.resource_type).toBe('block');
+      expect(auditEvent.resource_id).toBe('blocked-user-id');
       expect(auditEvent.details).toEqual({ reason: 'Inappropriate behavior' });
       expect(auditEvent.classification).toBe('restricted');
     });
@@ -407,11 +386,11 @@ describe('Audit Model', () => {
       );
 
       expect(auditEvent).toBeDefined();
-      expect(auditEvent.actorId).toBe(testUserId);
-      expect(auditEvent.actorRole).toBe('participant');
+      expect(auditEvent.actor_id).toBe(testUserId);
+      expect(auditEvent.actor_role).toBe('participant');
       expect(auditEvent.action).toBe('safety_case_created');
-      expect(auditEvent.resourceType).toBe('safety_case');
-      expect(auditEvent.resourceId).toBe('test-safety-case-id');
+      expect(auditEvent.resource_type).toBe('safety_case');
+      expect(auditEvent.resource_id).toBe('test-safety-case-id');
       expect(auditEvent.details).toEqual({ category: 'harassment' });
       expect(auditEvent.classification).toBe('restricted');
     });
@@ -425,7 +404,7 @@ describe('Audit Model', () => {
       expect(Array.isArray(stats)).toBe(true);
 
       // Should have action and count
-      stats.forEach((stat) => {
+      stats.forEach((stat: any) => {
         expect(stat.action).toBeDefined();
         expect(stat.count).toBeDefined();
         expect(typeof stat.count).toBe('number');

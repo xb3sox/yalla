@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed (2026-10-28 repository audit)
+
+- **Auth was unreachable:** body validation rejected every request to
+  register/login/refresh/preferences (schema-envelope mismatch).
+- Reservation listing, user blocking, and experience publishing failed at
+  runtime due to missing columns and an omitted `plan_state` on insert
+  (migration `007`).
+- Revived the never-run DB test suites (285 tests) and enforced them in CI;
+  upgraded Zod 3 -> 4 and cleared all production dependency advisories;
+  Node 20 -> 22, PostgreSQL 15 -> 17. Full findings:
+  `docs/AUDIT-2026-10-28.md`.
+
 ### Security
 - **Refresh tokens are now revocable and single-use.** New `refresh_tokens` table
   (migration `006`) stores only SHA-256 hashes with expiry, revocation, and
