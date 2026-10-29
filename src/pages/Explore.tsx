@@ -38,16 +38,18 @@ export function ExplorePage({ onSelectExperience }: ExplorePageProps) {
         sorted.sort((a, b) => b.price - a.price);
         break;
       case 'newest':
-        // Sort by ID as proxy for newest (higher ID = newer)
+        // Performance optimization: Fast string slice instead of regex replace per element pair
         sorted.sort((a, b) => {
-          const idA = parseInt(a.id.replace('exp-', '')) || 0;
-          const idB = parseInt(b.id.replace('exp-', '')) || 0;
+          const idA = parseInt(a.id.slice(4), 10) || 0;
+          const idB = parseInt(b.id.slice(4), 10) || 0;
           return idB - idA;
         });
         break;
       case 'date':
       default:
-        sorted.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        // Performance optimization: Compare ISO date strings directly (YYYY-MM-DD) instead of instantiating
+        // new Date() objects inside the comparator loop O(N log N) times, eliminating GC pressure.
+        sorted.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
         break;
     }
     
