@@ -3,13 +3,6 @@ import { screen } from '@testing-library/react';
 import { MyPlansPage } from './MyPlans';
 import { renderWithProviders } from '../test/utils';
 
-// Mock useToast hook
-vi.mock('../components/Toast', () => ({
-  useToast: () => ({
-    showToast: vi.fn(),
-  }),
-  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
 
 describe('MyPlansPage', () => {
   const mockOnViewExperience = vi.fn();

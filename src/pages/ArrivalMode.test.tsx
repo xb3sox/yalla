@@ -12,12 +12,6 @@ vi.mock('../services/api', () => ({
   }
 }));
 
-vi.mock('../components/Toast', () => ({
-  useToast: () => ({
-    showToast: vi.fn(),
-  }),
-  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
 
 describe('ArrivalModePage', () => {
   const mockOnBack = vi.fn();
