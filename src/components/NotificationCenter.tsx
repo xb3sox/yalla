@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useApp } from '../data/store';
 import { t } from '../i18n';
-import { Bell, Check, X, Calendar, AlertCircle, Info } from 'lucide-react';
+import { api } from '../services/api';
+import { Bell, Check, X, Calendar, AlertCircle, Info, Shield } from 'lucide-react';
 
 interface NotificationCenterProps {
   isOpen: boolean;
@@ -8,18 +10,36 @@ interface NotificationCenterProps {
 }
 
 export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps) {
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const lang = state.language;
+  const [category, setCategory] = useState<string>('all');
   const userNotifications = state.notifications.filter(n => n.recipientId === 'user-1');
 
+  const filteredNotifications = userNotifications.filter(notif => {
+    if (category === 'all') return true;
+    return (notif as any).category === category || notif.type === category;
+  });
+
   if (!isOpen) return null;
+
+  const handleMarkAllRead = async () => {
+    try {
+      await api.notifications.markAllAsRead();
+    } catch {
+      // offline / mock fallback
+    }
+    dispatch({ type: 'CLEAR_NOTIFICATIONS' });
+    onClose();
+  };
 
   const getIcon = (type: string) => {
     switch (type) {
       case 'confirmation':
       case 'reconfirmation':
+      case 'booking':
         return <Check className="w-4 h-4 text-success" />;
       case 'material_change':
+      case 'safety':
         return <AlertCircle className="w-4 h-4 text-warning" />;
       case 'reminder':
         return <Calendar className="w-4 h-4 text-info" />;
@@ -32,8 +52,10 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
     switch (type) {
       case 'confirmation':
       case 'reconfirmation':
+      case 'booking':
         return 'bg-success-bg';
       case 'material_change':
+      case 'safety':
         return 'bg-warning-bg';
       case 'reminder':
         return 'bg-info-bg';
@@ -53,7 +75,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
 
       {/* Panel */}
       <div
-        className="fixed top-14 end-4 w-80 max-h-96 bg-surface-raised rounded-xl shadow-lg border border-border z-50 overflow-hidden slide-up"
+        className="fixed top-14 end-4 w-84 max-h-96 bg-surface-raised rounded-xl shadow-lg border border-border z-50 overflow-hidden slide-up flex flex-col"
         role="dialog"
         aria-label={t('nav.notifications', lang)}
       >
@@ -65,10 +87,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
           <div className="flex items-center gap-2">
             {userNotifications.length > 0 && (
               <button
-                onClick={() => {
-                  // In a real app, this would mark all as read
-                  onClose();
-                }}
+                onClick={handleMarkAllRead}
                 className="text-xs text-brand-600 hover:text-brand-700 font-medium px-2 py-1 rounded hover:bg-brand-50 transition-colors"
                 aria-label={lang === 'ar' ? 'تعيين الكل كمقروء' : 'Mark all as read'}
               >
@@ -85,11 +104,33 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
           </div>
         </div>
 
+        {/* Category Filters */}
+        <div className="flex gap-1.5 px-3 py-2 border-b border-border bg-surface-subtle overflow-x-auto text-xs">
+          {[
+            { id: 'all', labelEn: 'All', labelAr: 'الكل' },
+            { id: 'booking', labelEn: 'Bookings', labelAr: 'حجوزات' },
+            { id: 'reminder', labelEn: 'Reminders', labelAr: 'تذكيرات' },
+            { id: 'safety', labelEn: 'Safety', labelAr: 'أمان' },
+          ].map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setCategory(cat.id)}
+              className={`px-2.5 py-1 rounded-full whitespace-nowrap transition-colors ${
+                category === cat.id
+                  ? 'bg-brand-600 text-white font-medium'
+                  : 'text-text-secondary hover:bg-surface-sunken'
+              }`}
+            >
+              {lang === 'ar' ? cat.labelAr : cat.labelEn}
+            </button>
+          ))}
+        </div>
+
         {/* Content */}
-        <div className="overflow-y-auto max-h-80">
-          {userNotifications.length > 0 ? (
+        <div className="overflow-y-auto max-h-80 flex-1">
+          {filteredNotifications.length > 0 ? (
             <div className="divide-y divide-border">
-              {userNotifications.map(notif => (
+              {filteredNotifications.map(notif => (
                 <div key={notif.id} className="p-4 hover:bg-surface-sunken transition-colors">
                   <div className="flex gap-3">
                     <div className={`w-8 h-8 rounded-full ${getBgColor(notif.type)} flex items-center justify-center flex-shrink-0`}>

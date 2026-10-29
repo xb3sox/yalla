@@ -424,6 +424,13 @@ export const api = {
     getUnreadCount: () => apiClient.get('/notifications/unread-count'),
     get: (id: string) => apiClient.get(`/notifications/${id}`),
     markAsRead: (id: string) => apiClient.post(`/notifications/${id}/read`),
+    markAllAsRead: () => apiClient.post('/notifications/mark-all-read'),
+    getPreferences: () => apiClient.get('/notifications/preferences'),
+    updatePreferences: (category: string, data: any) => apiClient.put(`/notifications/preferences/${category}`, data),
+    getVapidPublicKey: () => apiClient.get<{ publicKey: string }>('/notifications/vapid-public-key'),
+    subscribe: (subscription: any) => apiClient.post('/notifications/subscribe', { subscription }),
+    subscribePush: (subscription: any) => apiClient.post('/notifications/subscribe', { subscription }),
+    unsubscribe: (endpoint: string) => apiClient.post('/notifications/unsubscribe', { endpoint }),
   },
 
   // Feedbacks

@@ -10,6 +10,9 @@ async function rollback() {
     
     // Drop tables in reverse order of dependencies
     const tables = [
+      'notification_preferences',
+      'push_subscriptions',
+      'sms_logs',
       'audit_events',
       'notifications',
       'safety_cases',
@@ -50,8 +53,8 @@ if (require.main === module) {
   const confirm = process.argv.includes('--confirm');
   
   if (!confirm) {
-    logger.error('❌ Rollback requires --confirm flag');
-    logger.error('   Usage: npm run migrate:rollback -- --confirm');
+    logger.warn('⚠️  Rollback cancelled: missing --confirm flag');
+    logger.info('Usage: npm run migrate:rollback -- --confirm');
     process.exit(1);
   }
   

@@ -1,8 +1,128 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import notificationModel from '../models/notification.model';
+import pushNotificationService from '../services/pushNotification.service';
 import logger from '../utils/logger';
 import { EmailService } from '../services/email.service';
+
+/**
+ * Get VAPID Public Key for Web Push
+ */
+export const getVapidPublicKey = async (_req: AuthRequest, res: Response) => {
+  try {
+    const publicKey = pushNotificationService.getVapidPublicKey();
+    res.json({
+      success: true,
+      data: { publicKey },
+    });
+  } catch (error: any) {
+    logger.error('Get VAPID public key failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'GET_VAPID_KEY_FAILED',
+        message: 'Failed to retrieve VAPID public key',
+      },
+    });
+  }
+};
+
+/**
+ * Subscribe to Web Push notifications
+ */
+export const subscribe = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required',
+        },
+      });
+    }
+
+    const subscriptionData = req.body.subscription || req.body;
+    const { endpoint, keys } = subscriptionData || {};
+
+    if (!endpoint || !keys || !keys.p256dh || !keys.auth) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_SUBSCRIPTION',
+          message: 'Invalid push subscription payload. Endpoint and keys (p256dh, auth) are required.',
+        },
+      });
+    }
+
+    const userAgent = req.headers['user-agent'];
+    const saved = await pushNotificationService.saveSubscription(
+      req.user.userId,
+      { endpoint, keys },
+      userAgent
+    );
+
+    res.status(201).json({
+      success: true,
+      data: { subscription: saved },
+      message: 'Push subscription saved successfully',
+    });
+  } catch (error: any) {
+    logger.error('Push subscription failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SUBSCRIBE_FAILED',
+        message: 'Failed to save push subscription',
+      },
+    });
+  }
+};
+
+/**
+ * Unsubscribe from Web Push notifications
+ */
+export const unsubscribe = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required',
+        },
+      });
+    }
+
+    const endpoint = req.body.endpoint || req.query.endpoint;
+
+    if (!endpoint) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_ENDPOINT',
+          message: 'Subscription endpoint is required',
+        },
+      });
+    }
+
+    await pushNotificationService.deleteSubscription(req.user.userId, endpoint as string);
+
+    res.json({
+      success: true,
+      message: 'Push subscription removed successfully',
+    });
+  } catch (error: any) {
+    logger.error('Unsubscribe failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'UNSUBSCRIBE_FAILED',
+        message: 'Failed to unsubscribe from push notifications',
+      },
+    });
+  }
+};
 
 /**
  * Get user notifications
@@ -21,11 +141,13 @@ export const getUserNotifications = async (req: AuthRequest, res: Response) => {
 
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
+    const category = req.query.category as string | undefined;
 
     const notifications = await notificationModel.findByRecipient(
       req.user.userId,
       limit,
-      offset
+      offset,
+      category
     );
 
     const unreadCount = await notificationModel.getUnreadCount(req.user.userId);
@@ -173,6 +295,45 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
 };
 
 /**
+ * Mark all notifications as read
+ */
+export const markAllAsRead = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required',
+        },
+      });
+    }
+
+    const count = await notificationModel.markAllAsDelivered(req.user.userId);
+
+    logger.info('All notifications marked as read', {
+      userId: req.user.userId,
+      count,
+    });
+
+    res.json({
+      success: true,
+      data: { updatedCount: count },
+      message: 'All notifications marked as read',
+    });
+  } catch (error: any) {
+    logger.error('Mark all notifications as read failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'MARK_ALL_READ_FAILED',
+        message: 'Failed to mark all notifications as read',
+      },
+    });
+  }
+};
+
+/**
  * Get unread notifications count
  */
 export const getUnreadCount = async (req: AuthRequest, res: Response) => {
@@ -206,6 +367,80 @@ export const getUnreadCount = async (req: AuthRequest, res: Response) => {
 };
 
 /**
+ * Get notification preferences
+ */
+export const getPreferences = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required',
+        },
+      });
+    }
+
+    const preferences = await notificationModel.getPreferences(req.user.userId);
+
+    res.json({
+      success: true,
+      data: { preferences },
+    });
+  } catch (error: any) {
+    logger.error('Get preferences failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'GET_PREFERENCES_FAILED',
+        message: 'Failed to get notification preferences',
+      },
+    });
+  }
+};
+
+/**
+ * Update notification preferences for a category
+ */
+export const updatePreferences = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required',
+        },
+      });
+    }
+
+    const { category } = req.params;
+    const { emailEnabled, smsEnabled, pushEnabled } = req.body;
+
+    const updated = await notificationModel.updatePreference(req.user.userId, category, {
+      emailEnabled,
+      smsEnabled,
+      pushEnabled,
+    });
+
+    res.json({
+      success: true,
+      data: { preference: updated },
+      message: 'Notification preferences updated successfully',
+    });
+  } catch (error: any) {
+    logger.error('Update preferences failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'UPDATE_PREFERENCES_FAILED',
+        message: 'Failed to update notification preferences',
+      },
+    });
+  }
+};
+
+/**
  * Send test notification (staff only)
  */
 export const sendTestNotification = async (req: AuthRequest, res: Response) => {
@@ -220,7 +455,7 @@ export const sendTestNotification = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    const { recipientId, type, title, titleAr, body, bodyAr } = req.body;
+    const { recipientId, type, title, titleAr, body, bodyAr, category, actionUrl } = req.body;
 
     const notification = await notificationModel.createAndSend({
       recipient_id: recipientId,
@@ -229,6 +464,8 @@ export const sendTestNotification = async (req: AuthRequest, res: Response) => {
       title_ar: titleAr,
       body,
       body_ar: bodyAr,
+      category,
+      action_url: actionUrl,
     });
 
     logger.info('Test notification sent', { 
@@ -283,7 +520,8 @@ export const sendBookingConfirmation = async (req: AuthRequest, res: Response) =
       title: 'Booking Confirmed',
       title_ar: 'تم تأكيد الحجز',
       body: emailContent.html,
-      body_ar: emailContent.text
+      body_ar: emailContent.text,
+      category: 'booking',
     });
 
     logger.info('Booking confirmation sent', { 

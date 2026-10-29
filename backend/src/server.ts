@@ -33,8 +33,17 @@ import blocksRoutes from './routes/blocks.routes';
 import feedbackRoutes from './routes/feedback.routes';
 import hostRoutes from './routes/host_portal.routes';
 import rewardRoutes from './routes/reward.routes';
+import webhookRoutes from './routes/webhook.routes';
 
 const app = express();
+const httpServer = http.createServer(app);
+let io: any;
+
+try {
+  io = initWebSocketGateway(httpServer);
+} catch (err: any) {
+  logger.warn('WebSocket gateway initialization deferred', { error: err.message });
+}
 
 // Security headers
 app.use(securityHeaders);
@@ -89,6 +98,7 @@ app.use(`/api/${config.apiVersion}/blocks`, blocksRoutes);
 app.use(`/api/${config.apiVersion}/feedbacks`, feedbackRoutes);
 app.use(`/api/${config.apiVersion}/host`, hostRoutes);
 app.use(`/api/${config.apiVersion}/rewards`, rewardRoutes);
+app.use(`/api/${config.apiVersion}/webhooks`, webhookRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
@@ -99,7 +109,7 @@ app.use(errorHandler);
 // Start server and setup graceful shutdown only outside test runs
 if (config.env !== 'test' && process.env.NODE_ENV !== 'test') {
   const PORT = config.port;
-  const server = app.listen(PORT, () => {
+  httpServer.listen(PORT, () => {
     logger.info(`🚀 Server running on port ${PORT}`);
     logger.info(`📝 Environment: ${config.env}`);
     logger.info(`🔗 API Version: ${config.apiVersion}`);
@@ -108,7 +118,7 @@ if (config.env !== 'test' && process.env.NODE_ENV !== 'test') {
 
   const shutdown = (signal: string) => {
     logger.info(`Received ${signal}. Shutting down gracefully...`);
-    server.close(async () => {
+    httpServer.close(async () => {
       logger.info('HTTP server closed.');
       try {
         await closePools();

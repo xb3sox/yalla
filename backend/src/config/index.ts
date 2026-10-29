@@ -7,6 +7,8 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 const INSECURE_JWT_SECRET = 'your-super-secret-jwt-key-change-in-production';
 const INSECURE_JWT_REFRESH_SECRET = 'your-super-secret-refresh-key-change-in-production';
 const INSECURE_SESSION_SECRET = 'your-session-secret-change-in-production';
+const DEFAULT_DEV_VAPID_PUBLIC_KEY = 'BJQBNSaTC9JVa7qJxb-AwBUhkbj1cAtn9JofT2c8r38dNZfj-_IS4DodoJ85SFZum6C5ltkOevF0B2VsqCEA2qE';
+const DEFAULT_DEV_VAPID_PRIVATE_KEY = 'B5D-e26hxzLCXhylZ5WcF-YPgg6ULuiuPjkYcY9dYC0';
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
   const nodeEnv = env.NODE_ENV || 'development';
@@ -36,6 +38,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
       throw new Error(`Production configuration validation failed:\n- ${errors.join('\n- ')}`);
     }
   }
+
+  const vapidPublicKey = env.VAPID_PUBLIC_KEY || (isProduction ? '' : DEFAULT_DEV_VAPID_PUBLIC_KEY);
+  const vapidPrivateKey = env.VAPID_PRIVATE_KEY || (isProduction ? '' : DEFAULT_DEV_VAPID_PRIVATE_KEY);
+  const vapidSubject = env.VAPID_SUBJECT || 'mailto:admin@yalla.app';
 
   return {
     // Server
@@ -80,17 +86,37 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
       fromName: env.EMAIL_FROM_NAME || 'Yalla',
     },
 
-    // SMS (Twilio)
+    // SMS (Twilio & Unifonic)
     sms: {
       accountSid: env.TWILIO_ACCOUNT_SID || '',
       authToken: env.TWILIO_AUTH_TOKEN || '',
       phoneNumber: env.TWILIO_PHONE_NUMBER || '',
+      senderId: env.TWILIO_SENDER_ID || 'Yalla',
+      unifonicAppsId: env.UNIFONIC_APPSID || '',
+      unifonicSenderId: env.UNIFONIC_SENDER_ID || 'Yalla',
+      provider: env.SMS_PROVIDER || 'factory',
+    },
+
+    // VAPID Web Push
+    vapid: {
+      publicKey: vapidPublicKey,
+      privateKey: vapidPrivateKey,
+      subject: vapidSubject,
+    },
+
+    // Push (alias for consistency)
+    push: {
+      vapidPublicKey,
+      vapidPrivateKey,
+      vapidSubject,
     },
 
     // Redis
     redis: {
       url: env.REDIS_URL || 'redis://localhost:6379',
       password: env.REDIS_PASSWORD || '',
+      keyPrefix: env.REDIS_KEY_PREFIX || 'yalla:',
+      tls: env.REDIS_TLS === 'true',
     },
 
     // CORS
@@ -127,6 +153,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     monitoring: {
       sentryDsn: env.SENTRY_DSN || '',
       newRelicLicenseKey: env.NEW_RELIC_LICENSE_KEY || '',
+      serviceName: env.OTEL_SERVICE_NAME || 'yalla-backend',
+      environment: nodeEnv,
     },
 
     // Feature Flags
