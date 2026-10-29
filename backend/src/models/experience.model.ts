@@ -1,4 +1,4 @@
-import pool from '../config/database';
+import pool, { db } from '../config/database';
 import logger from '../utils/logger';
 
 export const EXPERIENCE_TRANSITIONS: Record<string, string[]> = {
@@ -171,7 +171,7 @@ class ExperienceModel {
    */
   async findById(id: string): Promise<Experience | null> {
     const query = 'SELECT * FROM experiences WHERE id = $1';
-    const result = await pool.query(query, [id]);
+    const result = await db.queryReplica(query, [id]);
     
     return result.rows[0] || null;
   }
@@ -187,7 +187,7 @@ class ExperienceModel {
       LIMIT $1 OFFSET $2
     `;
     
-    const result = await pool.query(query, [limit, offset]);
+    const result = await db.queryReplica(query, [limit, offset]);
     return result.rows;
   }
 
@@ -244,7 +244,7 @@ class ExperienceModel {
     
     query += ' ORDER BY date DESC';
     
-    const result = await pool.query(query, values);
+    const result = await db.queryReplica(query, values);
     return result.rows;
   }
 

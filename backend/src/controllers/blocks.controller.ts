@@ -17,6 +17,20 @@ export const blockUser = async (req: AuthRequest, res: Response) => {
 
     const { blocked_user_id, reason, reason_ar } = req.body;
 
+    if (!blocked_user_id || typeof blocked_user_id !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_INPUT', message: 'blocked_user_id is required' },
+      });
+    }
+
+    if (blocked_user_id === req.user.userId) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'CANNOT_BLOCK_SELF', message: 'Users cannot block themselves' },
+      });
+    }
+
     // Check if already blocked
     const existing = await pool.query(
       'SELECT * FROM blocks WHERE blocker_id = $1 AND blocked_entity_id = $2',

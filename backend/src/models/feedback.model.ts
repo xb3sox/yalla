@@ -1,4 +1,4 @@
-import pool from '../config/database';
+import pool, { db } from '../config/database';
 import logger from '../utils/logger';
 
 export interface Feedback {
@@ -78,7 +78,7 @@ class FeedbackModel {
         ORDER BY created_at DESC
       `;
       
-      const result = await pool.query(query, [experienceId]);
+      const result = await db.queryReplica(query, [experienceId]);
       return result.rows as Feedback[];
     } catch (error) {
       logger.error('Error getting feedbacks by experience', { error, experienceId });
@@ -97,7 +97,7 @@ class FeedbackModel {
         WHERE reservation_id = $1
       `;
       
-      const result = await pool.query(query, [reservationId]);
+      const result = await db.queryReplica(query, [reservationId]);
       return result.rows.length > 0 ? (result.rows[0] as Feedback) : null;
     } catch (error) {
       logger.error('Error getting feedback by reservation', { error, reservationId });

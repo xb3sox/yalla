@@ -1,8 +1,11 @@
 import express from 'express';
+import http from 'http';
+import { initWebSocketGateway } from './gateways/websocket.gateway';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import config from './config';
-import pool from './config/database';
+import { closePools } from './config/database';
+import { databaseRoutingMiddleware } from './middleware/databaseRouting.middleware';
 import logger from './utils/logger';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import {
@@ -49,6 +52,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Input sanitization (now inspects populated req.body/params/query)
 app.use(sanitizeInput);
+
+// Database session routing and write-pinning
+app.use(databaseRoutingMiddleware);
 
 // Request logging
 app.use(requestLogger);
@@ -105,8 +111,8 @@ if (config.env !== 'test' && process.env.NODE_ENV !== 'test') {
     server.close(async () => {
       logger.info('HTTP server closed.');
       try {
-        await pool.end();
-        logger.info('PostgreSQL pool drained.');
+        await closePools();
+        logger.info('PostgreSQL pools (primary and replica) drained.');
         process.exit(0);
       } catch (err) {
         logger.error('Error closing database pool', err);
@@ -134,4 +140,5 @@ if (config.env !== 'test' && process.env.NODE_ENV !== 'test') {
   });
 }
 
+export { httpServer, io, initWebSocketGateway };
 export default app;
