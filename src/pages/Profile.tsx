@@ -3,8 +3,9 @@ import { useApp } from '../data/store';
 import { useToast } from '../components/Toast';
 import { Avatar } from '../components/Avatar';
 import { RewardsWidget } from '../components/RewardsWidget';
+import { ProfilePrivacy } from './ProfilePrivacy';
 import { t } from '../i18n';
-import { Button, Select, Input, Dialog } from '../components/DesignSystem';
+import { Button, Select, Input } from '../components/DesignSystem';
 import { Shield, FileText, Trash2, Download, Edit3, HeadphonesIcon } from 'lucide-react';
 
 interface ProfilePageProps {
@@ -16,10 +17,13 @@ export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
   const { showToast } = useToast();
   const lang = state.language;
   const user = state.user;
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [showPrivacyView, setShowPrivacyView] = useState(false);
 
   if (!user) return null;
+
+  if (showPrivacyView) {
+    return <ProfilePrivacy onBack={() => setShowPrivacyView(false)} />;
+  }
 
   return (
     <div className="px-5 pt-6 pb-28 space-y-8">
@@ -36,7 +40,7 @@ export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
       <div className="space-y-2">
         <button
           onClick={onGoToSupport}
-          className="w-full flex items-center gap-3.5 p-4 bg-surface-raised rounded-xl border border-border hover:bg-surface-sunken transition-colors text-start"
+          className="w-full flex items-center gap-3.5 p-4 bg-surface-raised rounded-xl border border-border hover:bg-surface-sunken transition-colors text-start min-h-[44px]"
         >
           <div className="w-9 h-9 rounded-full bg-brand-50 flex items-center justify-center">
             <HeadphonesIcon className="w-5 h-5 text-brand-600" />
@@ -83,7 +87,7 @@ export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
               hint={t('common.sar', lang)}
             />
           </div>
-          <Button variant="primary" className="w-full" onClick={() => showToast('success', lang === 'ar' ? 'تم حفظ التفضيلات' : 'Preferences saved')}>
+          <Button variant="primary" className="w-full min-h-[44px]" onClick={() => showToast('success', lang === 'ar' ? 'تم حفظ التفضيلات' : 'Preferences saved')}>
             {t('common.save', lang)}
           </Button>
         </div>
@@ -127,22 +131,25 @@ export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
         <h2 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">{t('profile.dataRights', lang)}</h2>
         <div className="bg-surface-raised rounded-xl border border-border divide-y divide-border">
           <button
-            onClick={() => setShowExportDialog(true)}
-            className="w-full flex items-center gap-3.5 p-4 hover:bg-surface-sunken transition-colors text-start"
+            onClick={() => setShowPrivacyView(true)}
+            className="w-full flex items-center gap-3.5 p-4 hover:bg-surface-sunken transition-colors text-start min-h-[44px]"
           >
             <Download className="w-5 h-5 text-text-tertiary" />
             <div className="flex-1">
               <p className="text-sm font-medium text-text-primary">{t('profile.exportData', lang)}</p>
-              <p className="text-xs text-text-tertiary mt-0.5">{lang === 'ar' ? 'JSON' : 'Machine-readable format'}</p>
+              <p className="text-xs text-text-tertiary mt-0.5">{lang === 'ar' ? 'تصدير أرشيف البيانات بصيغة JSON' : 'Machine-readable JSON export'}</p>
             </div>
           </button>
-          <button className="w-full flex items-center gap-3.5 p-4 hover:bg-surface-sunken transition-colors text-start">
+          <button
+            onClick={() => setShowPrivacyView(true)}
+            className="w-full flex items-center gap-3.5 p-4 hover:bg-surface-sunken transition-colors text-start min-h-[44px]"
+          >
             <Edit3 className="w-5 h-5 text-text-tertiary" />
             <p className="text-sm font-medium text-text-primary flex-1">{t('profile.correctData', lang)}</p>
           </button>
           <button
-            onClick={() => setShowDeleteDialog(true)}
-            className="w-full flex items-center gap-3.5 p-4 hover:bg-accent-50 transition-colors text-start"
+            onClick={() => setShowPrivacyView(true)}
+            className="w-full flex items-center gap-3.5 p-4 hover:bg-accent-50 transition-colors text-start min-h-[44px]"
           >
             <Trash2 className="w-5 h-5 text-accent-500" />
             <p className="text-sm font-medium text-accent-600 flex-1">{t('profile.deleteData', lang)}</p>
@@ -154,53 +161,26 @@ export function ProfilePage({ onGoToSupport }: ProfilePageProps) {
       <section className="space-y-4">
         <h2 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">{lang === 'ar' ? 'قانوني' : 'Legal'}</h2>
         <div className="bg-surface-raised rounded-xl border border-border divide-y divide-border">
-          <button className="w-full flex items-center gap-3.5 p-4 hover:bg-surface-sunken transition-colors text-start">
+          <button
+            onClick={() => setShowPrivacyView(true)}
+            className="w-full flex items-center gap-3.5 p-4 hover:bg-surface-sunken transition-colors text-start min-h-[44px]"
+          >
             <Shield className="w-5 h-5 text-text-tertiary" />
             <span className="text-sm text-text-primary">{t('profile.privacyNotice', lang)}</span>
           </button>
-          <button className="w-full flex items-center gap-3.5 p-4 hover:bg-surface-sunken transition-colors text-start">
+          <button className="w-full flex items-center gap-3.5 p-4 hover:bg-surface-sunken transition-colors text-start min-h-[44px]">
             <FileText className="w-5 h-5 text-text-tertiary" />
             <span className="text-sm text-text-primary">{t('profile.terms', lang)}</span>
           </button>
           <div className="flex items-center gap-3.5 p-4">
             <span className="text-sm text-text-primary flex-1">{t('profile.marketingConsent', lang)}</span>
-            <label className="relative inline-flex items-center cursor-pointer">
+            <label className="relative inline-flex items-center cursor-pointer min-h-[44px]">
               <input type="checkbox" defaultChecked={user.marketingConsent} className="sr-only peer" />
               <div className="w-10 h-6 bg-border peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500 peer-focus-visible:ring-offset-2 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:start-[3px] after:bg-white after:rounded-full after:h-[18px] after:w-[18px] after:transition-all after:shadow-xs peer-checked:bg-brand-500" />
             </label>
           </div>
         </div>
       </section>
-
-      {/* Export Dialog */}
-      <Dialog
-        open={showExportDialog}
-        onClose={() => setShowExportDialog(false)}
-        title={t('profile.exportData', lang)}
-        actions={<>
-          <Button variant="secondary" onClick={() => setShowExportDialog(false)}>{t('common.cancel', lang)}</Button>
-          <Button variant="primary" onClick={() => { setShowExportDialog(false); showToast('success', lang === 'ar' ? 'سيتم إرسال بياناتك عبر البريد.' : 'Your data will be sent via email.'); }}>{t('common.confirm', lang)}</Button>
-        </>}
-      >
-        <p className="text-sm text-text-secondary">
-          {lang === 'ar' ? 'سيتم تصدير بياناتك الشخصية فقط بصيغة JSON. لن تتضمن بيانات الآخرين.' : 'Your personal data will be exported in JSON format. This will not include other participants\' data.'}
-        </p>
-      </Dialog>
-
-      {/* Delete Dialog */}
-      <Dialog
-        open={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        title={t('profile.deleteData', lang)}
-        actions={<>
-          <Button variant="secondary" onClick={() => setShowDeleteDialog(false)}>{t('common.cancel', lang)}</Button>
-          <Button variant="danger" onClick={() => { setShowDeleteDialog(false); showToast('success', lang === 'ar' ? 'تم استلام طلب الحذف.' : 'Deletion request received.'); }}>{t('common.confirm', lang)}</Button>
-        </>}
-      >
-        <p className="text-sm text-text-secondary mb-3">
-          {lang === 'ar' ? 'سيتم حذف حسابك وبياناتك. قد يتم الاحتفاظ ببعض السجلات لأسباب قانونية أو للسلامة.' : 'Your account and data will be deleted. Some records may be retained for legal or safety reasons.'}
-        </p>
-      </Dialog>
     </div>
   );
 }
