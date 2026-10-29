@@ -15,8 +15,10 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
   const { state, dispatch } = useApp();
   const { showToast } = useToast();
   const lang = state.language;
-  const experience = state.experiences.find(e => e.id === experienceId);
-  const reservation = state.reservations.find(r => r.planId === experienceId && ['confirmed', 'reconfirmed', 'attended', 'checked_in'].includes(r.state));
+  const activeRes = state.reservations.find(r => r.participantId === 'user-1' && ['confirmed', 'reconfirmed', 'attended', 'checked_in'].includes(r.state));
+  const targetExpId = experienceId || activeRes?.planId || 'exp-1';
+  const experience = state.experiences.find(e => e.id === targetExpId);
+  const reservation = state.reservations.find(r => r.planId === targetExpId && ['confirmed', 'reconfirmed', 'attended', 'checked_in'].includes(r.state));
   const [actionDialog, setActionDialog] = useState<string | null>(null);
   const [actionSubmitted, setActionSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -123,6 +125,19 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
       </div>
 
       <div className="px-5 py-6 space-y-4">
+        {/* Dynamic Check-in PIN */}
+        <section className="bg-brand-50/80 rounded-xl border border-brand-200 p-4 text-center">
+          <p className="text-xs font-semibold text-brand-700 uppercase tracking-wider mb-1">
+            {lang === 'ar' ? 'رمز تسجيل الدخول (PIN)' : 'Check-In PIN'}
+          </p>
+          <div className="text-3xl font-mono font-bold text-brand-800 tracking-widest my-2" data-testid="checkin-pin">
+            {reservation?.id ? (reservation.id.replace(/\D/g, '') + '8492').slice(0, 4) : '8492'}
+          </div>
+          <p className="text-xs text-text-tertiary">
+            {lang === 'ar' ? 'اعرض هذا الرمز للمضيف عند الوصول للتحقق' : 'Show this PIN to your host upon arrival for check-in'}
+          </p>
+        </section>
+
         {/* Venue */}
         <section className="bg-surface-raised rounded-xl border border-border p-4">
           <div className="flex items-start gap-3">
