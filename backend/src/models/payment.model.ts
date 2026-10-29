@@ -30,6 +30,39 @@ export interface CreatePaymentInput {
 
 class PaymentModel {
   /**
+   * Save pre-created Stripe PaymentIntent into DB
+   */
+  async createPaymentIntentWithStripeId(input: {
+    reservation_id: string;
+    amount: number;
+    currency?: string;
+    stripe_payment_id: string;
+    stripe_client_secret?: string;
+  }): Promise<Payment> {
+    try {
+      const query = `
+        INSERT INTO payments (
+          reservation_id, amount, currency, status, stripe_payment_id, stripe_client_secret
+        ) VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `;
+      const values = [
+        input.reservation_id,
+        input.amount,
+        input.currency || 'sar',
+        'pending',
+        input.stripe_payment_id,
+        input.stripe_client_secret || null,
+      ];
+      const result = await pool.query(query, values);
+      return result.rows[0];
+    } catch (error: any) {
+      logger.error('createPaymentIntentWithStripeId failed', { error: error.message });
+      throw error;
+    }
+  }
+
+  /**
    * Create a payment intent
    */
   async createPaymentIntent(input: CreatePaymentInput): Promise<Payment> {

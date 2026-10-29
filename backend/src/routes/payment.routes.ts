@@ -41,5 +41,6 @@ router.post(
  * @access  Public (Stripe)
  */
 router.post('/webhook', handleStripeWebhook);
+router.post('/webhooks/stripe', handleStripeWebhook);
 
 export default router;

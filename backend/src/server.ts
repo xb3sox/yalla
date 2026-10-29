@@ -34,6 +34,7 @@ import feedbackRoutes from './routes/feedback.routes';
 import hostRoutes from './routes/host_portal.routes';
 import rewardRoutes from './routes/reward.routes';
 import webhookRoutes from './routes/webhook.routes';
+import walletRoutes from './routes/wallet.routes';
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -99,6 +100,7 @@ app.use(`/api/${config.apiVersion}/feedbacks`, feedbackRoutes);
 app.use(`/api/${config.apiVersion}/host`, hostRoutes);
 app.use(`/api/${config.apiVersion}/rewards`, rewardRoutes);
 app.use(`/api/${config.apiVersion}/webhooks`, webhookRoutes);
+app.use(`/api/${config.apiVersion}`, walletRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

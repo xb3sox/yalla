@@ -237,6 +237,13 @@ type TranslationKeys = {
   'staff.correctAttendance': string;
   'staff.reasonRequired': string;
 
+  // Wallet
+  'wallet.addToApple': string;
+  'wallet.addToGoogle': string;
+  'wallet.privacyNotice': string;
+  'wallet.offlinePassTitle': string;
+  'wallet.downloadStarted': string;
+
   // States
   'state.available': string;
   'state.approvalPending': string;
@@ -462,6 +469,12 @@ const en: TranslationKeys = {
   'staff.setCapacity': 'Set Capacity',
   'staff.correctAttendance': 'Correct Attendance',
   'staff.reasonRequired': 'Reason required',
+
+  'wallet.addToApple': 'Add to Apple Wallet',
+  'wallet.addToGoogle': 'Add to Google Wallet',
+  'wallet.privacyNotice': 'Exact venue GPS coordinates and check-in PIN unlock in your wallet 24 hours prior upon reconfirmation.',
+  'wallet.offlinePassTitle': 'Offline Boarding Pass',
+  'wallet.downloadStarted': 'Pass downloaded for offline use',
 
   'host.title': 'Host Portal',
   'host.overview': 'Overview',
@@ -712,6 +725,12 @@ const ar: TranslationKeys = {
   'staff.setCapacity': 'تعيين السعة',
   'staff.correctAttendance': 'تصحيح الحضور',
   'staff.reasonRequired': 'السبب مطلوب',
+
+  'wallet.addToApple': 'إضافة إلى محفظة Apple',
+  'wallet.addToGoogle': 'إضافة إلى محفظة Google',
+  'wallet.privacyNotice': 'سيتم فتح إحداثيات الموقع ورمز الدخول في محفظتك قبل 24 ساعة عند تأكيد الحضور.',
+  'wallet.offlinePassTitle': 'بطاقة صعود بدون إنترنت',
+  'wallet.downloadStarted': 'تم تنزيل البطاقة للاستخدام بدون إنترنت',
 
   'host.title': 'بوابة المضيف',
   'host.overview': 'نظرة عامة',
