@@ -113,13 +113,22 @@ export function ShareExperience({ experienceId, title }: ShareExperienceProps) {
               {lang === 'ar' ? 'مشاركة عبر' : 'Share via'}
             </p>
             <div className="flex justify-center gap-3">
-              {['WhatsApp', 'Twitter', 'Email'].map(platform => (
+              {[
+                { name: 'WhatsApp', labelAr: 'واتساب' },
+                { name: 'Twitter', labelAr: 'تويتر' },
+                { name: 'Email', labelAr: 'البريد الإلكتروني' },
+              ].map(platform => (
                 <button
-                  key={platform}
+                  key={platform.name}
                   className="w-12 h-12 rounded-full bg-surface-sunken hover:bg-border transition-colors flex items-center justify-center text-xs font-medium text-text-secondary"
+                  aria-label={
+                    lang === 'ar'
+                      ? `مشاركة عبر ${platform.labelAr}`
+                      : `Share via ${platform.name}`
+                  }
                   onClick={() => showToast('info', lang === 'ar' ? 'سيتم إضافة المشاركة قريباً' : 'Sharing coming soon')}
                 >
-                  {platform.slice(0, 2)}
+                  {platform.name.slice(0, 2)}
                 </button>
               ))}
             </div>
