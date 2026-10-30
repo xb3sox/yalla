@@ -1,6 +1,6 @@
 # Multi-stage build for Yalla Frontend (Vite + React)
 # Stage 1: Build
-FROM node:22-alpine AS builder
+FROM node:25-alpine AS builder
 
 WORKDIR /app
 
