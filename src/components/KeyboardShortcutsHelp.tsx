@@ -70,11 +70,11 @@ export function KeyboardShortcutsHelp() {
       {/* Floating help button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-28 end-5 w-10 h-10 rounded-full bg-surface-raised border border-border shadow-md flex items-center justify-center hover:bg-surface-sunken transition-colors z-30"
+        className="fixed bottom-28 end-5 w-10 h-10 rounded-full bg-surface-raised border border-border shadow-md flex items-center justify-center hover:bg-surface-sunken transition-colors z-30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
         aria-label={lang === 'ar' ? 'اختصارات لوحة المفاتيح' : 'Keyboard shortcuts'}
         title={lang === 'ar' ? 'اختصارات لوحة المفاتيح (?)' : 'Keyboard shortcuts (?)'}
       >
-        <Keyboard className="w-5 h-5 text-text-secondary" />
+        <Keyboard className="w-5 h-5 text-text-secondary" aria-hidden="true" />
       </button>
     </>
   );
