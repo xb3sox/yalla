@@ -223,6 +223,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     // Never leave a dead token in the jar: the client cannot clear HttpOnly
     // cookies itself, so it would retry forever.
     res.clearCookie('refresh_token', clearCookieOptions);
+    res.clearCookie('access_token', clearCookieOptions);
 
     res.status(401).json({
       success: false,

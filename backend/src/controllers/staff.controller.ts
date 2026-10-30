@@ -270,7 +270,7 @@ const neutralizeSpreadsheetFormulas = (rows: Record<string, any>[]) =>
     Object.fromEntries(
       Object.entries(row).map(([key, value]) => [
         key,
-        typeof value === 'string' && /^[=+\-@\t\r]/.test(value) ? `'${value}` : value,
+        typeof value === 'string' && /^[=+\-@\t\r]/.test(value) && !/^\+\d{7,15}$/.test(value) ? `'${value}` : value,
       ])
     )
   );

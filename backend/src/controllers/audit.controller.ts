@@ -189,7 +189,9 @@ export const createAuditEvent = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    const { action, resource_type, resource_id, details, classification } = req.body;
+    const { action, details, classification } = req.body;
+    const resource_type = req.body.resource_type || req.body.resourceType;
+    const resource_id = req.body.resource_id || req.body.resourceId;
 
     if (!action || !resource_type || !resource_id) {
       return res.status(400).json({

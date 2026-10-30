@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
-import paymentModel from '../models/payment.model';
+import paymentModel, { stripe } from '../models/payment.model';
 import reservationModel from '../models/reservation.model';
 import experienceModel from '../models/experience.model';
 import logger from '../utils/logger';
@@ -271,14 +271,13 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
 
   try {
     const payload = (req as any).rawBody ?? req.body;
-    const event = paymentService.stripe.webhooks.constructEvent(
+    const event = stripe.webhooks.constructEvent(
       payload,
       sig!,
-
       config.stripe.webhookSecret
     );
 
-    await paymentService.handleWebhook(event);
+    await paymentModel.handleWebhook(event);
 
     res.json({ received: true });
   } catch (error: any) {

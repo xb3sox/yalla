@@ -17,7 +17,7 @@ export const blockUser = async (req: AuthRequest, res: Response) => {
 
     const { blocked_user_id, reason, reason_ar } = req.body;
 
-    if (!blocked_user_id || typeof blocked_user_id !== 'string') {
+    if (!blocked_user_id || typeof blocked_user_id !== 'string' || !blocked_user_id.trim()) {
       return res.status(400).json({
         success: false,
         error: { code: 'INVALID_INPUT', message: 'blocked_user_id is required' },

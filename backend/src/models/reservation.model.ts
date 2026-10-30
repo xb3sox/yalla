@@ -34,9 +34,9 @@ export interface ReservationStateMachine {
 const VALID_TRANSITIONS: Record<string, string[]> = {
   initiated: ['payment_pending', 'cancelled_by_participant', 'cancelled_by_yalla'],
   payment_pending: ['confirmed', 'waitlisted', 'failed', 'cancelled_by_participant', 'cancelled_by_yalla'],
-  confirmed: ['reconfirmation_required', 'checked_in', 'attended', 'cancelled_by_participant', 'cancelled_by_yalla'],
+  confirmed: ['reconfirmation_required', 'checked_in', 'attended', 'cancelled_by_participant', 'cancelled_by_yalla', 'refund_pending'],
   reconfirmation_required: ['reconfirmed', 'expired', 'cancelled_by_participant', 'cancelled_by_yalla'],
-  reconfirmed: ['checked_in', 'attended', 'cancelled_by_participant', 'cancelled_by_yalla'],
+  reconfirmed: ['checked_in', 'attended', 'cancelled_by_participant', 'cancelled_by_yalla', 'refund_pending'],
   waitlisted: ['offered', 'cancelled_by_participant', 'cancelled_by_yalla'],
   offered: ['confirmed', 'expired', 'declined', 'cancelled_by_participant', 'cancelled_by_yalla'],
   checked_in: ['attended', 'no_show', 'cancelled_by_yalla'],
@@ -46,8 +46,8 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   declined: [],
   failed: [],
   no_show: [],
-  cancelled_by_participant: ['refund_pending'],
-  cancelled_by_yalla: ['refund_pending'],
+  cancelled_by_participant: ['refund_pending', 'refunded'],
+  cancelled_by_yalla: ['refund_pending', 'refunded'],
   refund_pending: ['refunded'],
   refunded: [],
 };

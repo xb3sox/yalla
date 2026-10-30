@@ -13,6 +13,18 @@ vi.mock('../services/api', () => ({
 }));
 
 
+const showToastMock = vi.fn();
+
+vi.mock('../components/Toast', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../components/Toast')>();
+  return {
+    ...actual,
+    useToast: () => ({
+      showToast: showToastMock,
+    }),
+  };
+});
+
 describe('ArrivalModePage', () => {
   const mockOnBack = vi.fn();
   const mockExperienceId = 'exp-1';

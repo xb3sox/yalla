@@ -6,10 +6,8 @@ import config from '../config';
 async function seed() {
   // Demo accounts use a published shared password and include admin/staff
   // roles — never seed them into a production database.
-  if (config.env === 'production' && process.env.ALLOW_PROD_SEED !== '1') {
-    throw new Error(
-      'Refusing to seed demo data in production (set ALLOW_PROD_SEED=1 to override).'
-    );
+  if (config.env === 'production') {
+    throw new Error('Refusing to seed demo data in production environment.');
   }
 
   const client = await pool.connect();

@@ -327,6 +327,13 @@ class ExperienceModel {
     const toSnakeCase = (key: string) =>
       key.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
 
+    if (updates.plan_state) {
+      const current = await this.findById(id);
+      if (current && current.plan_state !== updates.plan_state && !EXPERIENCE_TRANSITIONS[current.plan_state]?.includes(updates.plan_state)) {
+        throw new Error(`Invalid state transition: ${current.plan_state} -> ${updates.plan_state}`);
+      }
+    }
+
     const updates_list: string[] = [];
     const values: any[] = [];
     let paramCount = 1;

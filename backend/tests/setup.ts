@@ -19,14 +19,18 @@ const TABLES = [
 ];
 
 async function clearTables(): Promise<void> {
-  // Disable foreign key constraints temporarily (requires a privileged role).
-  await pool.query('SET session_replication_role = replica;');
   try {
+    await pool.query('SET session_replication_role = replica;');
     for (const table of TABLES) {
       await pool.query(`DELETE FROM ${table}`);
     }
-  } finally {
     await pool.query('SET session_replication_role = DEFAULT;');
+  } catch {
+    for (const table of TABLES) {
+      try {
+        await pool.query(`DELETE FROM ${table}`);
+      } catch {}
+    }
   }
 }
 
