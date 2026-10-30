@@ -18,8 +18,12 @@ export interface Payment {
   stripe_payment_id?: string;
   stripe_client_secret?: string;
   receipt_url?: string;
+  refund_amount?: number;
+  refund_reason?: string;
   created_at: Date;
   updated_at: Date;
+  completed_at?: Date;
+  refunded_at?: Date;
 }
 
 export interface CreatePaymentInput {
@@ -67,6 +71,16 @@ class PaymentModel {
    */
   async createPaymentIntent(input: CreatePaymentInput): Promise<Payment> {
     try {
+      // One live payment per reservation (the controller enforces this too,
+      // but direct model callers must not be able to double-charge).
+      const reservationIdForCheck = input.reservation_id || (input as any).reservationId;
+      const existing = reservationIdForCheck
+        ? await this.findByReservationId(reservationIdForCheck)
+        : null;
+      if (existing && ['pending', 'processing', 'completed'].includes(existing.status)) {
+        throw new Error('Payment intent already exists for this reservation');
+      }
+
       // Create Stripe payment intent
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(input.amount * 100), // Convert to cents
@@ -105,6 +119,9 @@ class PaymentModel {
       return result.rows[0];
     } catch (error: any) {
       logger.error('Create payment intent failed', { error: error.message });
+      if (error.message?.startsWith('Payment intent already exists')) {
+        throw error;
+      }
       throw new Error('Failed to create payment intent');
     }
   }
@@ -139,7 +156,7 @@ class PaymentModel {
       // Update database
       const query = `
         UPDATE payments
-        SET status = 'completed', receipt_url = $2, updated_at = CURRENT_TIMESTAMP
+        SET status = 'completed', receipt_url = $2, completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
         WHERE stripe_payment_id = $1
         RETURNING *
       `;
@@ -285,17 +302,26 @@ class PaymentModel {
         refundParams.amount = Math.round(amount * 100); // Convert to cents
       }
       
+      const existing = await this.findByStripePaymentId(stripePaymentId);
+      if (!existing) {
+        throw new Error('Payment not found');
+      }
+
       const refund = await stripe.refunds.create(refundParams);
 
-      // Update database
+      // Track how much was refunded (cumulative across partial refunds)
+      // and whether the payment is now fully refunded.
+      const refundAmount = (existing.refund_amount || 0) + (amount ?? existing.amount);
+      const newStatus = refundAmount >= existing.amount ? 'refunded' : 'partially_refunded';
+
       const query = `
         UPDATE payments
-        SET status = 'refunded', updated_at = CURRENT_TIMESTAMP
+        SET status = $2, refund_amount = $3, refunded_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
         WHERE stripe_payment_id = $1
         RETURNING *
       `;
-      
-      const result = await pool.query(query, [stripePaymentId]);
+
+      const result = await pool.query(query, [stripePaymentId, newStatus, refundAmount]);
       
       if (result.rows.length === 0) {
         throw new Error('Payment not found');
@@ -371,7 +397,7 @@ class PaymentModel {
   async getPaymentStatistics(): Promise<any> {
     const query = `
       SELECT 
-        COUNT(*) as total_payments,
+        COUNT(*)::int as total_payments,
         COALESCE(SUM(amount), 0) as total_revenue,
         COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_payments,
         COUNT(CASE WHEN status = 'refunded' THEN 1 END) as refunded_payments,

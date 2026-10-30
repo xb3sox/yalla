@@ -1,36 +1,7 @@
 # Yalla - Robots.txt
 # https://yalla.app
 
-# Allow all crawlers by default
 User-agent: *
 Allow: /
 
-# Disallow admin and staff areas
-Disallow: /staff
-Disallow: /admin
-Disallow: /api/
-Disallow: /health
-Disallow: /metrics
-
-# Disallow private user areas
-Disallow: /profile/settings
-Disallow: /profile/data
-
-# Sitemap location
 Sitemap: https://yalla.app/sitemap.xml
-
-# Crawl-delay for polite crawling
-Crawl-delay: 1
-
-# Specific rules for major search engines
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 0
-
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 1
-
-User-agent: Slurp
-Allow: /
-Crawl-delay: 2

@@ -3,6 +3,7 @@ import experienceModel from '../models/experience.model';
 import userModel from '../models/user.model';
 import reservationModel from '../models/reservation.model';
 import logger from '../utils/logger';
+import { parsePagination } from '../utils/pagination';
 import {
   rankRecommendations,
   UserRecommendationContext,
@@ -25,7 +26,7 @@ export const getRecommendations = async (req: Request, res: Response) => {
       });
     }
 
-    const limit = parseInt(req.query.limit as string) || 20;
+    const { limit } = parsePagination(req.query, { defaultLimit: 20, maxLimit: 50 });
 
     // Fetch user to get preferences
     const user = await userModel.findById(userId);

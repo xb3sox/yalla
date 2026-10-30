@@ -72,12 +72,21 @@ describe('ShareExperience Component', () => {
     expect(screen.getByText(/رابط التجربة/i)).toBeTruthy();
   });
 
-  it('should have copy button', () => {
+  it('should have copy button with accessible aria-label', () => {
     renderWithProvider(<ShareExperience {...mockProps} />);
     
     fireEvent.click(screen.getByLabelText(/Share experience/i));
     
-    const copyButton = screen.getByRole('button', { name: '' });
+    const copyButton = screen.getByRole('button', { name: /Copy link/i });
+    expect(copyButton).toBeTruthy();
+  });
+
+  it('should have Arabic copy button with accessible aria-label', () => {
+    renderWithProvider(<ShareExperience {...mockProps} />, { language: 'ar' });
+
+    fireEvent.click(screen.getByLabelText(/مشاركة التجربة/i));
+
+    const copyButton = screen.getByRole('button', { name: /نسخ الرابط/i });
     expect(copyButton).toBeTruthy();
   });
 

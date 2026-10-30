@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import auditModel from '../models/audit.model';
 import logger from '../utils/logger';
+import { parsePagination } from '../utils/pagination';
 
 /**
  * Get audit events with filters
@@ -115,7 +116,7 @@ export const getAuditEventsByActor = async (req: AuthRequest, res: Response) => 
     }
 
     const { actorId } = req.params;
-    const limit = parseInt(req.query.limit as string) || 100;
+    const { limit } = parsePagination(req.query, { defaultLimit: 100, maxLimit: 200 });
 
     const events = await auditModel.findByActor(actorId, limit);
 
@@ -189,6 +190,16 @@ export const createAuditEvent = async (req: AuthRequest, res: Response) => {
     }
 
     const { action, resource_type, resource_id, details, classification } = req.body;
+
+    if (!action || !resource_type || !resource_id) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'MISSING_FIELDS',
+          message: 'action, resource_type, and resource_id are required',
+        },
+      });
+    }
 
     const event = await auditModel.create({
       actor_id: req.user.userId,

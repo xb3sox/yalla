@@ -6,11 +6,13 @@
 ---
 
 ## Problem & Context
+
 To expand distribution across the Apple App Store and Google Play Store, Yalla requires a native mobile application build. Incorporating Capacitor onto the existing React 18 + Vite codebase allows 100% web code reuse while enabling native mobile features: Face ID / Touch ID biometric authentication, native push notification badges, haptic feedback, and deep linking.
 
 ---
 
 ## User Story
+
 **As a** mobile smartphone user,
 **I want** to install Yalla from the iOS App Store or Google Play,
 **So that** I can unlock venue passes with Face ID, receive native OS push alerts, and enjoy a seamless native app experience.
@@ -18,7 +20,9 @@ To expand distribution across the Apple App Store and Google Play Store, Yalla r
 ---
 
 ## Subtasks & Implementation Phases
+
 This 13-point epic is decomposed into 4 discrete deliverables:
+
 - [ ] **Subtask 49.1: Capacitor Core & Native Platform Scaffolding (3 pts)** — Install Capacitor, configure `capacitor.config.ts`, generate `ios/` and `android/` projects.
 - [ ] **Subtask 49.2: Biometrics Plugin & Secure Storage (3 pts)** — Implement `@capgo/capacitor-native-biometric` with Face ID fallback to PIN.
 - [ ] **Subtask 49.3: Deep Linking & Native Push Notifications (3 pts)** — Configure `@capacitor/app` universal links and `@capacitor/push-notifications`.
@@ -29,8 +33,10 @@ This 13-point epic is decomposed into 4 discrete deliverables:
 ## Technical Architecture & Scope
 
 ### 1. Capacitor Integration (`yalla-frontend`)
+
 - Install `@capacitor/core`, `@capacitor/cli`, `@capacitor/ios`, `@capacitor/android`.
 - Configuration in `capacitor.config.ts`:
+
   ```typescript
   import { CapacitorConfig } from '@capacitor/cli';
 
@@ -51,13 +57,16 @@ This 13-point epic is decomposed into 4 discrete deliverables:
   ```
 
 ### 2. Native Plugins Integration
+
 - **Biometrics** (`@capgo/capacitor-native-biometric`): Unlock venue arrival PIN and pass with Face ID / fingerprint.
 - **Haptics** (`@capacitor/haptics`): Provide light haptic vibration feedback on successful check-in or booking confirmation.
 - **App Deep Links** (`@capacitor/app`): Handle custom scheme `yalla://arrival/:reservationId` and universal links (`https://yalla.app/arrival/:reservationId`).
 - **StatusBar & SplashScreen** (`@capacitor/status-bar`, `@capacitor/splash-screen`): Native iOS/Android theme alignment.
 
 ### 3. Build & CI Pipelines
+
 - Add build scripts in `package.json`:
+
   ```json
   "cap:build": "npm run build && npx cap sync",
   "cap:open:ios": "npx cap open ios",
@@ -67,6 +76,7 @@ This 13-point epic is decomposed into 4 discrete deliverables:
 ---
 
 ## Acceptance Criteria
+
 - [ ] Capacitor initialized with bundle ID `app.yalla.mobile` and integrated into frontend repository root.
 - [ ] iOS and Android platform projects (`ios/`, `android/`) generated and synced via `npx cap sync`.
 - [ ] Biometric prompt component (`src/components/BiometricAuthPrompt.tsx`) fallback smoothly to PIN entry on web or unsupported devices.
@@ -77,10 +87,12 @@ This 13-point epic is decomposed into 4 discrete deliverables:
 ---
 
 ## Testing Requirements
+
 - [ ] Add unit tests in `src/services/nativePlugins.test.ts` testing web fallback mocks for Capacitor plugins.
 - [ ] Verify frontend build and tests pass: `npm run typecheck` and `npx vitest run`.
 
 ---
 
 ## SDLC & Security Guardrails
+
 - **Security**: Store biometric authentication flags securely in Capacitor Secure Storage (`@capgo/capacitor-secure-storage`); never log sensitive tokens or private user data to native console logs.

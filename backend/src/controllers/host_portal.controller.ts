@@ -3,6 +3,7 @@ import pool from '../config/database';
 import ReservationModel from '../models/reservation.model';
 import logger from '../utils/logger';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { EXPERIENCE_TRANSITIONS } from '../models/experience.model';
 
 const PLATFORM_COMMISSION_RATE = 0.15; // 15% platform commission
 
@@ -231,6 +232,23 @@ export const updateSession = async (req: AuthRequest, res: Response): Promise<vo
 
     const { capacity, time, plan_state, date } = req.body;
 
+    // Hosts move sessions through the same lifecycle as staff — arbitrary
+    // plan_state values (or jumps like draft -> completed) are rejected.
+    if (
+      plan_state !== undefined &&
+      plan_state !== currentSession.plan_state &&
+      !EXPERIENCE_TRANSITIONS[currentSession.plan_state]?.includes(plan_state)
+    ) {
+      res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_STATE_TRANSITION',
+          message: `Cannot transition from ${currentSession.plan_state} to ${plan_state}`,
+        },
+      });
+      return;
+    }
+
     // Safety Lock 1: Cannot reduce capacity below currently confirmed count
     if (capacity !== undefined && Number(capacity) < currentConfirmedCount) {
       res.status(400).json({
@@ -247,7 +265,13 @@ export const updateSession = async (req: AuthRequest, res: Response): Promise<vo
     // Safety Lock 2: Cannot cancel within 24 hours without staff alert
     let staffAlertTriggered = false;
     if (plan_state === 'cancelled' && currentSession.plan_state !== 'cancelled') {
-      const sessionStart = new Date(`${currentSession.date}T${currentSession.time}`);
+      // pg returns DATE columns as Date objects; interpolate them raw and
+      // this becomes an Invalid Date, silently disabling the alert.
+      const datePart =
+        currentSession.date instanceof Date
+          ? currentSession.date.toISOString().slice(0, 10)
+          : String(currentSession.date).slice(0, 10);
+      const sessionStart = new Date(`${datePart}T${currentSession.time}`);
       const now = new Date();
       const hoursUntilSession = (sessionStart.getTime() - now.getTime()) / (1000 * 60 * 60);
 

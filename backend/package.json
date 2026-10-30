@@ -17,7 +17,7 @@
     "typecheck": "tsc --noEmit",
     "migrate:prod": "node dist/migrations/run.js",
     "migrate:rollback:prod": "node dist/migrations/rollback.js",
-    "seed:prod": "node dist/migrations/seed.js"
+    "typecheck:tests": "tsc --noEmit -p tsconfig.tests.json"
   },
   "keywords": [
     "yalla",
@@ -27,7 +27,7 @@
     "postgresql"
   ],
   "author": "Yalla Team",
-  "license": "Proprietary",
+  "license": "UNLICENSED",
   "dependencies": {
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/instrumentation-express": "^0.72.0",
@@ -55,7 +55,7 @@
     "twilio": "^6.2.0",
     "web-push": "^3.6.7",
     "winston": "^3.11.0",
-    "zod": "^3.22.4"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.8",
@@ -80,8 +80,8 @@
     "typescript": "^5.3.3"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   },
   "overrides": {
     "exceljs": {

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import rewardController from '../../src/controllers/reward.controller';
 import rewardModel from '../../src/models/reward.model';
+import { AuthRequest } from '../../src/middleware/auth.middleware';
 
 jest.mock('../../src/models/reward.model', () => ({
   getUserPoints: jest.fn(),
@@ -9,7 +10,7 @@ jest.mock('../../src/models/reward.model', () => ({
 }));
 
 describe('RewardController', () => {
-  let req: Partial<Request>;
+  let req: Partial<AuthRequest>;
   let res: Partial<Response>;
   let next: NextFunction;
 

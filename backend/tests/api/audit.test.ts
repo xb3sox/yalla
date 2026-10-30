@@ -14,10 +14,10 @@ describe('Audit API', () => {
       .send({
         phone: '+966505555555',
         password: 'password123',
-        displayName: 'Audit Staff User',
+        display_name: 'Audit Staff User',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
     await pool.query(
@@ -39,10 +39,10 @@ describe('Audit API', () => {
       .send({
         phone: '+966504444444',
         password: 'password123',
-        displayName: 'Audit Participant',
+        display_name: 'Audit Participant',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
     const participantLogin = await request(app)
@@ -55,14 +55,7 @@ describe('Audit API', () => {
     participantToken = participantLogin.body.data.tokens.accessToken;
   });
 
-  afterAll(async () => {
-    // Clean up
-    if (testAuditEventId) {
-      await pool.query('DELETE FROM audit_events WHERE id = $1', [testAuditEventId]);
-    }
-    await pool.query("DELETE FROM users WHERE phone = '+966505555555'");
-    await pool.query("DELETE FROM users WHERE phone = '+966504444444'");
-  });
+  // No per-file cleanup: tests/setup.ts wipes all tables before each file.
 
   describe('GET /api/v1/audit', () => {
     it('should get all audit events', async () => {
@@ -164,6 +157,14 @@ describe('Audit API', () => {
     });
 
     it('should offset results', async () => {
+      // Seed two events: earlier suites no longer leave audit rows behind.
+      for (const action of ['offset_seed_1', 'offset_seed_2']) {
+        await request(app)
+          .post('/api/v1/audit')
+          .set('Authorization', `Bearer ${staffToken}`)
+          .send({ action, resource_type: 'system', resource_id: 'offset-test' });
+      }
+
       const allResponse = await request(app)
         .get('/api/v1/audit')
         .set('Authorization', `Bearer ${staffToken}`);

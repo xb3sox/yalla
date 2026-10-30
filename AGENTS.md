@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Yalla: React 18 + Vite 6 frontend at repo root (`yalla-frontend`), Express + TypeScript + PostgreSQL API in `backend/` (`yalla-backend`). Two independent npm projects (no workspaces) — install/test each separately with `npm ci`. Pinned Node 20 (`.nvmrc`).
+Yalla: React 18 + Vite 6 frontend at repo root (`yalla-frontend`), Express + TypeScript + PostgreSQL API in `backend/` (`yalla-backend`). Two independent npm projects (no workspaces) — install/test each separately with `npm ci`. Pinned Node 22 (`.nvmrc`).
 
 ## AI-Native SDLC Stages
 
@@ -36,26 +36,28 @@ Jules runs autonomous end-to-end task execution across the repository:
 ## Commands
 
 Frontend (repo root):
+
 - `npm run dev` — Vite on port 5173 (`strictPort`, host `0.0.0.0`)
 - `npm run typecheck` — `tsc --noEmit`, covers `src/` only
-- `npx vitest run <path>` — single/focused test. Bare `npm test` starts vitest **watch mode**; always add `run`.
+- `npm test` — single full Vitest pass (`npm run test:watch` for watch mode; `npx vitest run <path>` for a focused test).
 - `npm run test:coverage` — what CI runs
-- `node evals/check.js` — run AI agent invariant evals (10 core evals)
+- `node evals/check.js` — run AI agent invariant evals (11 core evals)
 
 Backend (`cd backend`):
+
 - `npm run dev` / `npm run build` / `npm start` — `tsx watch` / `tsc` / `node dist/server.js`
 - `npm run lint` — eslint (only backend has lint script)
 - `npm run typecheck` — `tsc --noEmit`
 - `npm test -- tests/unit` — tolerates missing DB locally (warn-and-skip in `tests/setup.ts`); CI runs full suite (`npm run test:coverage`) with Postgres + migrations. `tests/api` + `tests/e2e` strictly require `DATABASE_URL` + `npm run migrate`.
 - `npm run migrate` / `migrate:rollback` / `seed` — via `tsx`, need `DATABASE_URL`
 
-Before a PR: frontend `typecheck` + `vitest run`, backend `lint` + `typecheck` + `tests/unit`, and `node evals/check.js`.
+Before a PR: frontend `typecheck` + `lint:md` + `vitest run`, backend `lint` + `typecheck` + `tests/unit`, and `node evals/check.js`.
 
 ## Architecture
 
 - Frontend entry: `src/main.tsx` → `App.tsx` (lazy-loaded routes). Domain glossary in `GLOSSARY.md`, architectural decisions in `docs/adr/`. Layers: `domain/` + `application/` (business logic/use cases), `infrastructure/` (mock data), `data/store.tsx` (ephemeral UI session state: language, modals, active user), `services/api.ts` (authoritative data access seam with TTL cache, exponential retry, non-JSON error safety, safe localStorage — invalidate on mutations), `hooks/useAuth.ts`. Full specs: `docs/ARCHITECTURE.md`.
 - Backend entry: `src/server.ts` (Express app, routes mount at `/api/<config.apiVersion>/`, default `v1`, override via `API_VERSION`; `/health` and `/metrics` mounted at both root and api version). Layers: `routes/` → `controllers/` → `models/` (reservation intake encapsulates atomic capacity row-locking via `createWithCapacityCheck`; state transitions centralized in models); cross-cutting in `middleware/` (auth, `security.middleware.ts`, error), `config/`, `utils/`. Lifecycle: graceful shutdown drains pool on `SIGTERM`, `SIGINT`, `unhandledRejection`, `uncaughtException`. Full endpoints: `docs/API.md`.
-- Database: PostgreSQL 15 schema, 12 tables. Pool configured with connection, statement, and query timeouts (`statement_timeout: 10000`, `query_timeout: 10000`). Cloud SSL configured. Full schemas: `docs/DATABASE.md`.
+- Database: PostgreSQL 17 schema, 14 tables. Pool configured with connection, statement, and query timeouts (`statement_timeout: 10000`, `query_timeout: 10000`). Cloud SSL configured. Full schemas: `docs/DATABASE.md`.
 - Tests: frontend Vitest+jsdom, `isolate: false` with shared cleanup in `src/test/setup.ts`. Backend Jest+ts-jest with `diagnostics: false` — **type errors never fail tests**, so always run `typecheck` separately.
 - Env: copy `.env.example` → `.env` (root: `VITE_API_URL=http://localhost:3000/api/v1`) and `backend/.env.example` → `backend/.env` (`DATABASE_URL` enforced in production). Never commit `.env`.
 
@@ -65,7 +67,7 @@ Before a PR: frontend `typecheck` + `vitest run`, backend `lint` + `typecheck` +
 - **Docker Compose:** `docker-compose.yml` runs dev frontend via `Dockerfile.dev` (`5173:3000`) with `VITE_API_URL: http://localhost:3000/api/v1`, and backend on `3000:3000`. Root `Dockerfile` produces a multi-stage Nginx production container on port 80 with SPA fallback routing via `nginx.conf`.
 - Vitest `exclude`s `backend/**`, `dist/**`, `tests/e2e/**` — root test runs never touch the backend.
 - Backend `tests/setup.ts` truncates tables with `session_replication_role = replica`; needs a Postgres role with permission to do so.
-- No frontend lint script; backend eslint errors on unused vars (`^_` prefix allowed); `no-explicit-any` is off (142 legacy usages — fix opportunistically, do not mass-refactor).
+- No frontend lint script; backend eslint errors on unused vars (`^_` prefix allowed); `no-explicit-any` is off (180 legacy usages in backend alone — fix opportunistically, do not mass-refactor).
 - Bilingual UI (en/ar, RTL) — keep new strings in `src/i18n/` translation keys, not hardcoded; safe dictionary fallback with optional chaining (`translations[lang]?.[key]`); project targets WCAG 2.2 AA.
 
 ## Hard-earned rules (from `.jules/`)

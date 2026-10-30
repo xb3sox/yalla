@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'yalla-cache-v1';
+// Bump when the caching strategy changes so old shells are evicted.
+const CACHE_NAME = 'yalla-cache-v3';
 const OFFLINE_URL = '/offline.html';
 
 // Files to cache immediately
@@ -8,6 +9,7 @@ const PRECACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/offline.html',
   '/favicon.svg',
   '/robots.txt',
   '/sitemap.xml',
@@ -37,7 +39,11 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event
+// - Navigations are network-first: the HTML shell references hashed assets, so
+//   serving a cached index.html keeps users on the previous deploy until a
+//   second visit (and can point at assets that no longer exist).
+// - Static assets are cache-first with background revalidation.
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') {
@@ -49,26 +55,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Return cached response and update cache in background
-        event.waitUntil(
-          fetch(event.request).then((networkResponse) => {
-            if (networkResponse.ok) {
-              caches.open(CACHE_NAME).then((cache) => {
-                cache.put(event.request, networkResponse);
-              });
-            }
-          })
-        );
-        return cachedResponse;
-      }
-
-      // No cache hit, try network
-      return fetch(event.request)
+  // Network-first for navigations
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
         .then((networkResponse) => {
-          // Cache successful responses
           if (networkResponse.ok) {
             const responseClone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -77,14 +68,43 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         })
-        .catch(() => {
-          // Network failed, try to serve offline page for navigation requests
-          if (event.request.mode === 'navigate') {
-            return caches.match(OFFLINE_URL);
+        .catch(async () => {
+          const cached = await caches.match(event.request);
+          return cached || caches.match(OFFLINE_URL);
+        })
+    );
+    return;
+  }
+
+  // Cache-first for static assets
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        event.waitUntil(
+          fetch(event.request)
+            .then((networkResponse) => {
+              if (networkResponse.ok) {
+                return caches.open(CACHE_NAME).then((cache) => {
+                  cache.put(event.request, networkResponse);
+                });
+              }
+            })
+            .catch(() => undefined)
+        );
+        return cachedResponse;
+      }
+
+      return fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse.ok) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
           }
-          // For other requests, return empty response
-          return new Response('Offline', { status: 503 });
-        });
+          return networkResponse;
+        })
+        .catch(() => new Response('Offline', { status: 503 }));
     })
   );
 });

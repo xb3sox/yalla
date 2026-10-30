@@ -11,13 +11,14 @@ import {
   UserRecommendationContext,
 } from '../../../src/services/recommendation.service';
 import { Request, Response } from 'express';
+import { AuthRequest } from '../../../src/middleware/auth.middleware';
 
 jest.mock('../../../src/models/user.model');
 jest.mock('../../../src/models/experience.model');
 jest.mock('../../../src/models/reservation.model');
 
 describe('Recommendation Controller & Service Tests', () => {
-  let mockReq: Partial<Request>;
+  let mockReq: Partial<AuthRequest>;
   let mockRes: Partial<Response>;
 
   beforeEach(() => {

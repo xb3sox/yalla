@@ -11,44 +11,36 @@ describe('Safety Case Model', () => {
     const user = await userModel.create({
       phone: '+966506666666',
       password: 'password123',
-      displayName: 'Safety Test User',
+      display_name: 'Safety Test User',
       language: 'en',
-      adultDeclarationAccepted: true,
-      termsAccepted: true,
+      adult_declaration_accepted: true,
+      terms_accepted: true,
     });
     testReporterId = user.id;
   });
 
-  afterAll(async () => {
-    // Clean up
-    if (testSafetyCaseId) {
-      await pool.query('DELETE FROM safety_cases WHERE id = $1', [testSafetyCaseId]);
-    }
-    await pool.query('DELETE FROM users WHERE id = $1', [testReporterId]);
-  });
+  // No per-file cleanup: tests/setup.ts wipes all tables before each file.
 
   describe('create', () => {
     it('should create a safety case', async () => {
       const safetyCase = await safetyCaseModel.create({
-        reporterId: testReporterId,
+        reporter_id: testReporterId,
         category: 'harassment',
-        categoryAr: 'تحرش',
+        category_ar: 'تحرش',
         narrative: 'User was harassed during the experience',
-        narrativeAr: 'تعرض المستخدم للتحرش أثناء التجربة',
         evidence: ['screenshot1.png', 'screenshot2.png'],
       });
 
       expect(safetyCase).toBeDefined();
       expect(safetyCase.id).toBeDefined();
-      expect(safetyCase.reporterId).toBe(testReporterId);
+      expect(safetyCase.reporter_id).toBe(testReporterId);
       expect(safetyCase.category).toBe('harassment');
-      expect(safetyCase.categoryAr).toBe('تحرش');
+      expect(safetyCase.category_ar).toBe('تحرش');
       expect(safetyCase.narrative).toBe('User was harassed during the experience');
-      expect(safetyCase.narrativeAr).toBe('تعرض المستخدم للتحرش أثناء التجربة');
       expect(safetyCase.state).toBe('submitted');
       expect(safetyCase.evidence).toEqual(['screenshot1.png', 'screenshot2.png']);
       expect(safetyCase.actions).toEqual([]);
-      expect(safetyCase.restrictedAccess).toBe(true);
+      expect(safetyCase.restricted_access).toBe(true);
 
       testSafetyCaseId = safetyCase.id;
     });
@@ -60,7 +52,7 @@ describe('Safety Case Model', () => {
 
       expect(safetyCase).toBeDefined();
       expect(safetyCase?.id).toBe(testSafetyCaseId);
-      expect(safetyCase?.reporterId).toBe(testReporterId);
+      expect(safetyCase?.reporter_id).toBe(testReporterId);
     });
 
     it('should return null for non-existent ID', async () => {
@@ -95,10 +87,10 @@ describe('Safety Case Model', () => {
     });
 
     it('should filter by reporter', async () => {
-      const safetyCases = await safetyCaseModel.findAll({ reporterId: testReporterId });
+      const safetyCases = await safetyCaseModel.findAll({ reporter_id: testReporterId });
 
       expect(safetyCases).toBeDefined();
-      expect(safetyCases.every((sc) => sc.reporterId === testReporterId)).toBe(true);
+      expect(safetyCases.every((sc) => sc.reporter_id === testReporterId)).toBe(true);
     });
 
     it('should limit results', async () => {
@@ -182,9 +174,9 @@ describe('Safety Case Model', () => {
   describe('addAction', () => {
     it('should add action to safety case', async () => {
       const updated = await safetyCaseModel.addAction(testSafetyCaseId, {
-        actionType: 'warning_issued',
+        action_type: 'warning_issued',
         description: 'Warning issued to reported user',
-        actorId: testReporterId,
+        actor_id: testReporterId,
         metadata: { warningLevel: 'severe' },
       });
 
@@ -193,9 +185,9 @@ describe('Safety Case Model', () => {
       expect(updated.actions.length).toBeGreaterThan(0);
       
       const lastAction = updated.actions[updated.actions.length - 1];
-      expect(lastAction.actionType).toBe('warning_issued');
+      expect(lastAction.action_type).toBe('warning_issued');
       expect(lastAction.description).toBe('Warning issued to reported user');
-      expect(lastAction.actorId).toBe(testReporterId);
+      expect(lastAction.actor_id).toBe(testReporterId);
       expect(lastAction.metadata).toEqual({ warningLevel: 'severe' });
       expect(lastAction.timestamp).toBeDefined();
     });
@@ -203,9 +195,9 @@ describe('Safety Case Model', () => {
     it('should throw error for non-existent safety case', async () => {
       await expect(
         safetyCaseModel.addAction('00000000-0000-0000-0000-000000000000', {
-          actionType: 'test',
+          action_type: 'test',
           description: 'Test action',
-          actorId: testReporterId,
+          actor_id: testReporterId,
         })
       ).rejects.toThrow('Safety case not found');
     });
@@ -218,7 +210,7 @@ describe('Safety Case Model', () => {
       expect(safetyCases).toBeDefined();
       expect(Array.isArray(safetyCases)).toBe(true);
       expect(safetyCases.length).toBeGreaterThan(0);
-      expect(safetyCases.every((sc) => sc.reporterId === testReporterId)).toBe(true);
+      expect(safetyCases.every((sc) => sc.reporter_id === testReporterId)).toBe(true);
     });
   });
 
@@ -230,7 +222,7 @@ describe('Safety Case Model', () => {
       expect(Array.isArray(stats)).toBe(true);
       
       // Should have state and count
-      stats.forEach((stat) => {
+      stats.forEach((stat: any) => {
         expect(stat.state).toBeDefined();
         expect(stat.count).toBeDefined();
         expect(typeof stat.count).toBe('number');
@@ -241,11 +233,10 @@ describe('Safety Case Model', () => {
   describe('delete', () => {
     it('should delete safety case', async () => {
       const newCase = await safetyCaseModel.create({
-        reporterId: testReporterId,
+        reporter_id: testReporterId,
         category: 'test',
-        categoryAr: 'اختبار',
+        category_ar: 'اختبار',
         narrative: 'Test case to delete',
-        narrativeAr: 'حالة اختبار للحذف',
       });
 
       await safetyCaseModel.delete(newCase.id);
@@ -264,11 +255,10 @@ describe('Safety Case Model', () => {
   describe('State Machine', () => {
     it('should have correct initial state', async () => {
       const newCase = await safetyCaseModel.create({
-        reporterId: testReporterId,
+        reporter_id: testReporterId,
         category: 'test',
-        categoryAr: 'اختبار',
+        category_ar: 'اختبار',
         narrative: 'Test case',
-        narrativeAr: 'حالة اختبار',
       });
 
       expect(newCase.state).toBe('submitted');
@@ -278,11 +268,10 @@ describe('Safety Case Model', () => {
 
     it('should follow valid state transitions', async () => {
       const newCase = await safetyCaseModel.create({
-        reporterId: testReporterId,
+        reporter_id: testReporterId,
         category: 'test',
-        categoryAr: 'اختبار',
+        category_ar: 'اختبار',
         narrative: 'Test case',
-        narrativeAr: 'حالة اختبار',
       });
 
       // submitted -> under_review
@@ -302,16 +291,16 @@ describe('Safety Case Model', () => {
 
     it('should reject invalid state transitions', async () => {
       const newCase = await safetyCaseModel.create({
-        reporterId: testReporterId,
+        reporter_id: testReporterId,
         category: 'test',
-        categoryAr: 'اختبار',
+        category_ar: 'اختبار',
         narrative: 'Test case',
-        narrativeAr: 'حالة اختبار',
       });
 
-      // submitted -> closed (invalid)
+      // submitted -> final skips the whole review chain (invalid);
+      // submitted -> closed is allowed for immediately-dismissed reports.
       await expect(
-        safetyCaseModel.updateState(newCase.id, 'closed')
+        safetyCaseModel.updateState(newCase.id, 'final')
       ).rejects.toThrow('Invalid state transition');
 
       await safetyCaseModel.delete(newCase.id);

@@ -53,14 +53,23 @@ export function ArrivalModePage({ experienceId, onBack }: ArrivalModePageProps) 
     
     try {
       if (actionDialog === 'here' && reservation) {
-        // Try real API first
+        // Check-in must be confirmed by the API: the host roster is driven by
+        // server state. Never report success or flip local state when the call
+        // fails, otherwise the guest is told they are checked in while the host
+        // sees nothing.
         try {
           await api.reservations.checkIn(reservation.id);
         } catch (error) {
-          console.warn('API check-in failed, falling back to local state update', error);
+          console.error('Check-in failed', error);
+          showToast(
+            'error',
+            lang === 'ar'
+              ? 'فشل تسجيل الوصول. يرجى إبلاغ المضيف.'
+              : 'Check-in failed. Please let your host know.'
+          );
+          return;
         }
-        
-        // Always update local store
+
         dispatch({ type: 'CHECK_IN_RESERVATION', payload: reservation.id });
       }
 

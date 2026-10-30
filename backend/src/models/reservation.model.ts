@@ -337,9 +337,10 @@ class ReservationModel {
         paramCount++;
       }
       
-      // Add additional fields
+      // Add additional fields (whitelisted: keys are interpolated into SQL)
+      const ALLOWED_FIELDS = new Set(['payment_state', 'payment_id', 'refund_status', 'refund_amount', 'expiry_at']);
       for (const [key, value] of Object.entries(additionalFields)) {
-        if (value !== undefined && key !== 'id' && key !== 'created_at' && key !== 'updated_at') {
+        if (value !== undefined && ALLOWED_FIELDS.has(key)) {
           updates.push(`${key} = $${paramCount}`);
           values.push(value);
           paramCount++;
@@ -520,7 +521,7 @@ class ReservationModel {
     const query = `
       SELECT 
         state,
-        COUNT(*) as count
+        COUNT(*)::int as count
       FROM reservations
       GROUP BY state
       ORDER BY count DESC

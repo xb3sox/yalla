@@ -90,6 +90,32 @@ describe('Security Middleware', () => {
       expect(next).toHaveBeenCalledTimes(1);
     });
 
+    it('should not alter password fields (credentials must reach the hasher intact)', () => {
+      req.body = {
+        phone: '+966500000000',
+        password: '  pa<ss>word  ',
+        newPassword: '<secret>',
+        refreshToken: 'abc.def.ghi',
+      };
+
+      sanitizeInput(req as Request, res as Response, next);
+
+      expect(req.body).toEqual({
+        phone: '+966500000000',
+        password: '  pa<ss>word  ',
+        newPassword: '<secret>',
+        refreshToken: 'abc.def.ghi',
+      });
+    });
+
+    it('should still sanitize sibling non-credential fields', () => {
+      req.body = { password: '<keep>', display_name: '  <b>Ali</b>  ' };
+
+      sanitizeInput(req as Request, res as Response, next);
+
+      expect(req.body).toEqual({ password: '<keep>', display_name: 'bAli/b' });
+    });
+
     it('should strip prototype pollution keys like __proto__, constructor, and prototype', () => {
       const payload = JSON.parse(
         '{"title": "Normal", "__proto__": {"polluted": "yes"}, "constructor": {"polluted": "yes"}, "prototype": {"polluted": "yes"}}'

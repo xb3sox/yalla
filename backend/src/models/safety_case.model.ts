@@ -54,11 +54,12 @@ class SafetyCaseModel {
       RETURNING *
     `;
     
+    const anyIn = input as any;
     const values = [
-      input.reporter_id,
+      input.reporter_id || anyIn.reporterId,
       'submitted',
       input.category,
-      input.category_ar,
+      input.category_ar || anyIn.categoryAr || '',
       input.narrative,
       JSON.stringify(input.evidence || []),
       JSON.stringify([]),
@@ -88,13 +89,17 @@ class SafetyCaseModel {
   /**
    * Get all safety cases (for trust & safety staff)
    */
-  async findAll(filters: {
+  async findAll(rawFilters: {
     state?: string;
     category?: string;
     reporter_id?: string;
     limit?: number;
     offset?: number;
-  }): Promise<SafetyCase[]> {
+  } = {}): Promise<SafetyCase[]> {
+    const filters = {
+      ...rawFilters,
+      reporter_id: rawFilters.reporter_id || (rawFilters as any).reporterId,
+    };
     let query = 'SELECT * FROM safety_cases WHERE 1=1';
     const values: any[] = [];
     let paramCount = 1;
@@ -157,9 +162,10 @@ class SafetyCaseModel {
         paramCount++;
       }
 
-      if (updates.category_ar !== undefined) {
+      const categoryAr = updates.category_ar ?? (updates as any).categoryAr;
+      if (categoryAr !== undefined) {
         updates_list.push(`category_ar = $${paramCount}`);
-        values.push(updates.category_ar);
+        values.push(categoryAr);
         paramCount++;
       }
 
@@ -266,7 +272,7 @@ class SafetyCaseModel {
     const query = `
       SELECT 
         state,
-        COUNT(*) as count
+        COUNT(*)::int as count
       FROM safety_cases
       GROUP BY state
       ORDER BY count DESC
@@ -281,7 +287,12 @@ class SafetyCaseModel {
    */
   async delete(id: string): Promise<void> {
     const query = 'DELETE FROM safety_cases WHERE id = $1';
-    await pool.query(query, [id]);
+    const result = await pool.query(query, [id]);
+
+    if (result.rowCount === 0) {
+      throw new Error('Safety case not found');
+    }
+
     logger.info('Safety case deleted', { caseId: id });
   }
 

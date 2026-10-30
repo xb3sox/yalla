@@ -58,6 +58,32 @@ describe('ArrivalModePage', () => {
     expect(mockOnBack).toHaveBeenCalled();
   });
 
+  it('does not report success when the check-in API call fails', async () => {
+    vi.mocked(api.reservations.checkIn).mockRejectedValueOnce(new Error('network down'));
+
+    renderWithProviders(
+      <ArrivalModePage experienceId={mockExperienceId} onBack={mockOnBack} />
+    );
+
+    // Open the arrival action and confirm
+    fireEvent.click(screen.getByText(/I'?m here/));
+
+    fireEvent.click(await screen.findByRole('button', { name: /^submit$/i }));
+
+    await waitFor(() => {
+      expect(api.reservations.checkIn).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(showToastMock).toHaveBeenCalledWith('error', expect.any(String));
+    });
+
+    expect(showToastMock).not.toHaveBeenCalledWith(
+      'success',
+      expect.stringMatching(/arrival|notified/i)
+    );
+  });
+
   it('displays not entitled message for non-confirmed reservations', () => {
     renderWithProviders(
       <ArrivalModePage experienceId="exp-3" onBack={mockOnBack} />

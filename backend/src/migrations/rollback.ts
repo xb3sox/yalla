@@ -13,6 +13,9 @@ async function rollback() {
       'notification_preferences',
       'push_subscriptions',
       'sms_logs',
+      'refresh_tokens',
+      'refunds',
+      'rewards_ledger',
       'audit_events',
       'notifications',
       'safety_cases',
@@ -53,14 +56,20 @@ if (require.main === module) {
   const confirm = process.argv.includes('--confirm');
   
   if (!confirm) {
-    logger.warn('⚠️  Rollback cancelled: missing --confirm flag');
-    logger.info('Usage: npm run migrate:rollback -- --confirm');
+    logger.error('❌ Rollback requires confirmation!');
+    logger.info('💡 Run with --confirm flag: npm run migrate:rollback -- --confirm');
     process.exit(1);
   }
   
   rollback()
-    .then(() => process.exit(0))
-    .catch(() => process.exit(1));
+    .then(() => {
+      logger.info('🎉 Rollback process completed');
+      process.exit(0);
+    })
+    .catch((error) => {
+      logger.error('💥 Rollback process failed:', error);
+      process.exit(1);
+    });
 }
 
 export default rollback;

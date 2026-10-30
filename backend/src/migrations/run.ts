@@ -3,9 +3,11 @@ import runMigrations002 from './002_add_payments_table';
 import runMigrations003 from './003_add_receipt_url_to_payments';
 import runMigrations004 from './004_add_rewards_table';
 import runMigrations005 from './005_add_refunds_table';
-import runMigrations006 from './006_add_sms_logs_table';
-import runMigrations007 from './007_add_push_subscriptions_table';
-import runMigrations008 from './008_enhance_notifications_and_preferences';
+import runMigrations006 from './006_add_refresh_tokens';
+import runMigrations007 from './007_fix_missing_columns';
+import runMigrations008 from './008_add_sms_logs_table';
+import runMigrations009 from './009_add_push_subscriptions_table';
+import runMigrations010 from './010_enhance_notifications_and_preferences';
 import logger from '../utils/logger';
 
 async function main() {
@@ -20,6 +22,8 @@ async function main() {
     await runMigrations006();
     await runMigrations007();
     await runMigrations008();
+    await runMigrations009();
+    await runMigrations010();
     logger.info('✅ All migrations completed successfully');
     process.exit(0);
   } catch (error) {

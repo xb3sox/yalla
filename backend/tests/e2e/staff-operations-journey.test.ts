@@ -5,6 +5,7 @@ import pool from '../../src/config/database';
 describe('Complete User Journey - Staff Operations', () => {
   let operationsToken: string;
   let participantToken: string;
+  let hostUserId: string;
   let experienceId: string;
   let reservationId: string;
 
@@ -58,13 +59,10 @@ describe('Complete User Journey - Staff Operations', () => {
       });
 
     participantToken = partLogin.body.data.tokens.accessToken;
+    hostUserId = partLogin.body.data.user.id;
   });
 
-  afterAll(async () => {
-    if (reservationId) await pool.query('DELETE FROM reservations WHERE id = $1', [reservationId]);
-    if (experienceId) await pool.query('DELETE FROM experiences WHERE id = $1', [experienceId]);
-    await pool.query("DELETE FROM users WHERE phone IN ('+966508888881', '+966508888882')");
-  });
+  // No per-file cleanup: tests/setup.ts wipes all tables before each file.
 
   describe('Step 1: Create Experience', () => {
     it('should create a new experience', async () => {
@@ -76,7 +74,7 @@ describe('Complete User Journey - Staff Operations', () => {
           title_ar: 'اختبار عمليات الموظفين',
           description: 'Test experience for staff operations',
           description_ar: 'تجربة اختبار لعمليات الموظفين',
-          date: '2026-04-01',
+          date: '2027-04-01',
           time: '14:00',
           duration: '3 hours',
           duration_minutes: 180,
@@ -99,6 +97,13 @@ describe('Complete User Journey - Staff Operations', () => {
 
   describe('Step 2: Update Experience State', () => {
     it('should update experience state to published', async () => {
+      // Lifecycle is draft -> review -> published (EXPERIENCE_TRANSITIONS).
+      const reviewResponse = await request(app)
+        .put(`/api/v1/staff/experiences/${experienceId}/state`)
+        .set('Authorization', `Bearer ${operationsToken}`)
+        .send({ state: 'review' });
+      expect(reviewResponse.status).toBe(200);
+
       const response = await request(app)
         .put(`/api/v1/staff/experiences/${experienceId}/state`)
         .set('Authorization', `Bearer ${operationsToken}`)
@@ -126,8 +131,8 @@ describe('Complete User Journey - Staff Operations', () => {
         .post(`/api/v1/staff/experiences/${experienceId}/assign-host`)
         .set('Authorization', `Bearer ${operationsToken}`)
         .send({
-          primary_host_id: 'host-001',
-          backup_host_id: 'host-002',
+          // Host IDs must reference real users (UUID foreign keys).
+          primary_host_id: hostUserId,
         });
 
       expect(response.status).toBe(200);
@@ -158,9 +163,13 @@ describe('Complete User Journey - Staff Operations', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data.statistics).toBeDefined();
-      expect(response.body.data.statistics.totalExperiences).toBeDefined();
-      expect(response.body.data.statistics.totalReservations).toBeDefined();
+      // Dashboard returns grouped counts: { experiences, reservations, users, revenue }.
+      expect(response.body.data.experiences).toBeDefined();
+      expect(response.body.data.experiences.total).toBeDefined();
+      expect(response.body.data.reservations).toBeDefined();
+      expect(response.body.data.reservations.total).toBeDefined();
+      expect(response.body.data.users.total).toBeDefined();
+      expect(response.body.data.revenue.total_revenue).toBeDefined();
     });
   });
 

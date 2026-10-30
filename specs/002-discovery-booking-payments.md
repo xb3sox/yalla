@@ -9,6 +9,7 @@
 ---
 
 ## 1. Executive Summary
+
 Specification for Yalla's core commerce pipeline. Covers catalog browsing, detail view with live capacity, waitlist entry, pending reservation reservation creation, Stripe Payment Intent generation, and state transition to `confirmed`.
 
 ---
@@ -16,6 +17,7 @@ Specification for Yalla's core commerce pipeline. Covers catalog browsing, detai
 ## 2. Requirements & State Lifecycle
 
 ### Functional Requirements
+
 - **FR-001**: List experiences with category, area, city, and date filtering.
 - **FR-002**: View experience details (title, description, host, schedule, base price).
 - **FR-003**: Reserve seat creating `pending_payment` reservation.
@@ -26,6 +28,7 @@ Specification for Yalla's core commerce pipeline. Covers catalog browsing, detai
 - **FR-008**: Material change review and acceptance.
 
 ### State Transition Diagram
+
 ```mermaid
 stateDiagram-v2
     [*] --> pending_payment: POST /api/v1/reservations
@@ -41,6 +44,7 @@ stateDiagram-v2
 ## 3. Technical Architecture & Endpoints
 
 ### Backend Routes (`backend/src/routes/`)
+
 - `GET /api/v1/experiences` -> `experience.controller.ts:getExperiences`
 - `GET /api/v1/experiences/:id` -> `experience.controller.ts:getExperienceById`
 - `POST /api/v1/reservations` -> `reservation.controller.ts:createReservation`
@@ -49,6 +53,7 @@ stateDiagram-v2
 - `POST /api/v1/payments/confirm` -> `payment.controller.ts:confirmPayment`
 
 ### Frontend Application Layer
+
 - `src/application/useCases/bookingUseCase.ts` (`createBooking`, `cancelBooking`)
 - `src/domain/services/ReservationStateMachine.ts` (Validates allowable transitions)
 - `src/services/api.ts` (`api.experiences`, `api.reservations`, `api.payments`)
@@ -56,6 +61,7 @@ stateDiagram-v2
 ---
 
 ## 4. Policy Constraints & Security
+
 - **Idempotency**: All payment intent creations use `reservation_id` as the Stripe idempotency key.
 - **Capacity Safety**: Overbooking prevented via database row locking (`SELECT FOR UPDATE` on experiences).
 - **PII Scrubbing**: Stripe payment methods stored as tokens only; no raw cardholder details persist.

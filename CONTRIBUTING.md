@@ -7,11 +7,13 @@ Guidelines for human contributors and autonomous AI agents contributing to Yalla
 ## 1. Getting Started
 
 ### Prerequisites
-- Node.js 20.x
+
+- Node.js 22.x
 - npm 9.x+
 - Git
 
 ### Setup
+
 ```bash
 # Clone the repository
 git clone <repository-url>
@@ -33,14 +35,17 @@ cp backend/.env.example backend/.env
 ## 2. Branch & Commit Conventions
 
 ### Branch Naming
+
 - Features: `feature/<short-description>`
 - Bug Fixes: `fix/<short-description>`
 - Autonomous Agents (Jules): `jules/<issue-id>-<short-description>` (e.g. `jules/issue-14-stripe-webhook`)
 - Documentation: `docs/<short-description>`
 
 ### Commit Messages
+
 Follow the [Conventional Commits](https://www.conventionalcommits.org/) format:
-```
+
+```text
 feat(booking): implement dynamic check-in PIN generation
 fix(security): strip prototype pollution keys in recursive sanitization
 perf(recommendations): precompute lookup Sets outside scoring loop
@@ -53,6 +58,7 @@ docs(sdlc): update stage 2 specification template
 ## 3. AI-Native SDLC Gateways
 
 All significant changes follow the Anthropic AI-Native SDLC lifecycle:
+
 1. **Plan**: Feature or task initiated in `intent/<id>-<slug>.md`.
 2. **Design**: Technical spec created in `specs/<id>-<slug>.md`.
 3. **Build**: Plan approved in `plans/<id>-<slug>.md` prior to code modifications.
@@ -68,6 +74,7 @@ Before submitting a pull request, run all verification targets:
 ```bash
 # 1. Frontend verification
 npm run typecheck
+npm run lint:md
 npx vitest run
 
 # 2. Backend verification
@@ -82,6 +89,7 @@ node evals/check.js
 ```
 
 Ensure:
+
 - Zero TypeScript compiler errors.
 - Zero ESLint errors.
 - All unit and invariant test suites pass with 100% success rate.

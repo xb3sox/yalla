@@ -4,6 +4,7 @@ import notificationModel from '../models/notification.model';
 import pushNotificationService from '../services/pushNotification.service';
 import logger from '../utils/logger';
 import { EmailService } from '../services/email.service';
+import { parsePagination } from '../utils/pagination';
 
 /**
  * Get VAPID Public Key for Web Push
@@ -139,8 +140,7 @@ export const getUserNotifications = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    const limit = parseInt(req.query.limit as string) || 50;
-    const offset = parseInt(req.query.offset as string) || 0;
+    const { limit, offset } = parsePagination(req.query);
     const category = req.query.category as string | undefined;
 
     const notifications = await notificationModel.findByRecipient(

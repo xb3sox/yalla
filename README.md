@@ -1,145 +1,242 @@
-# Yalla - Managed Experience Discovery Platform
+# Yalla
 
-**Discover, book, and enjoy local curated experiences with small groups.**
+**Managed discovery and booking for small-group local experiences.**
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)]()
-[![React](https://img.shields.io/badge/React-18-61dafb.svg)]()
-[![Node](https://img.shields.io/badge/Node-20-green.svg)]()
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791.svg)]()
-[![WCAG](https://img.shields.io/badge/WCAG-2.2_AA-success.svg)]()
+[![CI](https://github.com/xb3sox/yalla/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/xb3sox/yalla/actions/workflows/ci-cd.yml)
+[![Agent evals](https://github.com/xb3sox/yalla/actions/workflows/agent-evals.yml/badge.svg)](https://github.com/xb3sox/yalla/actions/workflows/agent-evals.yml)
+[![Node 22](https://img.shields.io/badge/node-22_LTS-5FA04E?logo=node.js&logoColor=white)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![WCAG 2.2 AA](https://img.shields.io/badge/WCAG-2.2_AA-0A7B4F)](https://www.w3.org/TR/WCAG22/)
+[![Proprietary](https://img.shields.io/badge/license-proprietary-lightgrey)](./LICENSE)
 
----
+Yalla is an end-to-end managed platform for curated local activities. Unlike
+open marketplaces, every host, venue, schedule, and safety policy is vetted by
+Yalla before an experience is listed — so guests can book with confidence and
+hosts can focus on running great events.
 
-## Overview
+The product serves Arabic (RTL) and English (LTR), installs as a PWA, and is
+built to WCAG 2.2 AA.
 
-Yalla is an end-to-end managed service platform that allows users to discover, book, attend, and review curated local activities in small groups. Unlike open marketplaces, Yalla exercises end-to-end quality control over experiences, hosts, venues, safety, and schedules.
+## Contents
 
-- **Frontend**: React 18, Vite 6, Tailwind CSS 4, PWA support, bilingual (English & Arabic RTL), WCAG 2.2 AA compliant.
-- **Backend**: Express.js, TypeScript, PostgreSQL 15, JWT + HttpOnly cookie authentication, Stripe payments.
-- **SDLC**: Anthropic AI-Native SDLC Playbook workflow (`intent/` → `specs/` → `plans/` → evals → guardrails → maintenance monitor).
+[Features](#features) · [Tech stack](#tech-stack) ·
+[Getting started](#getting-started) · [Configuration](#configuration) ·
+[Architecture](#architecture) · [Commands](#commands) ·
+[CI](#continuous-integration) · [Docs](#documentation) ·
+[Contributing](#contributing) · [Security](#security)
 
----
+## Features
 
-## Architecture & Systems
+- **Discovery** — filter curated experiences by category, city, and date.
+- **Booking** — seat reservations, waitlists, and Stripe payment intents.
+- **Attendance** — 24-hour reconfirmation and an arrival mode with a
+  rotating venue check-in PIN.
+- **Roles** — scoped access for participants, hosts, operations, support,
+  trust & safety, and admin.
+- **Feedback** — post-experience ratings that feed host quality control.
+- **Localization** — one UI serving Arabic (RTL) and English (LTR).
 
-```mermaid
-graph TD
-    Client["Browser / PWA (React 18 + Vite)"]
-    API["Express.js API (TypeScript)"]
-    DB[("PostgreSQL 15 (12 Tables)")]
-    Redis[("Redis 7 (Rate Limiting & Cache)")]
-    Stripe["Stripe Payments"]
+## Tech stack
 
-    Client -->|"REST / JSON"| API
-    API -->|"SQL queries / Pool"| DB
-    API -->|"Cache"| Redis
-    API -->|"Webhooks & Intents"| Stripe
-```
+| Layer | Stack |
+| --- | --- |
+| Frontend | React 18, Vite 6, TypeScript 5, Tailwind CSS 4, PWA |
+| Backend | Node.js 22, Express 4, TypeScript, Zod, JWT in HttpOnly cookies |
+| Data | PostgreSQL 17 (Redis planned for distributed rate limiting — see issue 014; limiter is in-memory today) |
+| Payments | Stripe payment intents and webhooks |
+| Testing | Vitest, Testing Library, Jest, Supertest, axe |
+| Delivery | GitHub Actions, Docker, Nginx |
 
-For complete technical specifications, see:
-- 🏛️ **[Architecture Guide](./docs/ARCHITECTURE.md)** — Clean Architecture, Domain-Driven Design, Reservation State Machine.
-- 📡 **[API Reference](./docs/API.md)** — 53 REST API endpoints, schemas, headers, status codes.
-- 🗄️ **[Database Specification](./docs/DATABASE.md)** — PostgreSQL tables, ER diagram, migrations.
-- 📋 **[Product Requirements Document (PRD, archived)](./docs/archive/PRD.md)** — Functional requirements (FR-001 to FR-045) in Arabic.
-- 🤖 **[Agent Instructions (AGENTS.md)](./AGENTS.md)** / **[CLAUDE.md](./CLAUDE.md)** — Operational commands and AI agent guardrails.
+## Getting started
 
----
+**Prerequisites:** Node.js 22 (pinned in `.nvmrc`), npm 9+, and PostgreSQL 17.
+Docker can supply PostgreSQL and Redis for you.
 
-## Quickstart
-
-### Prerequisites
-- Node.js 20+ and npm 9+
-- PostgreSQL 15 (optional for local mock mode; required for backend integration/E2E tests)
-
-### 1. Installation
+### 1. Install
 
 ```bash
-# Install frontend dependencies (repo root)
+git clone https://github.com/xb3sox/yalla.git
+cd yalla
+nvm use                       # Node 22
 npm ci
-
-# Install backend dependencies
-cd backend && npm ci && cd ..
+npm ci --prefix backend
 ```
 
-### 2. Environment Setup
+The frontend (repo root) and backend are separate npm projects — install and
+run each independently.
+
+### 2. Start dependencies
+
+Skip this if you already have PostgreSQL and Redis running locally.
 
 ```bash
-# Copy frontend environment
-cp .env.example .env
+docker compose up -d postgres redis
+```
 
-# Copy backend environment
+### 3. Configure
+
+```bash
+cp .env.example .env
 cp backend/.env.example backend/.env
 ```
 
-### 3. Running Locally
+Set `DATABASE_URL`, `JWT_SECRET`, and `JWT_REFRESH_SECRET` in `backend/.env`.
+Everything else has a working local default — see [Configuration](#configuration).
+
+### 4. Create the schema
+
+Required before the API can serve requests.
 
 ```bash
-# Terminal 1: Run Frontend (http://localhost:5173)
-npm run dev
-
-# Terminal 2: Run Backend (http://localhost:3000 or override PORT=3001)
-cd backend && npm run dev
+npm run migrate --prefix backend
+npm run seed --prefix backend     # optional demo data
 ```
 
-### 4. Running with Docker Compose
+### 5. Run
 
 ```bash
-docker compose up -d
+npm run dev                    # frontend → http://localhost:5173
+npm run dev --prefix backend   # API       → http://localhost:3000
 ```
-- Frontend: `http://localhost:5173`
-- Backend API: `http://localhost:3000`
-- Database Adminer: `http://localhost:8080`
 
----
+Confirm the API is up: `curl http://localhost:3000/health`. Metrics are
+exposed at `/metrics` for scraping.
 
-## Testing & Verification
+### Docker alternative
 
-### Local Verification Commands
+Run the full stack, including a database UI, in one command:
+
 ```bash
-# Frontend type check & unit tests (664 tests)
-npm run typecheck
-npx vitest run
+docker compose up --build
+```
 
-# Backend type check, lint & unit tests (62 tests)
-cd backend
-npm run typecheck
-npm run lint
-npm test -- tests/unit
-cd ..
+| Service | URL |
+| --- | --- |
+| Frontend | <http://localhost:5173> |
+| API | <http://localhost:3000> |
+| Adminer (database UI) | <http://localhost:8080> |
 
-# AI Agent continuous evals
+## Configuration
+
+Frontend settings live in `.env` (only `VITE_`-prefixed values reach the
+browser). Backend settings live in `backend/.env`. Full defaults are in
+[`.env.example`](./.env.example) and [`backend/.env.example`](./backend/.env.example).
+
+| Variable | File | Purpose |
+| --- | --- | --- |
+| `VITE_API_URL` | `.env` | API base URL; defaults to `http://localhost:3000/api/v1` |
+| `DATABASE_URL` | `backend/.env` | PostgreSQL connection string; required in production |
+| `JWT_SECRET`, `JWT_REFRESH_SECRET` | `backend/.env` | Token signing keys — use long random values |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | `backend/.env` | Payments and webhook verification |
+| `CORS_ORIGIN` | `backend/.env` | Allowed frontend origin |
+| `REDIS_URL` | `backend/.env` | Reserved for distributed rate limiting (not yet wired; issue 014) |
+| `API_VERSION`, `PORT` | `backend/.env` | Route prefix (default `v1`) and listen port |
+
+> [!NOTE]
+> Never commit `.env` files. In production, inject secrets from your platform's
+> secret manager rather than bundling them into images.
+
+## Architecture
+
+```mermaid
+graph LR
+    Client["Browser / PWA<br/>React + Vite"] -->|"REST / JSON"| API["Express API<br/>TypeScript"]
+    API -->|"SQL (pooled)"| DB[("PostgreSQL 17")]
+    API -->|"Cache & rate limits"| Redis[("Redis 7")]
+    API -->|"Payment intents<br/>Webhooks"| Stripe["Stripe"]
+```
+
+Both apps follow a layered, dependency-inward design: domain and application
+logic stay framework-agnostic, while HTTP, persistence, and third-party
+integrations sit at the edges. Reservation state transitions are centralized in
+the model layer, and capacity checks run inside atomic, row-locked transactions.
+Destructive operations fail closed, and the API shuts down gracefully on
+`SIGTERM`/`SIGINT` by draining the connection pool.
+
+## Project structure
+
+```text
+.
+├── src/            React app — pages, components, domain, application, services
+├── backend/        Express API — routes, controllers, models, middleware, migrations
+├── docs/           Architecture, API reference, database spec, ADRs
+├── intent/         Problem statements (AI-native SDLC stage 1)
+├── specs/          Design specifications (stage 2)
+├── plans/          Implementation plans (stage 3)
+├── evals/          Automated architectural invariant checks
+├── scripts/        Automation and drift-monitoring tooling
+└── .github/        CI/CD workflows and issue templates
+```
+
+## Commands
+
+| Task | Frontend (root) | Backend |
+| --- | --- | --- |
+| Dev server | `npm run dev` | `npm run dev --prefix backend` |
+| Production build | `npm run build` | `npm run build --prefix backend` |
+| Type check | `npm run typecheck` | `npm run typecheck --prefix backend` |
+| Markdown lint | `npm run lint:md` | — |
+| Lint | — | `npm run lint --prefix backend` |
+| Unit tests | `npm test` | `npm test --prefix backend -- tests/unit` |
+| Coverage | `npm run test:coverage` | `npm run test:coverage --prefix backend` |
+| Invariant evals | `node evals/check.js` | — |
+
+> [!IMPORTANT]
+> Backend API/model/e2e suites require a live `DATABASE_URL` and an applied
+> schema, and must run serially (`-- --runInBand`); `tests/unit` runs without
+> a database.
+
+## Continuous integration
+
+| Workflow | Enforces |
+| --- | --- |
+| [`ci-cd.yml`](./.github/workflows/ci-cd.yml) | Type checks, unit tests, builds, dependency audit |
+| [`agent-evals.yml`](./.github/workflows/agent-evals.yml) | Architectural invariants and regression evals |
+| [`jules-automerge.yml`](./.github/workflows/jules-automerge.yml) | Blocks auto-merge when sensitive paths change |
+
+Every pull request must pass type checks, tests, and `node evals/check.js`
+before review.
+
+## Documentation
+
+| Document | Contents |
+| --- | --- |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Layers, domain model, reservation state machine |
+| [`docs/API.md`](./docs/API.md) | REST endpoints, payloads, headers, status codes |
+| [`docs/DATABASE.md`](./docs/DATABASE.md) | Schema, ER diagram, migrations |
+| [`docs/adr/`](./docs/adr/) | Architecture decision records |
+| [`AGENTS.md`](./AGENTS.md) | Commands and guardrails for AI coding agents |
+| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Branches, commits, and review standards |
+| [`DEPLOYMENT.md`](./DEPLOYMENT.md) | Production deployment guide |
+| [`CHANGELOG.md`](./CHANGELOG.md) · [`ROADMAP.md`](./ROADMAP.md) | Release history and planned work |
+| [`GLOSSARY.md`](./GLOSSARY.md) | Product domain vocabulary |
+
+## Contributing
+
+Read [CONTRIBUTING.md](./CONTRIBUTING.md) for branch naming, commit
+conventions, and review expectations. AI-assisted and autonomous contributions
+must also follow [AGENTS.md](./AGENTS.md).
+
+Run the same gates as CI before opening a pull request:
+
+```bash
+npm run typecheck
+npm run lint:md
+npm test
+npm run typecheck --prefix backend
+npm run lint --prefix backend
+npm test --prefix backend -- tests/unit
 node evals/check.js
 ```
 
-### CI/CD Pipelines
-All commits and pull requests trigger automated GitHub Actions workflows:
-- `.github/workflows/ci-cd.yml` — Frontend build, backend build, unit tests, code quality, security scan.
-- `.github/workflows/agent-evals.yml` — Architectural invariant regression suite.
-- `.github/workflows/jules-automerge.yml` — Automated safe PR merge for Jules coding agent.
+## Security
 
----
-
-## AI-Native SDLC Workflow
-
-Yalla implements Anthropic's stage-by-stage AI-Native SDLC:
-
-1. **Stage 1 (Plan)**: Problems captured in `intent/<id>-<slug>.md` using `intent/TEMPLATE.md`.
-2. **Stage 2 (Design)**: Specs written to `specs/<id>-<slug>.md` using `specs/TEMPLATE.md`.
-3. **Stage 3 (Build)**: Plans committed in `plans/<id>-<slug>.md`; implemented via Jules (`.jules/`).
-4. **Stage 4 (Test)**: Test feedback loops and continuous regression evals (`evals/`).
-5. **Stage 5 (Deploy)**: Automated PR guardrails preventing unauthorized modifications to sensitive configs.
-6. **Stage 6 (Maintain)**: Autonomous drift & breach detection (`scripts/monitor-breach.js`).
-
----
-
-## Contributing & Development
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for branch naming (`jules/<issue-id>-<description>`), commit message conventions, and code review standards.
-
-For production deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
-
----
+Do not open public issues for vulnerabilities. Report them privately through
+[GitHub Security Advisories](https://github.com/xb3sox/yalla/security/advisories/new);
+see [SECURITY.md](./SECURITY.md) for scope and response targets.
 
 ## License
 
-Proprietary — All rights reserved.
+Proprietary — all rights reserved. Use, copying, modification, and distribution
+are prohibited without prior written permission. See [LICENSE](./LICENSE) for
+full terms, including contribution and third-party dependency clauses.

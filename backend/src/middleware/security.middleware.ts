@@ -1,13 +1,20 @@
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { Request, Response, NextFunction } from 'express';
+import config from '../config';
+import logger from '../utils/logger';
 
 /**
- * Rate limiting configuration
+ * Rate limiting configuration (in-memory store; RATE_LIMIT_* env vars)
  */
 export const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  windowMs: config.rateLimit.windowMs,
+  max: config.rateLimit.maxRequests,
+  // Stripe retries and bursts from a small set of egress IPs; throttling the
+  // webhook would silently drop payment confirmations. Test suites fire
+  // hundreds of requests from one IP, so they are exempt as well.
+  skip: (req) =>
+    config.env === 'test' || req.originalUrl.includes('/payments/webhook'),
   message: {
     success: false,
     error: {
@@ -25,6 +32,7 @@ export const apiLimiter = rateLimit({
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // Limit each IP to 5 login attempts per windowMs
+  skip: () => config.env === 'test',
   message: {
     success: false,
     error: {
@@ -94,11 +102,11 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
     
     // Log based on status code
     if (res.statusCode >= 500) {
-      console.error('Server Error:', logData);
+      logger.error('Server Error', logData);
     } else if (res.statusCode >= 400) {
-      console.warn('Client Error:', logData);
+      logger.warn('Client Error', logData);
     } else {
-      console.log('Request:', logData);
+      logger.info('Request', logData);
     }
   });
   
@@ -109,8 +117,8 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
  * CORS configuration
  */
 export const corsOptions = {
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-  credentials: true,
+  origin: config.cors.origin,
+  credentials: config.cors.credentials,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['X-Total-Count', 'X-Page-Count'],
@@ -121,13 +129,24 @@ export const corsOptions = {
  * Input sanitization middleware with prototype pollution protection
  */
 export const sanitizeInput = (req: Request, res: Response, next: NextFunction) => {
+  // Credentials must reach the hasher byte-for-byte. Trimming or stripping
+  // characters here would silently change a user's password.
+  const OPAQUE_FIELDS = new Set([
+    'password',
+    'currentPassword',
+    'newPassword',
+    'confirmPassword',
+    'refreshToken',
+    'token',
+  ]);
+
   // Sanitize string inputs and guard against prototype pollution
-  const sanitize = (obj: any): any => {
+  const sanitize = (obj: any, parentKey?: string): any => {
     if (typeof obj === 'string') {
-      return obj.trim().replace(/[<>]/g, '');
+      return OPAQUE_FIELDS.has(parentKey ?? '') ? obj : obj.trim().replace(/[<>]/g, '');
     }
     if (Array.isArray(obj)) {
-      return obj.map(sanitize);
+      return obj.map((item) => sanitize(item, parentKey));
     }
     if (obj && typeof obj === 'object') {
       const sanitized: any = {};
@@ -136,7 +155,7 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
           continue;
         }
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
-          sanitized[key] = sanitize(obj[key]);
+          sanitized[key] = sanitize(obj[key], key);
         }
       }
       return sanitized;

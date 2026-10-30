@@ -81,7 +81,7 @@ export const getBlockedUsers = async (req: AuthRequest, res: Response) => {
     const result = await pool.query(
       `SELECT b.*, u.display_name, u.phone
        FROM blocks b
-       LEFT JOIN users u ON b.blocked_entity_id = u.id
+       LEFT JOIN users u ON b.blocked_entity_id = u.id::text
        WHERE b.blocker_id = $1
        ORDER BY b.created_at DESC`,
       [req.user.userId]

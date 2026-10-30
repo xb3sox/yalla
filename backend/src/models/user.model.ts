@@ -1,4 +1,6 @@
+import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';
+import refreshTokenModel, { TokenMetadata } from './refresh_token.model';
 import jwt from 'jsonwebtoken';
 import pool from '../config/database';
 import config from '../config';
@@ -175,7 +177,7 @@ class UserModel {
       throw new Error('Invalid credentials');
     }
     
-    const tokens = this.generateTokens(user);
+    const tokens = await this.issueTokens(user);
     
     logger.info('User logged in', { userId: user.id });
     
@@ -193,13 +195,13 @@ class UserModel {
         role: user.role,
       },
       config.jwt.secret as jwt.Secret,
-      { expiresIn: config.jwt.expiresIn as any }
+      { algorithm: 'HS256', expiresIn: config.jwt.expiresIn as any }
     );
     
     const refreshToken = jwt.sign(
-      { userId: user.id },
+      { userId: user.id, jti: randomUUID() },
       config.jwt.refreshSecret as jwt.Secret,
-      { expiresIn: config.jwt.refreshExpiresIn as any }
+      { algorithm: 'HS256', expiresIn: config.jwt.refreshExpiresIn as any }
     );
     
     return { accessToken, refreshToken };
@@ -210,28 +212,47 @@ class UserModel {
    */
   verifyAccessToken(token: string): any {
     try {
-      return jwt.verify(token, config.jwt.secret);
+      return jwt.verify(token, config.jwt.secret, { algorithms: ['HS256'] });
     } catch (error) {
       throw new Error('Invalid or expired token');
     }
   }
 
   /**
-   * Refresh access token
+   * Generate tokens and persist the refresh token so it can be revoked later.
    */
-  async refreshAccessToken(refreshToken: string): Promise<AuthTokens> {
+  async issueTokens(user: User, meta: TokenMetadata = {}): Promise<AuthTokens> {
+    const tokens = this.generateTokens(user);
+    await refreshTokenModel.issue(user.id, tokens.refreshToken, meta);
+    return tokens;
+  }
+
+  /**
+   * Rotate a refresh token.
+   *
+   * The presented token is single-use: it is verified, consumed against the
+   * refresh_tokens table, and replaced. A user who has lost their session (or
+   * whose token was revoked, e.g. by logout on another device) cannot mint new
+   * access tokens.
+   */
+  async refreshAccessToken(refreshToken: string, meta: TokenMetadata = {}): Promise<AuthTokens> {
     try {
-      const decoded = jwt.verify(refreshToken, config.jwt.refreshSecret) as any;
-      const user = await this.findById(decoded.userId);
-      
-      if (!user) {
-        throw new Error('User not found');
-      }
-      
-      return this.generateTokens(user);
-    } catch (error) {
+      jwt.verify(refreshToken, config.jwt.refreshSecret, { algorithms: ['HS256'] });
+    } catch {
       throw new Error('Invalid refresh token');
     }
+
+    // Throws RefreshTokenError when the token is unknown, expired, revoked, or replayed.
+    const userId = await refreshTokenModel.consume(refreshToken);
+
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new Error('Invalid refresh token');
+    }
+
+    const tokens = await this.issueTokens(user, meta);
+    await refreshTokenModel.linkReplacement(refreshToken, tokens.refreshToken);
+    return tokens;
   }
 
   /**
@@ -248,38 +269,27 @@ class UserModel {
       accessibility_needs?: string;
     }
   ): Promise<User> {
+    // Accept camelCase aliases as well as snake_case, matching create().
+    const anyPrefs = preferences as Record<string, any>;
+    const FIELDS: Array<[string, string]> = [
+      ['language', 'language'],
+      ['preferred_area', 'preferredArea'],
+      ['experience_language', 'experienceLanguage'],
+      ['budget_min', 'budgetMin'],
+      ['budget_max', 'budgetMax'],
+      ['accessibility_needs', 'accessibilityNeeds'],
+    ];
+
     const updates: string[] = [];
     const values: any[] = [];
     let paramCount = 1;
-    
-    if (preferences.language !== undefined) {
-      updates.push(`language = $${paramCount++}`);
-      values.push(preferences.language);
-    }
-    
-    if (preferences.preferred_area !== undefined) {
-      updates.push(`preferred_area = $${paramCount++}`);
-      values.push(preferences.preferred_area);
-    }
-    
-    if (preferences.experience_language !== undefined) {
-      updates.push(`experience_language = $${paramCount++}`);
-      values.push(preferences.experience_language);
-    }
-    
-    if (preferences.budget_min !== undefined) {
-      updates.push(`budget_min = $${paramCount++}`);
-      values.push(preferences.budget_min);
-    }
-    
-    if (preferences.budget_max !== undefined) {
-      updates.push(`budget_max = $${paramCount++}`);
-      values.push(preferences.budget_max);
-    }
-    
-    if (preferences.accessibility_needs !== undefined) {
-      updates.push(`accessibility_needs = $${paramCount++}`);
-      values.push(preferences.accessibility_needs);
+
+    for (const [column, alias] of FIELDS) {
+      const value = anyPrefs[column] ?? anyPrefs[alias];
+      if (value !== undefined) {
+        updates.push(`${column} = $${paramCount++}`);
+        values.push(value);
+      }
     }
     
     updates.push(`updated_at = CURRENT_TIMESTAMP`);

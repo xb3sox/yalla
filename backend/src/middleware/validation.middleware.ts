@@ -1,11 +1,37 @@
 import { Request, Response, NextFunction } from 'express';
-import { ZodSchema, ZodError } from 'zod';
+import { z } from 'zod';
 import logger from '../utils/logger';
 
+type AnySchema = z.ZodType;
+
 /**
- * Validation middleware factory
+ * Shared 400 shape for all validation failures. Zod 4 reports issues
+ * (ZodError.issues); field paths keep the {body|query|params} prefix so
+ * clients can map errors back to request locations.
  */
-export const validate = (schema: ZodSchema) => {
+function validationError(res: Response, error: z.ZodError, message: string) {
+  const errors = error.issues.map((issue) => ({
+    field: issue.path.join('.'),
+    message: issue.message,
+  }));
+
+  logger.warn('Validation failed', { errors });
+
+  return res.status(400).json({
+    success: false,
+    error: {
+      code: 'VALIDATION_ERROR',
+      message,
+      details: errors,
+    },
+  });
+}
+
+/**
+ * Validate the full request against a schema shaped
+ * z.object({ body?, query?, params? }).
+ */
+export const validate = (schema: AnySchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       schema.parse({
@@ -15,120 +41,30 @@ export const validate = (schema: ZodSchema) => {
       });
       next();
     } catch (error) {
-      if (error instanceof ZodError) {
-        const errors = error.errors.map((err) => ({
-          field: err.path.join('.'),
-          message: err.message,
-        }));
-        
-        logger.warn('Validation failed', { errors });
-        
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid input data',
-            details: errors,
-          },
-        });
+      if (error instanceof z.ZodError) {
+        return validationError(res, error, 'Invalid input data');
       }
-      
       next(error);
     }
   };
 };
 
 /**
- * Validate request body
+ * Validate only the request body. Schemas are shaped
+ * z.object({ body: z.object({...}) }) to match validate(), so wrap the raw
+ * body for parsing and store back the parsed (stripped + defaulted) inner
+ * object.
  */
-export const validateBody = (schema: ZodSchema) => {
+export const validateBody = (schema: AnySchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      req.body = schema.parse(req.body);
+      const parsed = schema.parse({ body: req.body }) as { body: unknown };
+      req.body = parsed.body;
       next();
     } catch (error) {
-      if (error instanceof ZodError) {
-        const errors = error.errors.map((err) => ({
-          field: err.path.join('.'),
-          message: err.message,
-        }));
-        
-        logger.warn('Body validation failed', { errors });
-        
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid request body',
-            details: errors,
-          },
-        });
+      if (error instanceof z.ZodError) {
+        return validationError(res, error, 'Invalid request body');
       }
-      
-      next(error);
-    }
-  };
-};
-
-/**
- * Validate request query
- */
-export const validateQuery = (schema: ZodSchema) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    try {
-      req.query = schema.parse(req.query) as any;
-      next();
-    } catch (error) {
-      if (error instanceof ZodError) {
-        const errors = error.errors.map((err) => ({
-          field: err.path.join('.'),
-          message: err.message,
-        }));
-        
-        logger.warn('Query validation failed', { errors });
-        
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid query parameters',
-            details: errors,
-          },
-        });
-      }
-      
-      next(error);
-    }
-  };
-};
-
-/**
- * Validate request params
- */
-export const validateParams = (schema: ZodSchema) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    try {
-      req.params = schema.parse(req.params);
-      next();
-    } catch (error) {
-      if (error instanceof ZodError) {
-        const errors = error.errors.map((err) => ({
-          field: err.path.join('.'),
-          message: err.message,
-        }));
-        
-        logger.warn('Params validation failed', { errors });
-        
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Invalid path parameters',
-            details: errors,
-          },
-        });
-      }
-      
       next(error);
     }
   };

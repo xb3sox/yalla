@@ -2,14 +2,14 @@ import { Request, Response } from 'express';
 import experienceModel from '../models/experience.model';
 import logger from '../utils/logger';
 import { invalidateExperienceCache } from '../middleware/cache.middleware';
+import { parsePagination } from '../utils/pagination';
 
 /**
  * Get all published experiences
  */
 export const getExperiences = async (req: Request, res: Response) => {
   try {
-    const limit = parseInt(req.query.limit as string) || 50;
-    const offset = parseInt(req.query.offset as string) || 0;
+    const { limit, offset } = parsePagination(req.query);
     
     const experiences = await experienceModel.findAllPublished(limit, offset);
     

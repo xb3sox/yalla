@@ -17,17 +17,26 @@ Production deployment guide for Yalla: Managed Experience Discovery Platform.
 ## 2. Environment Variables
 
 ### Frontend (`.env`)
+
 ```bash
-VITE_API_URL=https://api.yalla.example.com
-VITE_ENABLE_ANALYTICS=false
+VITE_API_URL=https://api.yalla.example.com/api/v1
 ```
 
+`VITE_API_URL` is the only frontend variable the app reads; it defaults to
+`http://localhost:3000/api/v1` when unset. Set it to the public API origin
+including the `/api/v1` prefix.
+
 ### Backend (`backend/.env`)
+
 ```bash
 NODE_ENV=production
 PORT=3000
 API_VERSION=v1
 CORS_ORIGIN=https://yalla.example.com
+
+# Reverse proxy hops trusted for client IP (set 1 behind a single ingress such
+# as Nginx, ALB, or Cloudflare; rate limits key on the resolved client IP)
+TRUST_PROXY=1
 
 # Database
 DATABASE_URL=postgresql://yalla_user:secure_password@localhost:5432/yalla_prod
@@ -36,11 +45,15 @@ DB_PORT=5432
 DB_NAME=yalla_prod
 DB_USER=yalla_user
 DB_PASSWORD=secure_password
+# Keep certificate verification on; set to false only for self-signed bundles
+DB_SSL_REJECT_UNAUTHORIZED=true
 
 # Authentication (Must be cryptographically random 64-char strings)
 JWT_SECRET=<generated-secret>
 JWT_REFRESH_SECRET=<generated-secret>
 SESSION_SECRET=<generated-secret>
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=30d
 
 # External Services
 STRIPE_SECRET_KEY=sk_live_...
@@ -52,6 +65,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 ## 3. Database Migration & Initialization
 
 In the `backend/` directory:
+
 ```bash
 # Execute schema migrations
 npm run migrate

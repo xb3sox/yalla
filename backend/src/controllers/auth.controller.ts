@@ -2,8 +2,18 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import userModel, { CreateUserInput, LoginInput } from '../models/user.model';
 import privacyService from '../services/privacy.service';
+import refreshTokenModel from '../models/refresh_token.model';
 import { AuthRequest } from '../middleware/auth.middleware';
 import logger from '../utils/logger';
+
+/**
+ * Client context stored alongside a refresh token so sessions can be audited
+ * and revoked per device.
+ */
+const tokenMeta = (req: Request) => ({
+  userAgent: req.get('user-agent') || undefined,
+  ipAddress: req.ip,
+});
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -11,7 +21,9 @@ export const accessCookieOptions = {
   httpOnly: true,
   secure: isProduction,
   sameSite: 'lax' as const,
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  // Short-lived by design: access tokens carry no revocation list, so the
+  // refresh token (rotated on every use) is what actually bounds a session.
+  maxAge: 15 * 60 * 1000, // 15 minutes
 };
 
 export const refreshCookieOptions = {
@@ -95,8 +107,8 @@ export const register = async (req: Request, res: Response) => {
     // Create user
     const user = await userModel.create(input);
     
-    // Generate tokens
-    const tokens = userModel.generateTokens(user);
+    // Generate tokens and persist the refresh token for revocation
+    const tokens = await userModel.issueTokens(user, tokenMeta(req));
     
     logger.info('User registered', { userId: user.id, phone: user.phone });
     
@@ -196,7 +208,7 @@ export const refreshToken = async (req: Request, res: Response) => {
       });
     }
 
-    const tokens = await userModel.refreshAccessToken(token);
+    const tokens = await userModel.refreshAccessToken(token, tokenMeta(req));
 
     // Set updated httpOnly secure cookies
     res.cookie('access_token', tokens.accessToken, accessCookieOptions);
@@ -207,6 +219,11 @@ export const refreshToken = async (req: Request, res: Response) => {
       data: { tokens },
     });
   } catch (error: any) {
+    logger.warn('Refresh token rejected', { reason: error?.message });
+    // Never leave a dead token in the jar: the client cannot clear HttpOnly
+    // cookies itself, so it would retry forever.
+    res.clearCookie('refresh_token', clearCookieOptions);
+
     res.status(401).json({
       success: false,
       error: {
@@ -222,6 +239,13 @@ export const refreshToken = async (req: Request, res: Response) => {
  */
 export const logout = async (req: Request, res: Response) => {
   try {
+    // Revoke server-side, otherwise the refresh cookie stays valid for its full
+    // lifetime on any device that copied it.
+    const refreshTokenValue = req.cookies?.refresh_token || req.body?.refreshToken;
+    if (refreshTokenValue) {
+      await refreshTokenModel.revoke(refreshTokenValue);
+    }
+
     res.clearCookie('access_token', clearCookieOptions);
     res.clearCookie('refresh_token', clearCookieOptions);
 
@@ -397,6 +421,7 @@ export const deleteAccount = async (req: AuthRequest, res: Response) => {
       });
     }
     
+    await refreshTokenModel.revokeAllForUser(req.user.userId);
     await privacyService.anonymizeAndDeleteAccount(req.user.userId, req.ip, req.user.role);
     
     logger.info('User account deleted', { userId: req.user.userId });

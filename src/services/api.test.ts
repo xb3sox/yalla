@@ -145,6 +145,61 @@ describe('API Client', () => {
         .rejects.toThrow('Invalid credentials');
     });
 
+    it('shares a single in-flight refresh across concurrent 401s', async () => {
+      // Refresh tokens are single-use server-side; parallel refreshes would be
+      // treated as replay and kill the session.
+      let refreshCalls = 0;
+
+      mockFetch.mockImplementation((url: string) => {
+        if (String(url).includes('/auth/refresh')) {
+          refreshCalls += 1;
+          return new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: () =>
+                    Promise.resolve({
+                      success: true,
+                      data: { tokens: { accessToken: 'fresh-token' } },
+                    }),
+                }),
+              10
+            )
+          );
+        }
+        // First call for each request: unauthorized. Retry: succeeds.
+        if (!apiClient.getToken() || apiClient.getToken() === 'stale') {
+          return Promise.resolve({
+            ok: false,
+            status: 401,
+            json: () => Promise.resolve({ success: false, error: { message: 'expired' } }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ success: true, data: {} }),
+        });
+      });
+
+      apiClient.setTokens('stale');
+
+      await Promise.all([
+        api.auth.me().catch(() => undefined),
+        api.auth.me().catch(() => undefined),
+        api.auth.me().catch(() => undefined),
+      ]);
+
+      expect(refreshCalls).toBe(1);
+      expect(apiClient.getToken()).toBe('fresh-token');
+
+      // Reset shared client state so later tests start clean: the successful
+      // responses above were cached, and the mock implementation is sticky.
+      apiClient.clearCache();
+      apiClient.clearTokens();
+      mockFetch.mockReset();
+    });
+
     it('should include authorization header when authenticated', async () => {
       apiClient.setTokens('test-token');
       

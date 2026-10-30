@@ -1,3 +1,5 @@
+jest.mock('stripe', () => require('../helpers/stripeMock').stripeMockFactory());
+
 import request from 'supertest';
 import app from '../../src/server';
 import pool from '../../src/config/database';
@@ -15,13 +17,7 @@ describe('Complete User Journey - Participant', () => {
     await pool.query("DELETE FROM experiences WHERE title = 'E2E Test Experience'");
   });
 
-  afterAll(async () => {
-    // Clean up test data
-    if (paymentId) await pool.query('DELETE FROM payments WHERE id = $1', [paymentId]);
-    if (reservationId) await pool.query('DELETE FROM reservations WHERE id = $1', [reservationId]);
-    if (experienceId) await pool.query('DELETE FROM experiences WHERE id = $1', [experienceId]);
-    await pool.query("DELETE FROM users WHERE phone = '+966509999991'");
-  });
+  // No per-file cleanup: tests/setup.ts wipes all tables before each file.
 
   describe('Step 1: Registration', () => {
     it('should register a new participant', async () => {
@@ -87,7 +83,7 @@ describe('Complete User Journey - Participant', () => {
           title_ar: 'تجربة اختبار E2E',
           description: 'Test experience for E2E testing',
           description_ar: 'تجربة اختبار للاختبار الشامل',
-          date: '2026-03-15',
+          date: '2027-03-15',
           time: '10:00',
           duration: '2 hours',
           duration_minutes: 120,
@@ -312,7 +308,7 @@ describe('Complete User Journey - Participant', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data.reservation.state).toBe('cancelled_by_participant');
+      expect(response.body.data.reservation.state).toBe('refunded') // cancellation engine advances to refunded when a full refund is due;
     });
   });
 

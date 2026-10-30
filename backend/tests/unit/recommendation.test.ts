@@ -3,13 +3,14 @@ import userModel from '../../src/models/user.model';
 import experienceModel from '../../src/models/experience.model';
 import reservationModel from '../../src/models/reservation.model';
 import { Request, Response } from 'express';
+import { AuthRequest } from '../../src/middleware/auth.middleware';
 
 jest.mock('../../src/models/user.model');
 jest.mock('../../src/models/experience.model');
 jest.mock('../../src/models/reservation.model');
 
 describe('Recommendation Controller', () => {
-  let mockReq: Partial<Request>;
+  let mockReq: Partial<AuthRequest>;
   let mockRes: Partial<Response>;
 
   beforeEach(() => {

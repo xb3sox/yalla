@@ -1,18 +1,22 @@
 # Yalla Database Schema Specification
 
-PostgreSQL 15 schema specification and migration guide.
+PostgreSQL 17 schema specification and migration guide.
 
 ---
 
 ## 1. Migration Management
 
 Migrations reside in `backend/src/migrations/`:
+
 - `001_initial_schema.ts` — Core tables: users, experiences, reservations, notifications, audit_logs, safety_cases, support_requests, favorites, user_blocks, feedbacks
 - `002_add_payments_table.ts` — Stripe payment transaction ledger
 - `003_add_receipt_url_to_payments.ts` — Stripe receipt URL storage
 - `004_add_rewards_table.ts` — User points balances and transaction history
+- `005_add_refunds_table.ts` — Refund ledger tied to reservations and payments
+- `006_add_refresh_tokens.ts` — Hashed, revocable refresh tokens (rotation + reuse detection)
 
 ### Commands (execute in `backend/`)
+
 ```bash
 npm run migrate           # Execute all pending migrations
 npm run migrate:rollback  # Roll back last migration batch
@@ -48,6 +52,7 @@ erDiagram
 ## 3. Tables & Schema
 
 ### `users`
+
 - `id` (UUID, Primary Key)
 - `email` (VARCHAR(255), UNIQUE, NOT NULL)
 - `password_hash` (VARCHAR(255), NOT NULL)
@@ -59,6 +64,7 @@ erDiagram
 - `created_at` / `updated_at` (TIMESTAMPTZ)
 
 ### `experiences`
+
 - `id` (UUID, Primary Key)
 - `title_en` / `title_ar` (VARCHAR(255), NOT NULL)
 - `description_en` / `description_ar` (TEXT)
@@ -74,6 +80,7 @@ erDiagram
 - `created_at` / `updated_at` (TIMESTAMPTZ)
 
 ### `reservations`
+
 - `id` (UUID, Primary Key)
 - `user_id` (UUID, NOT NULL, FK -> users.id)
 - `experience_id` (UUID, NOT NULL, FK -> experiences.id)
@@ -83,6 +90,7 @@ erDiagram
 - `created_at` / `updated_at` (TIMESTAMPTZ)
 
 ### `payments`
+
 - `id` (UUID, Primary Key)
 - `reservation_id` (UUID, NOT NULL, UNIQUE, FK -> reservations.id)
 - `user_id` (UUID, NOT NULL, FK -> users.id)
@@ -94,10 +102,12 @@ erDiagram
 - `created_at` / `updated_at` (TIMESTAMPTZ)
 
 ### `rewards` & `reward_transactions`
+
 - `rewards`: `user_id` (UUID, PK), `points_balance` (INTEGER), `tier` (VARCHAR)
 - `reward_transactions`: `id` (UUID, PK), `user_id` (UUID, FK), `points` (INTEGER), `type` (`'earned'`, `'redeemed'`, `'adjusted'`), `description` (TEXT), `created_at` (TIMESTAMPTZ)
 
 ### `feedbacks`
+
 - `id` (UUID, Primary Key)
 - `reservation_id` (UUID, NOT NULL, UNIQUE, FK -> reservations.id)
 - `experience_id` (UUID, NOT NULL, FK -> experiences.id)
@@ -108,6 +118,7 @@ erDiagram
 - `created_at` (TIMESTAMPTZ)
 
 ### `safety_cases`
+
 - `id` (UUID, Primary Key)
 - `reporter_id` (UUID, NOT NULL, FK -> users.id)
 - `reported_id` (UUID, FK -> users.id)
@@ -119,6 +130,7 @@ erDiagram
 - `created_at` / `updated_at` (TIMESTAMPTZ)
 
 ### `audit_logs`
+
 - `id` (UUID, Primary Key)
 - `actor_id` (UUID, FK -> users.id)
 - `action` (VARCHAR(100), NOT NULL)

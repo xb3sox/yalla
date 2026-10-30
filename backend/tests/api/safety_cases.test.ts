@@ -16,10 +16,10 @@ describe('Safety Cases API', () => {
       .send({
         phone: '+966501111111',
         password: 'password123',
-        displayName: 'Safety Test Participant',
+        display_name: 'Safety Test Participant',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
     const participantLogin = await request(app)
@@ -42,10 +42,10 @@ describe('Safety Cases API', () => {
       .send({
         phone: '+966509999999',
         password: 'password123',
-        displayName: 'Trust & Safety Staff',
+        display_name: 'Trust & Safety Staff',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
     await pool.query(
@@ -67,10 +67,10 @@ describe('Safety Cases API', () => {
       .send({
         phone: '+966508888888',
         password: 'password123',
-        displayName: 'Admin User',
+        display_name: 'Admin User',
         language: 'en',
-        adultDeclarationAccepted: true,
-        termsAccepted: true,
+        adult_declaration_accepted: true,
+        terms_accepted: true,
       });
 
     await pool.query(
@@ -87,15 +87,7 @@ describe('Safety Cases API', () => {
     adminToken = adminLogin.body.data.tokens.accessToken;
   });
 
-  afterAll(async () => {
-    // Clean up
-    if (testSafetyCaseId) {
-      await pool.query('DELETE FROM safety_cases WHERE id = $1', [testSafetyCaseId]);
-    }
-    await pool.query("DELETE FROM users WHERE phone = '+966501111111'");
-    await pool.query("DELETE FROM users WHERE phone = '+966509999999'");
-    await pool.query("DELETE FROM users WHERE phone = '+966508888888'");
-  });
+  // No per-file cleanup: tests/setup.ts wipes all tables before each file.
 
   describe('POST /api/v1/safety-cases', () => {
     it('should create a safety case', async () => {
@@ -250,10 +242,10 @@ describe('Safety Cases API', () => {
         .send({
           phone: '+966507777777',
           password: 'password123',
-          displayName: 'Another Participant',
+          display_name: 'Another Participant',
           language: 'en',
-          adultDeclarationAccepted: true,
-          termsAccepted: true,
+          adult_declaration_accepted: true,
+          terms_accepted: true,
         });
 
       const otherLogin = await request(app)
@@ -322,7 +314,7 @@ describe('Safety Cases API', () => {
         .post(`/api/v1/safety-cases/${testSafetyCaseId}/actions`)
         .set('Authorization', `Bearer ${trustSafetyToken}`)
         .send({
-          action_type: 'warning_issued',
+          action_type: 'warn',
           description: 'Warning issued to reported user',
           metadata: { warningLevel: 'severe' },
         });

@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth.middleware';
 import experienceModel, { EXPERIENCE_TRANSITIONS } from '../models/experience.model';
 import reservationModel from '../models/reservation.model';
 import auditModel from '../models/audit.model';
+import userModel from '../models/user.model';
 import { Parser } from 'json2csv';
 import ExcelJS from 'exceljs';
 import logger from '../utils/logger';
@@ -70,6 +71,16 @@ export const updateExperienceState = async (req: AuthRequest, res: Response) => 
       message: 'Experience state updated successfully',
     });
   } catch (error: any) {
+    if (error.message?.includes('Invalid state transition')) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_STATE_TRANSITION',
+          message: error.message,
+        },
+      });
+    }
+
     logger.error('Update experience state failed', { error: error.message });
     res.status(500).json({
       success: false,
@@ -109,6 +120,29 @@ export const assignHost = async (req: AuthRequest, res: Response) => {
           message: 'Experience not found',
         },
       });
+    }
+
+    // Host IDs are user UUIDs (FK). Reject malformed/unknown IDs with 400
+    // instead of letting Postgres throw an opaque 500.
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    for (const [field, value] of [
+      ['primary_host_id', primary_host_id],
+      ['backup_host_id', backup_host_id],
+    ] as const) {
+      if (value === undefined || value === null) continue;
+      const host =
+        typeof value === 'string' && UUID_RE.test(value)
+          ? await userModel.findById(value)
+          : null;
+      if (!host) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_HOST',
+            message: `${field} must reference an existing user`,
+          },
+        });
+      }
     }
 
     const updates: any = {};
@@ -208,6 +242,16 @@ export const updateReservationState = async (req: AuthRequest, res: Response) =>
       message: 'Reservation state updated successfully',
     });
   } catch (error: any) {
+    if (error.message?.includes('Invalid state transition')) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_STATE_TRANSITION',
+          message: error.message,
+        },
+      });
+    }
+
     logger.error('Update reservation state failed', { error: error.message });
     res.status(500).json({
       success: false,
@@ -218,6 +262,18 @@ export const updateReservationState = async (req: AuthRequest, res: Response) =>
     });
   }
 };
+
+// Spreadsheet formula injection: a display name like "=2+5+cmd|' /C calc'!A0"
+// executes when staff open an export in Excel/Sheets. Prefix such cells.
+const neutralizeSpreadsheetFormulas = (rows: Record<string, any>[]) =>
+  rows.map((row) =>
+    Object.fromEntries(
+      Object.entries(row).map(([key, value]) => [
+        key,
+        typeof value === 'string' && /^[=+\-@\t\r]/.test(value) ? `'${value}` : value,
+      ])
+    )
+  );
 
 /**
  * Get all reservations (staff)
@@ -292,7 +348,7 @@ export const exportReservations = async (req: AuthRequest, res: Response) => {
         { header: 'Experience Title', key: 'experience_title', width: 40 },
       ];
 
-      worksheet.addRows(result.rows);
+      worksheet.addRows(neutralizeSpreadsheetFormulas(result.rows));
 
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', 'attachment; filename=reservations.xlsx');
@@ -301,7 +357,7 @@ export const exportReservations = async (req: AuthRequest, res: Response) => {
       return res.end();
     } else {
       const json2csvParser = new Parser();
-      const csv = json2csvParser.parse(result.rows);
+      const csv = json2csvParser.parse(neutralizeSpreadsheetFormulas(result.rows));
 
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename=reservations.csv');
@@ -406,25 +462,25 @@ export const getDashboardStatistics = async (req: AuthRequest, res: Response) =>
     // Get total experiences
     const experiencesResult = await pool.query(`
       SELECT 
-        COUNT(*) as total,
-        COUNT(CASE WHEN plan_state = 'published' THEN 1 END) as published,
-        COUNT(CASE WHEN plan_state = 'draft' THEN 1 END) as draft
+        COUNT(*)::int as total,
+        COUNT(CASE WHEN plan_state = 'published' THEN 1 END)::int as published,
+        COUNT(CASE WHEN plan_state = 'draft' THEN 1 END)::int as draft
       FROM experiences
     `);
 
     // Get total reservations
     const reservationsResult = await pool.query(`
       SELECT 
-        COUNT(*) as total,
-        COUNT(CASE WHEN state = 'confirmed' THEN 1 END) as confirmed,
-        COUNT(CASE WHEN state = 'waitlisted' THEN 1 END) as waitlisted,
-        COUNT(CASE WHEN state = 'cancelled_by_participant' THEN 1 END) as cancelled
+        COUNT(*)::int as total,
+        COUNT(CASE WHEN state = 'confirmed' THEN 1 END)::int as confirmed,
+        COUNT(CASE WHEN state = 'waitlisted' THEN 1 END)::int as waitlisted,
+        COUNT(CASE WHEN state = 'cancelled_by_participant' THEN 1 END)::int as cancelled
       FROM reservations
     `);
 
     // Get total users
     const usersResult = await pool.query(`
-      SELECT COUNT(*) as total
+      SELECT COUNT(*)::int as total
       FROM users
       WHERE is_active = true
     `);

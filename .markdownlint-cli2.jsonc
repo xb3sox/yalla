@@ -1,0 +1,23 @@
+{
+  // markdownlint configuration — https://github.com/DavidAnson/markdownlint
+  // Run: npx markdownlint-cli2 "**/*.md" (node_modules is ignored by default)
+  "config": {
+    // Prose and table columns are not wrapped at a fixed width in this repo.
+    "MD013": false,
+    // Inline HTML is used intentionally (badges, <br/> in Mermaid, details blocks).
+    "MD033": false,
+    // Bold lead-ins are used as pseudo-headings in specs and plans.
+    "MD036": false,
+    // Table pipe alignment style is not enforced.
+    "MD060": false,
+    // Duplicate headings are valid across stacked spec/plan sections.
+    "MD024": { "siblings_only": true }
+  },
+  "globs": ["**/*.md"],
+  "ignores": [
+    "node_modules/**",
+    "backend/node_modules/**",
+    "docs/archive/**",
+    "CHANGELOG.md"
+  ]
+}

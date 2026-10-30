@@ -5,6 +5,7 @@ Autonomous coding workflow adhering to the Anthropic AI-Native SDLC Playbook.
 ---
 
 ## 1. Branch Conventions
+
 - Always branch from latest `main`.
 - Naming standard: `jules/<issue-id>-<short-description>` (e.g., `jules/issue-42-stripe-webhook`, `jules/sdlc-repo-reorganization`).
 
@@ -25,6 +26,7 @@ Autonomous coding workflow adhering to the Anthropic AI-Native SDLC Playbook.
 ---
 
 ## 3. Persona Invariants
+
 - **Sentinel (`.jules/sentinel.md`)**: No prototype pollution in recursive objects; zero DB leak in health endpoints.
 - **Bolt (`.jules/bolt.md`)**: Precompute Sets outside iterative loops ($O(N)$ vs $O(N \cdot M)$).
 - **Critic (`.jules/critic.md`)**: Strict zero-gap audit before submitting PRs.

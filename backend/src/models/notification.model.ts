@@ -129,7 +129,7 @@ class NotificationModel {
    */
   async getUnreadCount(recipientId: string): Promise<number> {
     const query = `
-      SELECT COUNT(*) as count
+      SELECT COUNT(*)::int as count
       FROM notifications
       WHERE recipient_id = $1 AND (state = 'queued' OR state = 'sent' OR delivered_at IS NULL)
     `;

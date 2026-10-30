@@ -29,6 +29,7 @@ class ApiClient {
   private sessionPossible = true;
   private cache: Map<string, { data: any; timestamp: number }> = new Map();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  private refreshPromise: Promise<boolean> | null = null;
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY = 1000; // 1 second
 
@@ -162,8 +163,25 @@ class ApiClient {
   /**
    * Refresh access token using the HttpOnly refresh cookie (credentials: 'include').
    * The client never reads or stores the refresh token itself.
+   *
+   * Refresh tokens are single-use: the server rotates them on every call and
+   * treats a replay as theft. Concurrent calls must therefore share one
+   * in-flight request, otherwise parallel 401s would race each other and
+   * invalidate the session.
    */
-  private async refreshAccessToken(): Promise<boolean> {
+  private refreshAccessToken(): Promise<boolean> {
+    if (!this.refreshPromise) {
+      const inFlight = this.performRefresh().finally(() => {
+        if (this.refreshPromise === inFlight) {
+          this.refreshPromise = null;
+        }
+      });
+      this.refreshPromise = inFlight;
+    }
+    return this.refreshPromise;
+  }
+
+  private async performRefresh(): Promise<boolean> {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: 'POST',
