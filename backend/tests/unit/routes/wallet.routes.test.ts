@@ -1,4 +1,4 @@
-import { getApplePass, getGooglePass, pushPassUpdate } from '../../../src/controllers/wallet.controller';
+import { getApplePass, getGooglePass, pushPassUpdate, getLatestPass } from '../../../src/controllers/wallet.controller';
 import reservationModel from '../../../src/models/reservation.model';
 import experienceModel from '../../../src/models/experience.model';
 
@@ -34,6 +34,7 @@ describe('Wallet Routes & Controller Unit Tests', () => {
   beforeEach(() => {
     req = {
       params: { id: 'res-101' },
+      headers: {},
       user: { userId: 'user-1', role: 'user' },
       body: {},
     };
@@ -140,6 +141,57 @@ describe('Wallet Routes & Controller Unit Tests', () => {
           reservationId: 'res-101',
         }),
       });
+    });
+  });
+
+  describe('GET /api/v1/wallet/v1/passes/:passTypeIdentifier/:serialNumber (getLatestPass)', () => {
+    it('returns 404 if reservation is not found', async () => {
+      req.params = { serialNumber: 'res-unknown' };
+      (reservationModel.findById as jest.Mock).mockResolvedValue(null);
+
+      await getLatestPass(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.send).toHaveBeenCalled();
+    });
+
+    it('returns 401 when Authorization header is missing', async () => {
+      req.params = { serialNumber: 'res-101' };
+      req.headers = {};
+      (reservationModel.findById as jest.Mock).mockResolvedValue(mockReservation);
+
+      await getLatestPass(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.send).toHaveBeenCalled();
+    });
+
+    it('returns 401 when Authorization header token does not match', async () => {
+      req.params = { serialNumber: 'res-101' };
+      req.headers = { authorization: 'ApplePass wrong_token' };
+      (reservationModel.findById as jest.Mock).mockResolvedValue(mockReservation);
+
+      await getLatestPass(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.send).toHaveBeenCalled();
+    });
+
+    it('returns 200 with pass buffer when Authorization header has valid ApplePass token', async () => {
+      req.params = { serialNumber: 'res-101' };
+      req.headers = { authorization: 'ApplePass auth_token_secret' };
+      (reservationModel.findById as jest.Mock).mockResolvedValue(mockReservation);
+      (experienceModel.findById as jest.Mock).mockResolvedValue(mockExperience);
+
+      await getLatestPass(req, res);
+
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/vnd.apple.pkpass');
+      expect(res.setHeader).toHaveBeenCalledWith(
+        'Content-Disposition',
+        expect.stringContaining('yalla-pass-res-101.pkpass')
+      );
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(expect.any(Buffer));
     });
   });
 });
