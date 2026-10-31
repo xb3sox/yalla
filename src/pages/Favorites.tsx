@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useApp } from '../data/store';
 import { t } from '../i18n';
 import { ExperienceCard, EmptyState, Button } from '../components/DesignSystem';
@@ -12,9 +13,13 @@ export function FavoritesPage({ onSelectExperience, onExplore }: FavoritesPagePr
   const { state } = useApp();
   const lang = state.language;
   
-  const favoriteExperiences = state.experiences.filter(exp => 
-    state.favorites.includes(exp.id)
-  );
+  // Performance optimization: Precompute favorite IDs into a Set for O(1) membership lookups
+  // and memoize the filtered list, reducing filtering time complexity from O(N * M) to O(N + M)
+  // and skipping redundant array iterations across re-renders.
+  const favoriteExperiences = useMemo(() => {
+    const favoriteSet = new Set(state.favorites);
+    return state.experiences.filter(exp => favoriteSet.has(exp.id));
+  }, [state.experiences, state.favorites]);
 
   return (
     <div className="px-5 pt-4 pb-28">
