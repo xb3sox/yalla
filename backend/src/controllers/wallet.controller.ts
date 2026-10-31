@@ -218,6 +218,15 @@ export const getLatestPass = async (req: AuthRequest, res: Response) => {
       return res.status(404).send();
     }
 
+    // Security: Apple Wallet Web Service protocol requires "Authorization: ApplePass <authenticationToken>"
+    // Verify the client provides the pass's matching authenticationToken before streaming pass data.
+    const authHeader = req.headers.authorization;
+    const expectedToken = reservation.idempotency_key || 'auth_token_secret';
+    if (!authHeader || authHeader !== `ApplePass ${expectedToken}`) {
+      logger.warn('Unauthorized Apple Wallet pass access attempt', { serialNumber });
+      return res.status(401).send();
+    }
+
     const experience = await experienceModel.findById(reservation.experience_id);
     if (!experience) {
       return res.status(404).send();
