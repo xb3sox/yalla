@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../data/store';
 import { t } from '../i18n';
 import { api } from '../services/api';
@@ -14,6 +14,17 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
   const lang = state.language;
   const [category, setCategory] = useState<string>('all');
   const userNotifications = state.notifications.filter(n => n.recipientId === 'user-1');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const filteredNotifications = userNotifications.filter(notif => {
     if (category === 'all') return true;
@@ -77,6 +88,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
       <div
         className="fixed top-14 end-4 w-84 max-h-96 bg-surface-raised rounded-xl shadow-lg border border-border z-50 overflow-hidden slide-up flex flex-col"
         role="dialog"
+        aria-modal="true"
         aria-label={t('nav.notifications', lang)}
       >
         {/* Header */}
