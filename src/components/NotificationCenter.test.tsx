@@ -50,6 +50,24 @@ describe('NotificationCenter Component', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it('should handle Escape key press to close', () => {
+    const onClose = vi.fn();
+    renderWithProvider(
+      <NotificationCenter isOpen={true} onClose={onClose} />
+    );
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('should have aria-modal attribute', () => {
+    renderWithProvider(
+      <NotificationCenter isOpen={true} onClose={() => {}} />
+    );
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.getAttribute('aria-modal')).toBe('true');
+  });
+
   it('should have backdrop', () => {
     renderWithProvider(
       <NotificationCenter isOpen={true} onClose={() => {}} />
