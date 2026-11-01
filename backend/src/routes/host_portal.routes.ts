@@ -9,6 +9,7 @@ import {
   verifyPin,
 } from '../controllers/host_portal.controller';
 import { authenticate, requireRole } from '../middleware/auth.middleware';
+import { rateLimitPin } from '../middleware/rateLimiter.middleware';
 
 const router = Router();
 
@@ -35,6 +36,7 @@ router.get('/payouts', getPayouts);
 router.get('/experiences/:id/roster', getExperienceRoster);
 
 // POST /api/v1/host/experiences/:id/verify-pin
-router.post('/experiences/:id/verify-pin', verifyPin);
+// Rate limit PIN verification to prevent brute-force attacks against short attendee check-in PINs
+router.post('/experiences/:id/verify-pin', rateLimitPin, verifyPin);
 
 export default router;
