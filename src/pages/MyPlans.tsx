@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../data/store';
 import { useToast } from '../components/Toast';
 import { t } from '../i18n';
@@ -77,7 +77,14 @@ export function MyPlansPage({ onViewExperience, onGoToArrival, onGoToFeedback, i
   const cancelled = userReservations.filter(r => ['cancelled_by_participant', 'cancelled_by_yalla'].includes(r.state));
   const past = userReservations.filter(r => ['completed', 'attended'].includes(r.state));
 
-  const getExperience = (planId: string) => state.experiences.find(e => e.id === planId);
+  // Performance optimization: Precompute experience lookup into an ID-indexed Map for O(1) retrieval
+  // instead of scanning state.experiences via O(E) .find() for every rendered reservation card,
+  // reducing cumulative lookup time complexity across reservation sections from O(R * E) to O(R + E).
+  const experiencesMap = useMemo(() => {
+    return new Map(state.experiences.map(e => [e.id, e]));
+  }, [state.experiences]);
+
+  const getExperience = (planId: string) => experiencesMap.get(planId);
 
   const getNextAction = (reservation: typeof userReservations[0]) => {
     // Check if reservation is expired
