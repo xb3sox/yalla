@@ -1,7 +1,8 @@
 import express, { Request, Response, NextFunction } from 'express';
 import request from 'supertest';
 import pool from '../../src/config/database';
-import { sanitizeInput, healthCheck, securityHeaders } from '../../src/middleware/security.middleware';
+import cors from 'cors';
+import { sanitizeInput, healthCheck, securityHeaders, corsOptions } from '../../src/middleware/security.middleware';
 
 jest.mock('../../src/config/database', () => ({
   __esModule: true,
@@ -59,6 +60,42 @@ describe('Security Middleware', () => {
       const response = await request(app).get('/test');
 
       expect(response.headers['x-frame-options']).toBe('DENY');
+    });
+  });
+
+  describe('corsOptions', () => {
+    let app: express.Application;
+
+    beforeEach(() => {
+      app = express();
+      app.use(cors(corsOptions));
+      app.get('/test-cors', (_req, res) => {
+        res.status(200).json({ ok: true });
+      });
+    });
+
+    it('should allow requests from whitelisted origin with credentials', async () => {
+      const response = await request(app)
+        .get('/test-cors')
+        .set('Origin', 'http://localhost:5173');
+
+      expect(response.headers['access-control-allow-origin']).toBe('http://localhost:5173');
+      expect(response.headers['access-control-allow-credentials']).toBe('true');
+    });
+
+    it('should not allow unauthorized origin to receive access-control-allow-origin', async () => {
+      const response = await request(app)
+        .get('/test-cors')
+        .set('Origin', 'https://malicious-site.com');
+
+      expect(response.headers['access-control-allow-origin']).toBeUndefined();
+    });
+
+    it('should allow requests without origin (non-browser or server-to-server)', async () => {
+      const response = await request(app).get('/test-cors');
+
+      expect(response.status).toBe(200);
+      expect(response.headers['access-control-allow-origin']).toBeUndefined();
     });
   });
 
