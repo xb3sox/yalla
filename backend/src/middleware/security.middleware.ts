@@ -115,9 +115,26 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
 
 /**
  * CORS configuration
+ * Restricts cross-origin requests to trusted origins. When credentials are enabled
+ * (cookies/authorization headers), origins must match the whitelist explicitly
+ * to prevent cross-origin data exfiltration and CSRF-like credential leakage.
  */
+const allowedOrigins = new Set(
+  (config.cors.origin || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+);
+
 export const corsOptions = {
-  origin: config.cors.origin,
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow non-browser requests (e.g. mobile native plugins, curl, server-to-server) or whitelisted origins
+    if (!origin || allowedOrigins.has(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   credentials: config.cors.credentials,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
